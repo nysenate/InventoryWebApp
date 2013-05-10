@@ -1,0 +1,12 @@
+connectionString=driver:@server:port:database
+user=username
+password=password
+myWpAPI=myWpAPI
+pickupEmailto1=
+pickupEmailNameTo1=
+pickupEmailTo2=
+pickupEmailNameTo1=
+pickupEmailFrom=
+pickupEmailNameFrom=
+pickupReceiptURL=
+smtpServer=
