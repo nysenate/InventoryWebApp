@@ -126,7 +126,7 @@ public class DbConnect {
         } catch (SQLException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println("incorrect user");
-            return "Incorrect user name";
+            return loginStatus;
 
         } catch (IOException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.SEVERE, null, ex);
@@ -137,13 +137,16 @@ public class DbConnect {
      * ---------------Function to return details of given barcode (item details)
      *----------------------------------------------------------------------------------------------------*/
 
-    public String getDetails(int barcode_num) {
-        String details = null;
+    public String getDetails(int barcodeNum) {
+       if((barcodeNum<=0) ){
+           throw new IllegalArgumentException("Invalid Barcode Number");
+       }
+       String details = null;
         try {
             Connection conn = db_conn();
             CallableStatement cs = conn.prepareCall("{?=call PATIL.GET_INV_DETAILS(?)}");
             cs.registerOutParameter(1, Types.VARCHAR);
-            cs.setInt(2, barcode_num);
+            cs.setInt(2, barcodeNum);
             cs.executeUpdate();
             details = cs.getString(1);
             System.out.println(details);
@@ -158,14 +161,16 @@ public class DbConnect {
      * ---------------Function to return details related to given location code( Address, type etc) 
      *----------------------------------------------------------------------------------------------------*/
 
-    public String getInvLocDetails(String loc_code) {
-
+    public String getInvLocDetails(String locCode) {
+        if(locCode.isEmpty()||locCode==null){
+             throw new IllegalArgumentException("Invalid location Code");
+        }   
         String details = null;
         try {
             Connection conn = db_conn();
             CallableStatement cs = conn.prepareCall("{?=call PATIL.INV_APP.GET_INV_LOC_CODE(?)}");
             cs.registerOutParameter(1, Types.VARCHAR);
-            cs.setString(2, loc_code);
+            cs.setString(2, locCode);
             cs.executeUpdate();
             details = cs.getString(1);
             System.out.println(details);
@@ -179,7 +184,11 @@ public class DbConnect {
      * ---------------Function to return arraylist of all the items at a given location codes 
      *----------------------------------------------------------------------------------------------------*/
 
-    public ArrayList getLocationItemList(String loc_code) {
+    public ArrayList getLocationItemList(String locCode) {
+         if(locCode.isEmpty()||locCode==null){
+             throw new IllegalArgumentException("Invalid location Code");
+        } 
+         
         ArrayList<VerList> itemList = new ArrayList<VerList>();
         try {
             Connection conn = db_conn();
@@ -190,7 +199,7 @@ public class DbConnect {
                     + " WHERE A.CDSTATUS='A'"
                     + " AND A.NUXREFSN=B.NUXREFSN"
                     + " AND B.NUXREFCO=C.NUXREFCO"
-                    + " and b.cdlocatto='" + loc_code + "'";
+                    + " and b.cdlocatto='" + locCode + "'";
 
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
@@ -215,6 +224,9 @@ public class DbConnect {
      *----------------------------------------------------------------------------------------------------*/
 
     public ArrayList getLocCodes(String natype) {
+          if(natype.isEmpty()||natype==null){
+             throw new IllegalArgumentException("Invalid location Code");
+        }  
         ArrayList<String> locCodes = new ArrayList<String>();
         try {
             Connection conn = db_conn();
@@ -243,6 +255,9 @@ public class DbConnect {
      * ---------------Function to insert items found at given location(barcodes) for verification
      *----------------------------------------------------------------------------------------------------*/
     public int setBarcodesInDatabase(String cdlocat, String barcodes[]) {
+        if(cdlocat.isEmpty()||barcodes==null){
+             throw new IllegalArgumentException("Invalid location Code");
+        } 
         int result = 0;
         String r = "";
         try {
@@ -275,6 +290,9 @@ public class DbConnect {
      *----------------------------------------------------------------------------------------------------*/
 
     public int invTransit(String CDLOCATFROM, String CDLOCATTO, String[] barcode, String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN, String DEPUCOMMENTS) {
+       if(CDLOCATFROM.isEmpty()||CDLOCATTO==null||barcode==null){
+             throw new IllegalArgumentException("Invalid CDLOCATFROM or CDLOCATTO or barcode");
+        } 
         int nuxrpd = 0;
 
         try {
@@ -334,6 +352,9 @@ public class DbConnect {
      *----------------------------------------------------------------------------------------------------*/
 
     public ArrayList getDeliveryList(String locCode) {
+        if(locCode.isEmpty()){
+             throw new IllegalArgumentException("Invalid locCode");
+        } 
         ArrayList<String> pickupList = new ArrayList<String>();
         try {
             Connection conn = db_conn();
@@ -368,6 +389,9 @@ public class DbConnect {
      *----------------------------------------------------------------------------------------------------*/
 
     public ArrayList getDeliveryDetails(String nuxrpd) {
+        if(nuxrpd.isEmpty()){
+             throw new IllegalArgumentException("Invalid locCode");
+        } 
         ArrayList<String> deliveryDetails = new ArrayList<String>();
         try {
             Connection conn = db_conn();
@@ -408,6 +432,9 @@ public class DbConnect {
      *----------------------------------------------------------------------------------------------------*/
 
     public int insertSignature(byte[] imageInArray, int nuxrefem, String nauser) {
+       if(imageInArray==null||nuxrefem<0||nauser==null){
+           throw new IllegalArgumentException("Invalid imageInArray or nuxrefem or nauser");
+       }
         Connection con = db_conn();
         System.out.println("DbConnect insertSignature byte Image Length:" + imageInArray.length);
 
@@ -482,6 +509,9 @@ public class DbConnect {
      * ---------------Function to 
      *----------------------------------------------------------------------------------------------------*/
     public ArrayList<Employee> getEmployeeList(String nalast) {
+        if(nalast==null){
+            throw new IllegalArgumentException("Invalid nalast");
+        }
         return getEmployeeList(nalast, "A");
     }
     /*-------------------------------------------------------------------------------------------------------
@@ -489,7 +519,10 @@ public class DbConnect {
      *----------------------------------------------------------------------------------------------------*/
 
     public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus) {
-        ArrayList<Employee> employeeList = new ArrayList<Employee>();
+     if(nalast.isEmpty()||cdempstatus.isEmpty()){
+     throw new IllegalArgumentException("Invalid nalst or cdempstatus");    
+     }
+     ArrayList<Employee> employeeList = new ArrayList<Employee>();
         try {
             Connection conn = db_conn();
             Statement stmt = conn.createStatement();
@@ -522,6 +555,10 @@ public class DbConnect {
      * ---------------Function to confirm delivery i.e. updates the FD12Issue table and changes location-----
      *------------------------------------------------------------------------------------------------------*/
     public int confirmDelivery(String nuxrpd, String NUXRACCPTSIGN, String NADELIVERBY, String NAACCEPTBY, ArrayList deliveryList, ArrayList notDeliveredList, String DEDELCOMMENTS) {
+      if(nuxrpd.isEmpty()||NUXRACCPTSIGN.isEmpty()||NADELIVERBY.isEmpty()||NAACCEPTBY.isEmpty()){
+          throw new IllegalArgumentException("Invalid arguments");
+      }
+        
         System.out.println("confirmDelivery nuxrpd " + nuxrpd);
         int result = -1;
         try {
@@ -601,6 +638,9 @@ public class DbConnect {
      * ---------------Function to create new delivery i.e. inserts new records into FM12InvInTrans-----
      *----------------------------------------------------------------------------------------------------*/
     public int createNewDelivery(String nuxrpd, String[] barcode) {
+      if(nuxrpd==null||barcode==null){
+          throw new IllegalArgumentException("Invalid nuxrpd or barcode");
+      }
         try {
             String CDLOCATFROM = "";
             String CDLOCATTO = "";
