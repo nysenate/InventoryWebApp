@@ -54,7 +54,7 @@ public class Login extends HttpServlet {
              //  Use this code if we decide to create a new table for user name and password and 
              // validate it from database function
              DbConnect db=new DbConnect();
-             status= db.validate_user(user, pwd);  
+             status= db.validateUser(user, pwd);  
 
              
              

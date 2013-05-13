@@ -62,7 +62,7 @@ public class DbConnect {
         ArrayList<String> a = new ArrayList<String>();//= new ArrayList<String>();
         //  int   b= db.confirmDelivery("83", "1234", "vvv", "accpt", a, a);
         //  int   b= db.confirmDelivery("83", "1234", "vvv", "accpt", a, a);
-        //    db_conn();
+        //    getDbConnection();
         // System.out.println(b);
        
         // prop.load(DbConnect.class.getClassLoader().getResourceAsStream("config.properties");)); 
@@ -74,7 +74,7 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to establish and return database connection 
      *----------------------------------------------------------------------------------------------------*/
-    public static Connection db_conn() {
+    public static Connection getDbConnection() {
 
         Connection conn = null;
         try {
@@ -107,7 +107,7 @@ public class DbConnect {
      * ---------------Function to check if user name and password matches
      *----------------------------------------------------------------------------------------------------*/
 
-    public String validate_user(String user, String pwd) {
+    public String validateUser(String user, String pwd) {
         String loginStatus = "Not Valid";
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
@@ -139,11 +139,12 @@ public class DbConnect {
 
     public String getDetails(int barcodeNum) {
        if((barcodeNum<=0) ){
+           System.out.println("Error in DbConnect.getDetails() - Barcode Number Not Valid");
            throw new IllegalArgumentException("Invalid Barcode Number");
        }
        String details = null;
         try {
-            Connection conn = db_conn();
+            Connection conn = getDbConnection();
             CallableStatement cs = conn.prepareCall("{?=call PATIL.GET_INV_DETAILS(?)}");
             cs.registerOutParameter(1, Types.VARCHAR);
             cs.setInt(2, barcodeNum);
@@ -167,7 +168,7 @@ public class DbConnect {
         }   
         String details = null;
         try {
-            Connection conn = db_conn();
+            Connection conn = getDbConnection();
             CallableStatement cs = conn.prepareCall("{?=call PATIL.INV_APP.GET_INV_LOC_CODE(?)}");
             cs.registerOutParameter(1, Types.VARCHAR);
             cs.setString(2, locCode);
@@ -191,7 +192,7 @@ public class DbConnect {
          
         ArrayList<VerList> itemList = new ArrayList<VerList>();
         try {
-            Connection conn = db_conn();
+            Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
             //  String loc_code;
             String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF FROM   "
@@ -229,7 +230,7 @@ public class DbConnect {
         }  
         ArrayList<String> locCodes = new ArrayList<String>();
         try {
-            Connection conn = db_conn();
+            Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
            
             String qry = "select distinct cdlocat,adstreet1 from sl16location a where a.cdstatus='A'";
@@ -261,7 +262,7 @@ public class DbConnect {
         int result = 0;
         String r = "";
         try {
-            Connection conn = db_conn();
+            Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
 
             // delete old data for given location code from SASS15018
@@ -296,7 +297,7 @@ public class DbConnect {
         int nuxrpd = 0;
 
         try {
-            Connection conn = db_conn();
+            Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
 
             System.out.println("!!!!!!NUXRRELSIGN:(" + NUXRRELSIGN + ")");
@@ -357,7 +358,7 @@ public class DbConnect {
         } 
         ArrayList<String> pickupList = new ArrayList<String>();
         try {
-            Connection conn = db_conn();
+            Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
             //  String loc_code;
             String qry = "SELECT NUXRPD,CDLOCATFROM ,CDLOCATTO ,NAPICKUPBY FROM   "
@@ -394,7 +395,7 @@ public class DbConnect {
         } 
         ArrayList<String> deliveryDetails = new ArrayList<String>();
         try {
-            Connection conn = db_conn();
+            Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
             String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF,e.nuxrpd FROM "
                     + " FM12SENXREF A,FD12ISSUE B, FM12COMMODTY C,fd12invintrans d,fm12invintrans e "
@@ -435,7 +436,7 @@ public class DbConnect {
        if(imageInArray==null||nuxrefem<0||nauser==null){
            throw new IllegalArgumentException("Invalid imageInArray or nuxrefem or nauser");
        }
-        Connection con = db_conn();
+        Connection con = getDbConnection();
         System.out.println("DbConnect insertSignature byte Image Length:" + imageInArray.length);
 
         Blob blobValue;
@@ -524,7 +525,7 @@ public class DbConnect {
      }
      ArrayList<Employee> employeeList = new ArrayList<Employee>();
         try {
-            Connection conn = db_conn();
+            Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
             if (nalast == null) {
                 nalast = "";
@@ -562,7 +563,7 @@ public class DbConnect {
         System.out.println("confirmDelivery nuxrpd " + nuxrpd);
         int result = -1;
         try {
-            Connection conn = db_conn();
+            Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
 
             //1. update the master table 
@@ -655,7 +656,7 @@ public class DbConnect {
 
 
             System.out.println("(createNewDelivery) from nuxrpd:" + nuxrpd);
-            Connection conn = db_conn();
+            Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
             // Get the details from the master table
             String qry = "SELECT NUXRPD,CDLOCATFROM ,CDLOCATTO ,NAPICKUPBY, NARELEASEBY, NUXRRELSIGN FROM   "
