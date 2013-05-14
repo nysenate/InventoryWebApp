@@ -510,9 +510,9 @@ public class DbConnect {
      * ---------------Function to 
      *----------------------------------------------------------------------------------------------------*/
     public ArrayList<Employee> getEmployeeList(String nalast) {
-        if(nalast==null){
+      /*  if(nalast==null){
             throw new IllegalArgumentException("Invalid nalast");
-        }
+        }  */
         return getEmployeeList(nalast, "A");
     }
     /*-------------------------------------------------------------------------------------------------------
@@ -520,9 +520,9 @@ public class DbConnect {
      *----------------------------------------------------------------------------------------------------*/
 
     public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus) {
-     if(nalast.isEmpty()||cdempstatus.isEmpty()){
+    /* if(nalast.isEmpty()||cdempstatus.isEmpty()){
      throw new IllegalArgumentException("Invalid nalst or cdempstatus");    
-     }
+     }  */
      ArrayList<Employee> employeeList = new ArrayList<Employee>();
         try {
             Connection conn = getDbConnection();
