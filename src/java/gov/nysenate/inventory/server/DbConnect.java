@@ -56,10 +56,9 @@ public class DbConnect {
         //  int result = db.createNewDelivery("267", barcodes);
         //   System.out.println(result);
         //db.execQuery("hey");
-   String res=db.getDetails(barcode);
-
-       System.out.println(new File("").getAbsolutePath());  
-        ArrayList<String> a = new ArrayList<String>();//= new ArrayList<String>();
+  // String res=db.getDetails(barcode);
+     //  System.out.println(new File("").getAbsolutePath());  
+      //  ArrayList<String> a = new ArrayList<String>();//= new ArrayList<String>();
         //  int   b= db.confirmDelivery("83", "1234", "vvv", "accpt", a, a);
         //  int   b= db.confirmDelivery("83", "1234", "vvv", "accpt", a, a);
         //    getDbConnection();
@@ -510,9 +509,9 @@ public class DbConnect {
      * ---------------Function to 
      *----------------------------------------------------------------------------------------------------*/
     public ArrayList<Employee> getEmployeeList(String nalast) {
-        if(nalast==null){
-            throw new IllegalArgumentException("Invalid nalast");
-        }
+     //   if(nalast==null){
+     //       throw new IllegalArgumentException("Invalid nalast");
+     //   }
         return getEmployeeList(nalast, "A");
     }
     /*-------------------------------------------------------------------------------------------------------
@@ -520,9 +519,9 @@ public class DbConnect {
      *----------------------------------------------------------------------------------------------------*/
 
     public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus) {
-     if(nalast.isEmpty()||cdempstatus.isEmpty()){
-     throw new IllegalArgumentException("Invalid nalst or cdempstatus");    
-     }
+    // if(nalast.isEmpty()||cdempstatus.isEmpty()){
+    // throw new IllegalArgumentException("Invalid nalst or cdempstatus");    
+   //  }
      ArrayList<Employee> employeeList = new ArrayList<Employee>();
         try {
             Connection conn = getDbConnection();
