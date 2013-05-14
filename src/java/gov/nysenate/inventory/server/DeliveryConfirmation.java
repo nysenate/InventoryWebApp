@@ -38,14 +38,21 @@ public class DeliveryConfirmation extends HttpServlet {
         int orgDeliveryResult = 0;
         try {
             // 1. Get the data from app request
-            String nuxrpd = request.getParameter("nuxrpd");
+            String nuxrpd = request.getParameter("NUXRPD");
             String deliveryItemsStr = request.getParameter("deliveryItemsStr");
             String checkedStr = request.getParameter("checkedStr");
             String NUXRACCPTSIGN = request.getParameter("NUXRACCPTSIGN");
             String NADELIVERBY = request.getParameter("NADELIVERBY");
             String NAACCEPTBY = request.getParameter("NAACCEPTBY");
             String DEDELCOMMENTS = request.getParameter("DECOMMENTS");
-
+           /* System.out.println ("nuxrpd:"+nuxrpd);
+            System.out.println ("deliveryItemsStr:"+deliveryItemsStr);
+            System.out.println ("checkedStr:"+checkedStr);
+            System.out.println ("NUXRACCPTSIGN:"+NUXRACCPTSIGN);
+            System.out.println ("NADELIVERBY:"+NADELIVERBY);
+            System.out.println ("NAACCEPTBY:"+NAACCEPTBY);
+            System.out.println ("DEDELCOMMENTS:"+DEDELCOMMENTS);*/
+            
             //2. create list of items which are not delivered, delivered and comapte them
 
             String deliveryItems[] = deliveryItemsStr.split(",");
@@ -70,17 +77,21 @@ public class DeliveryConfirmation extends HttpServlet {
             if (notDeliveredList.size() > 0) {
 
                 String barcodes[] = notDeliveredList.toArray(new String[notDeliveredList.size()]);
+                System.out.println("Not Deliveredd Items found");
 
           /*-------Following code is copied from pickup servlet and we will be using it to create a new nuxrpickup-------------------*/
 
                 //String barcodes[] = {"077896", "078567","0268955"};
                 newDeliveryResult = db.createNewDelivery(nuxrpd, barcodes);
-                //int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", 10, "Brian", 11);
-    }
+                System.out.println("Not Delivered Items assigned to "+nuxrpd+" newDeliveryResult:"+newDeliveryResult);
+               //int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", 10, "Brian", 11);
+            }
 
             // 4. update the items in the details table and the master table that the nuxrpd is delivered and the items will not show up in the queries later
 
             orgDeliveryResult = db.confirmDelivery(nuxrpd, NUXRACCPTSIGN, NADELIVERBY, NAACCEPTBY, deliveryList, notDeliveredList, DEDELCOMMENTS);
+       /*     System.out.println ("db.confirmDelivery("+nuxrpd+", "+NUXRACCPTSIGN+", \""+NADELIVERBY+"\", \""+NAACCEPTBY+"\", \""+deliveryList+"\", \""+notDeliveredList+"\", \""+DEDELCOMMENTS+"\")");
+            System.out.println("Original Delivery result "+orgDeliveryResult);*/
 
             if (orgDeliveryResult == 0 && newDeliveryResult == 0) {
                 out.println("Database updated sucessfully");
