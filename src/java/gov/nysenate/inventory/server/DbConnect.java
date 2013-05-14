@@ -46,20 +46,19 @@ public class DbConnect {
      *----------------------------------------------------------------------------------------------------*/
     public static void main(String args[]) {
 
-        String barcode_num = "77030";
+     /*   String barcode_num = "77030";
         int barcode = Integer.valueOf(barcode_num);
         DbConnect db = new DbConnect();
         String cdlocat = "abcd";
-        String barcodes[] = {"077896", "078567", "0268955"};
+        String barcodes[] = {"077896", "078567", "0268955"};*/
         //   int result=db.setBarcodesInDatabase(cdlocat, barcodes);
         // int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", "10", "Brian", "11");
         //  int result = db.createNewDelivery("267", barcodes);
         //   System.out.println(result);
         //db.execQuery("hey");
-   String res=db.getDetails(barcode);
-
-       System.out.println(new File("").getAbsolutePath());  
-        ArrayList<String> a = new ArrayList<String>();//= new ArrayList<String>();
+  // String res=db.getDetails(barcode);
+     //  System.out.println(new File("").getAbsolutePath());  
+      //  ArrayList<String> a = new ArrayList<String>();//= new ArrayList<String>();
         //  int   b= db.confirmDelivery("83", "1234", "vvv", "accpt", a, a);
         //  int   b= db.confirmDelivery("83", "1234", "vvv", "accpt", a, a);
         //    getDbConnection();
@@ -67,7 +66,9 @@ public class DbConnect {
        
         // prop.load(DbConnect.class.getClassLoader().getResourceAsStream("config.properties");)); 
 
-   
+
+        
+        
         System.out.println("Execution is continued");
     }
 
@@ -520,9 +521,9 @@ public class DbConnect {
      *----------------------------------------------------------------------------------------------------*/
 
     public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus) {
-    /* if(nalast.isEmpty()||cdempstatus.isEmpty()){
-     throw new IllegalArgumentException("Invalid nalst or cdempstatus");    
-     }  */
+    // if(nalast.isEmpty()||cdempstatus.isEmpty()){
+    // throw new IllegalArgumentException("Invalid nalst or cdempstatus");    
+   //  }
      ArrayList<Employee> employeeList = new ArrayList<Employee>();
         try {
             Connection conn = getDbConnection();
@@ -555,93 +556,52 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to confirm delivery i.e. updates the FD12Issue table and changes location-----
      *------------------------------------------------------------------------------------------------------*/
-    public int confirmDelivery(String nuxrpd, String NUXRACCPTSIGN, String NADELIVERBY, String NAACCEPTBY, ArrayList deliveryList, ArrayList notDeliveredList, String DEDELCOMMENTS) {
-      if(nuxrpd.isEmpty()||NUXRACCPTSIGN.isEmpty()||NADELIVERBY.isEmpty()||NAACCEPTBY.isEmpty()){
-          throw new IllegalArgumentException("Invalid arguments");
-      }
-        
-        System.out.println("confirmDelivery nuxrpd " + nuxrpd);
-        int result = -1;
-        try {
+ public int confirmDelivery(String nuxrpd,String NUXRACCPTSIGN,String NADELIVERBY,String NAACCEPTBY,ArrayList barcodes,ArrayList a, String DEDELCOMMENTS){
+    System.out.println("confirmDelivery nuxrpd "+nuxrpd);
+      int result=-1;
+   try {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
-
+    
             //1. update the master table 
-
-            // Get data from the fm12invintrans table for calling function
-
-            String cdlocatfrom = "";
-            String CDLOCTYPEFRM = "";
-            String cdlocatto = "";
-            String CDLOCTYPETO = "";
-
-
-            String qry1 = "SELECT CDLOCATTO,CDLOCTYPETO,CDLOCATFROM,CDLOCTYPEFRM FROM "
-                    + "fm12invintrans  "
-                    + " WHERE CDSTATUS='A' "
-                    + " and nuxrpd=" + nuxrpd;
-
-
-            ResultSet res1 = stmt.executeQuery(qry1);
-            while (res1.next()) {
-                cdlocatto = res1.getString(1);
-                CDLOCTYPETO = res1.getString(2);
-                cdlocatfrom = res1.getString(3);
-                CDLOCTYPEFRM = res1.getString(4);
-            }
-
-
-
-            String query = "update FM12invintrans "
-                    + "set CDINTRANSIT='N' "
-                    + " ,DTTXNUPDATE=SYSDATE "
-                    + " ,NATXNUPDUSER=USER "
-                    + " ,NUXRACCPTSIGN=" + NUXRACCPTSIGN
-                    + " ,NADELIVERBY='" + NADELIVERBY
-                    + "' ,NAACCEPTBY='" + NAACCEPTBY
-                    + "' ,DTDELIVERY=SYSDATE "
-                    + "  ,DEDELCOMMENTS='" + DEDELCOMMENTS
-                    + " where NUXRPD=" + nuxrpd;
-            result = stmt.executeUpdate(query);
-            conn.commit();
+            System.out.println ("(confirmDelivery) updating current delivery nuxrpd:"+nuxrpd);
+            
+            String query="update FM12invintrans "+
+                 "set CDINTRANSIT='N' "+
+                 " ,DTTXNUPDATE=SYSDATE "+
+                 " ,NATXNUPDUSER=USER "+
+                 " ,NUXRACCPTSIGN="+NUXRACCPTSIGN+
+                 " ,NADELIVERBY='"+NADELIVERBY+
+                 "' ,NAACCEPTBY='"+NAACCEPTBY+
+                 "' ,DTDELIVERY=SYSDATE "+
+                 "  ,DEDELCOMMENTS='" +DEDELCOMMENTS+
+                 "' where NUXRPD="+nuxrpd;
+           result = stmt.executeUpdate(query);
+           
+           System.out.println ("(confirmDelivery):"+query);
+           
+           conn.commit();
+    
             //2. update the details table 
-            // we dont need to update the details table since we are marking the record in master as N   
-
-            //3. call the function to move the items in database
-
-            // work on it and call the function multiple times for each item in the list
-
-
-            for (int i = 0; i < deliveryList.size(); i++) {
-                String nusenate = deliveryList.get(i).toString();
-                CallableStatement cs = conn.prepareCall("{?=call PATIL.move_inventory_item(?,?,?)}");
-                cs.registerOutParameter(1, Types.VARCHAR);
-                cs.setString(2, nusenate);
-                cs.setString(3, cdlocatfrom);
-                cs.setString(3, cdlocatto);
-                cs.executeUpdate();
-                String r = cs.getString(1);
-
-            }
-
+                   // we dont need to update the details table since we are marking the record in master as N   
             //3. return result
-
-
-        } catch (SQLException ex) {
-            System.out.println(ex.getMessage());
-        }
-        return result;
-
-    }
+          result = 0;
+          conn.close();
+    
+   } catch (SQLException ex) {
+                 System.out.println(ex.getMessage());
+        } 
+   return result;
+}
 
 
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to create new delivery i.e. inserts new records into FM12InvInTrans-----
      *----------------------------------------------------------------------------------------------------*/
     public int createNewDelivery(String nuxrpd, String[] barcode) {
-      if(nuxrpd==null||barcode==null){
+    /*  if(nuxrpd==null||barcode==null){
           throw new IllegalArgumentException("Invalid nuxrpd or barcode");
-      }
+      }*/
         try {
             String CDLOCATFROM = "";
             String CDLOCATTO = "";
