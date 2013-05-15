@@ -556,7 +556,7 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to confirm delivery i.e. updates the FD12Issue table and changes location-----
      *------------------------------------------------------------------------------------------------------*/
- public int confirmDelivery(String nuxrpd,String NUXRACCPTSIGN,String NADELIVERBY,String NAACCEPTBY,ArrayList barcodes,ArrayList a, String DEDELCOMMENTS){
+ public int confirmDelivery(String nuxrpd,String NUXRACCPTSIGN,String NADELIVERBY,String NAACCEPTBY,ArrayList deliveryList,ArrayList notDeliveredList, String DEDELCOMMENTS){
     System.out.println("confirmDelivery nuxrpd "+nuxrpd);
       int result=-1;
    try {
@@ -565,7 +565,28 @@ public class DbConnect {
     
             //1. update the master table 
             System.out.println ("(confirmDelivery) updating current delivery nuxrpd:"+nuxrpd);
-            
+                // Get data from the fm12invintrans table for calling function
+
+            String cdlocatfrom = "";
+            String CDLOCTYPEFRM = "";
+            String cdlocatto = "";
+            String CDLOCTYPETO = "";
+
+
+            String qry1 = "SELECT CDLOCATTO,CDLOCTYPETO,CDLOCATFROM,CDLOCTYPEFRM FROM "
+                    + "fm12invintrans  "
+                    + " WHERE CDSTATUS='A' "
+                    + " and nuxrpd=" + nuxrpd;
+
+
+            ResultSet res1 = stmt.executeQuery(qry1);
+            while (res1.next()) {
+                cdlocatto = res1.getString(1);
+                CDLOCTYPETO = res1.getString(2);
+                cdlocatfrom = res1.getString(3);
+                CDLOCTYPEFRM = res1.getString(4);
+            }
+  
             String query="update FM12invintrans "+
                  "set CDINTRANSIT='N' "+
                  " ,DTTXNUPDATE=SYSDATE "+
@@ -576,6 +597,7 @@ public class DbConnect {
                  "' ,DTDELIVERY=SYSDATE "+
                  "  ,DEDELCOMMENTS='" +DEDELCOMMENTS+
                  "' where NUXRPD="+nuxrpd;
+            System.out.println("dbconnect query for getting data from fm12invin trans "+query);
            result = stmt.executeUpdate(query);
            
            System.out.println ("(confirmDelivery):"+query);
@@ -584,7 +606,24 @@ public class DbConnect {
     
             //2. update the details table 
                    // we dont need to update the details table since we are marking the record in master as N   
-            //3. return result
+            //3. call the function to move the items in database
+
+            // work on it and call the function multiple times for each item in the list
+
+
+            for (int i = 0; i < deliveryList.size(); i++) {
+            
+                String nusenate = deliveryList.get(i).toString();
+                System.out.println("dbconnect function for loop  "+nusenate);
+                CallableStatement cs = conn.prepareCall("{?=call PATIL.move_inventory_item(?,?,?)}");
+                cs.registerOutParameter(1, Types.VARCHAR);
+                cs.setString(2, nusenate);
+                cs.setString(3, cdlocatfrom);
+                cs.setString(4, cdlocatto);
+                cs.executeUpdate();
+                String r = cs.getString(1);
+
+            }
           result = 0;
           conn.close();
     
