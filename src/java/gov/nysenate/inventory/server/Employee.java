@@ -14,11 +14,13 @@ import com.google.gson.annotations.SerializedName;
  * @author HEITNER
  */
 public class Employee {
+ @SerializedName("nuxrefem")
   private int nuxrefem;
   private transient String nafirst = null;
   private transient String nalast = null;
   private transient String namidinit = null;
   private transient String nasuffix = null;
+ @SerializedName("naemployee")
   private String naemployee = null;
   public final int LAST_SUFFIX_FIRST_MI = -1000;
   public final int LAST_FIRST_MI = -1001;

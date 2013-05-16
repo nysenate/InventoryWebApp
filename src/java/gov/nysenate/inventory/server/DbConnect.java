@@ -146,7 +146,7 @@ public class DbConnect {
        String details = null;
         try {
             Connection conn = getDbConnection();
-            CallableStatement cs = conn.prepareCall("{?=call PATIL.GET_INV_DETAILS(?)}");
+            CallableStatement cs = conn.prepareCall("{?=call PATIL.INV_APP.GET_INV_DETAILS(?)}");
             cs.registerOutParameter(1, Types.VARCHAR);
             cs.setInt(2, barcodeNum);
             cs.executeUpdate();
