@@ -10,7 +10,7 @@ package gov.nysenate.inventory.server;
  */
 public class VerList {
 
-    int NUSENATE;
+    String NUSENATE;
     String CDCATEGORY;
     String DECOMMODITYF;
 }

@@ -207,7 +207,7 @@ public class DbConnect {
             while (result.next()) {
 
                 VerList vl = new VerList();
-                vl.NUSENATE = result.getInt(1);
+                vl.NUSENATE = result.getString(1);
                 vl.CDCATEGORY = result.getString(2);
                 vl.DECOMMODITYF = result.getString(3);
                 itemList.add(vl);
