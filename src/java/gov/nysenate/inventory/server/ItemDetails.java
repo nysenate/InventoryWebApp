@@ -31,24 +31,29 @@ public class ItemDetails extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+            System.out.println ("ItemDetails Servlet: start");
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
 
+            System.out.println ("ItemDetails Servlet: getParameter");
             String barcode_num = request.getParameter("barcode_num");
-            int barcode = Integer.valueOf(barcode_num);
+            System.out.println ("ItemDetails Servlet: getParameter");
+            //int barcode = Integer.valueOf(barcode_num);
             DbConnect db = new DbConnect();
-            String details = db.getDetails(barcode);
+            String details = db.getDetails(barcode_num);
+            System.out.println ("ItemDetails Servlet: details:"+details);
 
 
             if (details.equals("no")) {
 
                 out.println("Does not exist in system");
             } else {
-                String model[] = details.split(",");
+                String model[] = details.split("\\|");  
+                
                 // out.println(" Model   :  "+model[0]+"\n Location :  "+model[1]+"\n Manufacturer : "+model[2]+"\n Signed By  :    "+model[3]);
                 //V_NUSENATE,V_NUXREFSN,V_NUSERIAL,V_DTISSUE,V_CDLOCATTO,V_CDLOCTYPETO,V_CDCATEGORY,V_DECOMMODITYF
-                out.println(" " + model[0] + " : " + model[7]);
+                out.println(" " + model[0] + " : " + model[8]);
 
             }
 

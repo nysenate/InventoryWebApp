@@ -138,8 +138,8 @@ public class DbConnect {
      * ---------------Function to return details of given barcode (item details)
      *----------------------------------------------------------------------------------------------------*/
 
-    public String getDetails(int barcodeNum) {
-       if((barcodeNum<=0) ){
+    public String getDetails(String barcodeNum) {
+       if((Integer.parseInt(barcodeNum)<=0) ){
            System.out.println("Error in DbConnect.getDetails() - Barcode Number Not Valid");
            throw new IllegalArgumentException("Invalid Barcode Number");
        }
@@ -148,7 +148,7 @@ public class DbConnect {
             Connection conn = getDbConnection();
             CallableStatement cs = conn.prepareCall("{?=call PATIL.INV_APP.GET_INV_DETAILS(?)}");
             cs.registerOutParameter(1, Types.VARCHAR);
-            cs.setInt(2, barcodeNum);
+            cs.setString(2, barcodeNum);
             cs.executeUpdate();
             details = cs.getString(1);
             System.out.println(details);

@@ -50,10 +50,10 @@ public class Search extends HttpServlet {
             System.out.println("Serch Servlet  barcode_num "+barcode_num);
           //  out.println("Barcode # "+barcode_num);
             
-            int barcode=Integer.valueOf(barcode_num);
-             System.out.println("Serch Servlet  barcode "+barcode);
+            //int barcode=Integer.valueOf(barcode_num);
+             System.out.println("Serch Servlet  barcode "+barcode_num);
              DbConnect db=new DbConnect();
-            String details= db.getDetails(barcode);
+            String details= db.getDetails(barcode_num);
             
           if (details.equals("no")) {
               
