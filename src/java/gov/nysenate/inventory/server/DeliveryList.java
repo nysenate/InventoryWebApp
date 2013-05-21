@@ -9,12 +9,20 @@ package gov.nysenate.inventory.server;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 
 /**
  *
@@ -38,12 +46,11 @@ public class DeliveryList extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            /* TODO output your page here. You may use following sample code. */
-       
+     
             String loc_code = request.getParameter("loc_code");
 
             DbConnect db = new DbConnect();
-            ArrayList<String> pickupList = new ArrayList<String>();
+            List<PickupGroup> pickupList = Collections.synchronizedList(new ArrayList<PickupGroup>() );
             pickupList = db.getDeliveryList(loc_code.trim());
             String json = new Gson().toJson(pickupList);
             response.setContentType("application/json");

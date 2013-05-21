@@ -1,5 +1,6 @@
 package gov.nysenate.inventory.server;
 
+import com.google.gson.reflect.TypeToken;
 import com.sun.org.apache.bcel.internal.generic.Type;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -23,6 +24,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -353,29 +356,40 @@ public class DbConnect {
      * ---------------Function to return all the in transit deliveries to the given location
      *----------------------------------------------------------------------------------------------------*/
 
-    public ArrayList getDeliveryList(String locCode) {
+    public List<PickupGroup> getDeliveryList(String locCode) {
         if(locCode.isEmpty()){
              throw new IllegalArgumentException("Invalid locCode");
         } 
-        ArrayList<String> pickupList = new ArrayList<String>();
+        java.lang.reflect.Type listOfTestObject = new TypeToken<List<PickupGroup>>(){}.getType();        
+        List<PickupGroup> pickupList = Collections.synchronizedList(new ArrayList<PickupGroup>() );
         try {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
             //  String loc_code;
-            String qry = "SELECT NUXRPD,CDLOCATFROM ,CDLOCATTO ,NAPICKUPBY FROM   "
-                    + "  FM12INVINTRANS"
-                    + " WHERE CDSTATUS='A'"
-                    + " AND CDINTRANSIT='Y'"
-                    + " and cdlocatto='" + locCode + "'";
-
+            String qry = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM') dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode, COUNT(b.nuxrpd) nucount "
+                    + " FROM FM12INVINTRANS a, FD12INVINTRANS b, sl16location c"
+                    + " WHERE a.CDSTATUS='A'"
+                    + " AND a.CDINTRANSIT='Y'"
+                    + " AND a.CDLOCATTO='" + locCode + "'"
+                    + " AND b.nuxrpd = a.nuxrpd"
+                    + " AND b.cdstatus = 'A'"
+                    + " AND c.cdlocat = a.cdlocatfrom"
+                    + " GROUP BY a.nuxrpd, a.dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode";                   
+            System.out.println(qry);
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
-                String NUXRPD = result.getString(1);
-                String CDLOCATFROM = result.getString(2);
-                String CDLOCATTO = result.getString(3);
-                String NAPICKUPBY = result.getString(4);
-                String pickupDetails = NUXRPD + " : From " + CDLOCATFROM + "\n To " + CDLOCATTO + "\n Pickup by : " + NAPICKUPBY;
-                pickupList.add(pickupDetails);
+                int nuxrpd = result.getInt(1);
+                String dtpickup = result.getString(2);
+                String cdlocatfrom = result.getString(3);
+                String napickupby = result.getString(4);
+                String nareleaseby = result.getString(5);
+                String adstreet1 = result.getString(6);
+                String adcity = result.getString(7);
+                String adstate = result.getString(8);
+                String adzipcode = result.getString(9);
+                int nucount = result.getInt(10);
+                //String pickupDetails = NUXRPD + " : From " + CDLOCATFROM + "\n To " + CDLOCATTO + "\n Pickup by : " + NAPICKUPBY;
+                pickupList.add(new PickupGroup(nuxrpd, dtpickup, napickupby, nareleaseby, cdlocatfrom,  adstreet1, adcity, adstate, adzipcode, nucount));
             }
 
             // Close the connection
