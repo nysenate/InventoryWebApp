@@ -204,7 +204,7 @@ public class DbConnect {
                     + " WHERE A.CDSTATUS='A'"
                     + " AND A.NUXREFSN=B.NUXREFSN"
                     + " AND B.NUXREFCO=C.NUXREFCO"
-                    + " and b.cdlocatto='" + locCode + "'";
+                    + " and b.cdlocatto = '" + locCode + "'";
 
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {

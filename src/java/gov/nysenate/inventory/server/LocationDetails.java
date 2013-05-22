@@ -39,10 +39,9 @@ public class LocationDetails extends HttpServlet {
             DbConnect db = new DbConnect();
             String details = db.getInvLocDetails(barcode_num);
 
-
             if (details.equals("no")) {
+                 out.println("{\"cdlocat\":\""+""+"\",\"delocat\":\""+"Does not exist in system"+"\",\"adstreet1\":\""+""+"\",\"adstreet2\":\""+""+"\",\"adcity\":\""+""+"\",\"adstate\":\""+""+"\",\"adzipcode\":\""+"" +"\",\"nucount\":\""+""+"\",\"cdrespctrhd\":\""+""+"\"}");
 
-                out.println("Does not exist in system");
             } else {
                 String model[] = details.split("\\|");
 
