@@ -237,9 +237,9 @@ public class DbConnect {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
            
-            String qry = "select distinct cdlocat,adstreet1 from sl16location a where a.cdstatus='A'";
+            String qry = "select distinct cdlocat,adstreet1, cdloctype from sl16location a where a.cdstatus='A' ORDER BY cdlocat, cdloctype";
             if (natype.equalsIgnoreCase("DELIVERY")) {
-                qry = "select distinct cdlocat,adstreet1 from sl16location a where a.cdstatus='A' AND cdlocat IN (SELECT a2.cdlocatto FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A'))";
+                qry = "select distinct cdlocat,adstreet1, cdloctype from sl16location a where a.cdstatus='A' AND cdlocat IN (SELECT a2.cdlocatto FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A')) ORDER BY cdlocat, cdloctype";
             }
 
            ResultSet result = stmt.executeQuery(qry);
@@ -247,7 +247,8 @@ public class DbConnect {
            
                 String locCode = result.getString(1);
                 String adstreet1 = result.getString(2);
-                String locCodeListElement = locCode + "-" + adstreet1;
+                String cdloctype = result.getString(3);
+                String locCodeListElement = locCode + "-" + cdloctype + "-" + adstreet1;
                 locCodes.add(locCodeListElement);
             }
         } catch (SQLException e) {
