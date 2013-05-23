@@ -1,4 +1,5 @@
 /setup/glassfish-resources.xml
-/src/java/gov/nysenate/inventory/server/config.properties
+/src/main/resources/config.properties
 /test/
 /build/
+/target/
