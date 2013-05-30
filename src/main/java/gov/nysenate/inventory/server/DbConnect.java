@@ -86,7 +86,7 @@ public class DbConnect {
  
            Properties properties = new Properties();
            DbConnect db= new DbConnect();
-           InputStream in =  db.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
+           InputStream in =  db.getClass().getClassLoader().getResourceAsStream("config.properties");
            properties.load(in);
      
             String connectionString = properties.getProperty("connectionString");
@@ -117,7 +117,7 @@ public class DbConnect {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             Properties properties = new Properties();
             DbConnect db = new DbConnect();
-            InputStream in = db.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
+            InputStream in = db.getClass().getClassLoader().getResourceAsStream("config.properties");
             properties.load(in);
 
             String connectionString = properties.getProperty("connectionString");
