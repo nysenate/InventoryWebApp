@@ -1,7 +1,7 @@
-<%--
-    Document : index
+<%-- 
+    Document   : index
     Created on : Dec 14, 2012, 11:20:37 AM
-    Author : Patil
+    Author     : Patil
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
