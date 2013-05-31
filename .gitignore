@@ -1,0 +1,6 @@
+/setup/glassfish-resources.xml
+/src/main/resources/config.properties
+/test/
+/build/
+/target/
+/nbproject/
