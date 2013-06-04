@@ -253,7 +253,7 @@ log.info("main function ");
                 String locCode = result.getString(1);
                 String adstreet1 = result.getString(2);
                 String cdloctype = result.getString(3);
-                String locCodeListElement = locCode + "-" + cdloctype + "-" + adstreet1;
+                String locCodeListElement = locCode + "-" + cdloctype + ": " + adstreet1;
                 locCodes.add(locCodeListElement);
             }
         } catch (SQLException e) {
@@ -380,7 +380,8 @@ log.info("main function ");
                     + " AND b.nuxrpd = a.nuxrpd"
                     + " AND b.cdstatus = 'A'"
                     + " AND c.cdlocat = a.cdlocatfrom"
-                    + " GROUP BY a.nuxrpd, a.dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode";                   
+                    + " GROUP BY a.nuxrpd, a.dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode"
+                    + " ORDER BY a.dtpickup NULLS LAST";                   
             System.out.println(qry);
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
