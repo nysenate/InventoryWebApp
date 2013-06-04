@@ -27,13 +27,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import javax.imageio.ImageIO;
 import oracle.jdbc.OracleConnection;
 import oracle.jdbc.OracleDriver;
 import oracle.sql.BLOB;
-
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
@@ -43,17 +43,19 @@ import oracle.sql.BLOB;
  * @author Patil
  */
 public class DbConnect {
-
+static Logger log = Logger.getLogger(DbConnect.class.getName());
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Main function for testing other functions
      *----------------------------------------------------------------------------------------------------*/
     public static void main(String args[]) {
 
-     /*   String barcode_num = "77030";
-        int barcode = Integer.valueOf(barcode_num);
+    /*    String barcode_num = "77030";
+     //   int barcode = Integer.valueOf(barcode_num);
         DbConnect db = new DbConnect();
         String cdlocat = "abcd";
-        String barcodes[] = {"077896", "078567", "0268955"};*/
+        String barcodes[] = {"077896", "078567", "0268955"};
+  
+        String barcode="071030";
         //   int result=db.setBarcodesInDatabase(cdlocat, barcodes);
         // int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", "10", "Brian", "11");
         //  int result = db.createNewDelivery("267", barcodes);
@@ -70,9 +72,13 @@ public class DbConnect {
         // prop.load(DbConnect.class.getClassLoader().getResourceAsStream("config.properties");)); 
 
 
-        
-        
-        System.out.println("Execution is continued");
+log.trace("This is main function");
+log.error(" testing for error");
+log.fatal("testing for fatal");
+log.debug("testing 123456");
+log.info("main function ");
+       */ 
+     //   System.out.println("Execution is continued "+res);
     }
 
     /*-------------------------------------------------------------------------------------------------------
@@ -86,9 +92,8 @@ public class DbConnect {
  
            Properties properties = new Properties();
            DbConnect db= new DbConnect();
-           InputStream in =  db.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
+          InputStream in =  db.getClass().getClassLoader().getResourceAsStream("config.properties");
            properties.load(in);
-     
             String connectionString = properties.getProperty("connectionString");
             String userName = properties.getProperty("user");
             String password = properties.getProperty("password");
@@ -97,13 +102,13 @@ public class DbConnect {
             conn = DriverManager.getConnection(connectionString, userName, password);
 
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         } catch (SQLException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         }
         return conn;
     }
@@ -117,7 +122,7 @@ public class DbConnect {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             Properties properties = new Properties();
             DbConnect db = new DbConnect();
-            InputStream in = db.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
+            InputStream in = db.getClass().getClassLoader().getResourceAsStream("config.properties");
             properties.load(in);
 
             String connectionString = properties.getProperty("connectionString");
@@ -126,14 +131,14 @@ public class DbConnect {
             //------------for validating the user name and password----//    
 
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         } catch (SQLException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
             System.out.println("incorrect user");
             return loginStatus;
 
         } catch (IOException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         }
         return loginStatus;
     }
@@ -157,7 +162,7 @@ public class DbConnect {
             System.out.println(details);
             conn.close();
         } catch (SQLException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         }
 
         return details;
@@ -180,7 +185,7 @@ public class DbConnect {
             details = cs.getString(1);
             System.out.println(details);
         } catch (SQLException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         }
 
         return details;
@@ -287,7 +292,7 @@ public class DbConnect {
                 System.out.println(r);
             }
         } catch (SQLException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         }
         return result;
     }
@@ -347,7 +352,7 @@ public class DbConnect {
                 ResultSet result3 = stmt.executeQuery(insertQry);
             }
         } catch (SQLException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
             return -1;
         }
 

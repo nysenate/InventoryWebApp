@@ -3,3 +3,5 @@
 /test/
 /build/
 /target/
+/nbproject/
+/src/test/java/gov/nysenate/inventory/server/DbConnectTest.java

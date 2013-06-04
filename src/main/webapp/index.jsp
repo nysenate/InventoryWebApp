@@ -12,6 +12,7 @@
         <title>JSP Page</title>
     </head>
     <body>
-        <h1>Hello World!</h1>
+    <Center> <h1>Inventory Web App !</h1></center>>
+          
     </body>
 </html>
