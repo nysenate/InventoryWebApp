@@ -79,6 +79,7 @@ public class Pickup extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
 
+            Logger.getLogger(Pickup.class.getName()).info("Servlet Pickup : start");
             barcodeStr = request.getParameter("barcodes");
             originLocation = request.getParameter("originLocation");
             destinationLocation = request.getParameter("destinationLocation");
@@ -107,7 +108,7 @@ public class Pickup extends HttpServlet {
             } else {
                 out.println("Database not updated");
             }
-
+            Logger.getLogger(Pickup.class.getName()).info("Servlet Pickup : end");
         } finally {
             out.close();
         }
@@ -116,13 +117,13 @@ public class Pickup extends HttpServlet {
     @SuppressWarnings("empty-statement")
     public void sendEmail() {
         Properties properties = new Properties();
-        InputStream in =  this.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
-        try {            
+        InputStream in = this.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
+        try {
             properties.load(in);
         } catch (IOException ex) {
             Logger.getLogger(Pickup.class.getName()).log(Level.SEVERE, null, ex);
         }
-            
+
         String smtpServer = properties.getProperty("smtpServer");
         String pickupReceiptURL = properties.getProperty("pickupReceiptURL");
 
@@ -182,27 +183,27 @@ public class Pickup extends HttpServlet {
         try {
             /*
              *            Properties properties = new Properties();
-           DbConnect db= new DbConnect();
-           InputStream in =  db.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
-           properties.load(in);
+             DbConnect db= new DbConnect();
+             InputStream in =  db.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
+             properties.load(in);
      
-            String connectionString = properties.getProperty("connectionString");
-            String userName = properties.getProperty("user");
-            String password = properties.getProperty("password");
+             String connectionString = properties.getProperty("connectionString");
+             String userName = properties.getProperty("user");
+             String password = properties.getProperty("password");
 
              */
-            
-            in =  this.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
-            properties.load(in);            
-            
+
+            in = this.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
+            properties.load(in);
+
             String naemailTo1 = properties.getProperty("pickupEmailTo1");
             String naemailNameTo1 = properties.getProperty("pickupEmailTo1");
             String naemailTo2 = properties.getProperty("pickupEmailTo2");
             String naemailNameTo2 = properties.getProperty("pickupEmailTo2");
             String naemailFrom = properties.getProperty("pickupEmailFrom");
             String naemailNameFrom = properties.getProperty("pickupEmailNameFrom");
-            
-            
+
+
             msgBody = sb.toString();
             MimeMessage msg = new MimeMessage(session);
             msg.setFrom(new InternetAddress(naemailFrom, naemailNameFrom));

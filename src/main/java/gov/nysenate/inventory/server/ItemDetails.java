@@ -11,6 +11,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -31,32 +32,32 @@ public class ItemDetails extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-            System.out.println ("ItemDetails Servlet: start");
+        System.out.println("ItemDetails Servlet: start");
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-
-            System.out.println ("ItemDetails Servlet: getParameter");
+            Logger.getLogger(ItemDetails.class.getName()).info("Servlet ItemDetails : start");
+            System.out.println("ItemDetails Servlet: getParameter");
             String barcode_num = request.getParameter("barcode_num");
-            System.out.println ("ItemDetails Servlet: getParameter");
+            System.out.println("ItemDetails Servlet: getParameter");
             //int barcode = Integer.valueOf(barcode_num);
             DbConnect db = new DbConnect();
             String details = db.getDetails(barcode_num);
-            System.out.println ("ItemDetails Servlet: details:"+details);
+            System.out.println("ItemDetails Servlet: details:" + details);
 
 
             if (details.equals("no")) {
 
                 out.println("Does not exist in system");
             } else {
-                String model[] = details.split("\\|");  
-                
+                String model[] = details.split("\\|");
+
                 // out.println(" Model   :  "+model[0]+"\n Location :  "+model[1]+"\n Manufacturer : "+model[2]+"\n Signed By  :    "+model[3]);
                 //V_NUSENATE,V_NUXREFSN,V_NUSERIAL,V_DTISSUE,V_CDLOCATTO,V_CDLOCTYPETO,V_CDCATEGORY,V_DECOMMODITYF
                 //out.println(" " + model[0] + " : " + model[8]);
-            //Psuedo JSON for now
-             out.println("{\"nusenate\":\""+model[0]+"\",\"nuxrefsn\":\""+model[1]+"\",\"dtissue\":\""+model[3]+"\",\"cdlocatto\":\""+model[4]+"\",\"cdloctypeto\":\""+model[5]+"\",\"cdcategory\":\""+model[6]+"\",\"adstreet1to\":\""+model[7].replaceAll("\"", "&#34;") +"\",\"decommodityf\":\""+model[8].replaceAll("\"", "&#34;")+"\"}");
-
+                //Psuedo JSON for now
+                out.println("{\"nusenate\":\"" + model[0] + "\",\"nuxrefsn\":\"" + model[1] + "\",\"dtissue\":\"" + model[3] + "\",\"cdlocatto\":\"" + model[4] + "\",\"cdloctypeto\":\"" + model[5] + "\",\"cdcategory\":\"" + model[6] + "\",\"adstreet1to\":\"" + model[7].replaceAll("\"", "&#34;") + "\",\"decommodityf\":\"" + model[8].replaceAll("\"", "&#34;") + "\"}");
+                Logger.getLogger(ItemDetails.class.getName()).info("Servlet ItemDetails : end");
             }
 
         } finally {

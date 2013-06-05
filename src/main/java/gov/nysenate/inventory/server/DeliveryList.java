@@ -4,8 +4,6 @@ package gov.nysenate.inventory.server;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
-
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -22,7 +20,7 @@ import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -46,11 +44,11 @@ public class DeliveryList extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-     
+            Logger.getLogger(DeliveryList.class.getName()).info("Servlet DeliveryList : Start");
             String loc_code = request.getParameter("loc_code");
 
             DbConnect db = new DbConnect();
-            List<PickupGroup> pickupList = Collections.synchronizedList(new ArrayList<PickupGroup>() );
+            List<PickupGroup> pickupList = Collections.synchronizedList(new ArrayList<PickupGroup>());
             pickupList = db.getDeliveryList(loc_code.trim());
             String json = new Gson().toJson(pickupList);
             response.setContentType("application/json");
@@ -59,9 +57,10 @@ public class DeliveryList extends HttpServlet {
 
             out.print(json);
 
-            
-            
-        } finally {            
+
+            Logger.getLogger(DeliveryList.class.getName()).info("Servlet DeliveryList : end");
+        } finally {
+
             out.close();
         }
     }

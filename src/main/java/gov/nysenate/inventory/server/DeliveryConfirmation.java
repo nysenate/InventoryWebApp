@@ -12,6 +12,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -37,6 +38,7 @@ public class DeliveryConfirmation extends HttpServlet {
         int newDeliveryResult = 0;
         int orgDeliveryResult = 0;
         try {
+            Logger.getLogger(DeliveryConfirmation.class.getName()).info("Servlet DeliveryConfirmation : Start");
             // 1. Get the data from app request
             String nuxrpd = request.getParameter("NUXRPD");
             String deliveryItemsStr = request.getParameter("deliveryItemsStr");
@@ -45,14 +47,14 @@ public class DeliveryConfirmation extends HttpServlet {
             String NADELIVERBY = request.getParameter("NADELIVERBY");
             String NAACCEPTBY = request.getParameter("NAACCEPTBY");
             String DEDELCOMMENTS = request.getParameter("DECOMMENTS");
-           /* System.out.println ("nuxrpd:"+nuxrpd);
-            System.out.println ("deliveryItemsStr:"+deliveryItemsStr);
-            System.out.println ("checkedStr:"+checkedStr);
-            System.out.println ("NUXRACCPTSIGN:"+NUXRACCPTSIGN);
-            System.out.println ("NADELIVERBY:"+NADELIVERBY);
-            System.out.println ("NAACCEPTBY:"+NAACCEPTBY);
-            System.out.println ("DEDELCOMMENTS:"+DEDELCOMMENTS);*/
-            
+            /* System.out.println ("nuxrpd:"+nuxrpd);
+             System.out.println ("deliveryItemsStr:"+deliveryItemsStr);
+             System.out.println ("checkedStr:"+checkedStr);
+             System.out.println ("NUXRACCPTSIGN:"+NUXRACCPTSIGN);
+             System.out.println ("NADELIVERBY:"+NADELIVERBY);
+             System.out.println ("NAACCEPTBY:"+NAACCEPTBY);
+             System.out.println ("DEDELCOMMENTS:"+DEDELCOMMENTS);*/
+
             //2. create list of items which are not delivered, delivered and comapte them
 
             String deliveryItems[] = deliveryItemsStr.split(",");
@@ -78,31 +80,39 @@ public class DeliveryConfirmation extends HttpServlet {
 
                 String barcodes[] = notDeliveredList.toArray(new String[notDeliveredList.size()]);
                 System.out.println("Not Deliveredd Items found");
-
-          /*-------Following code is copied from pickup servlet and we will be using it to create a new nuxrpickup-------------------*/
+                Logger.getLogger(DeliveryConfirmation.class.getName()).info("Not Deliveredd Items found");
+                /*-------Following code is copied from pickup servlet and we will be using it to create a new nuxrpickup-------------------*/
 
                 //String barcodes[] = {"077896", "078567","0268955"};
                 newDeliveryResult = db.createNewDelivery(nuxrpd, barcodes);
-                System.out.println("Not Delivered Items assigned to "+nuxrpd+" newDeliveryResult:"+newDeliveryResult);
-               //int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", 10, "Brian", 11);
+                System.out.println("Not Delivered Items assigned to " + nuxrpd + " newDeliveryResult:" + newDeliveryResult);
+                Logger.getLogger(DeliveryConfirmation.class.getName()).info("Not Delivered Items assigned to " + nuxrpd + " newDeliveryResult:" + newDeliveryResult);
+                //int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", 10, "Brian", 11);
             }
 
             // 4. update the items in the details table and the master table that the nuxrpd is delivered and the items will not show up in the queries later
 
             orgDeliveryResult = db.confirmDelivery(nuxrpd, NUXRACCPTSIGN, NADELIVERBY, NAACCEPTBY, deliveryList, notDeliveredList, DEDELCOMMENTS);
-       /*     System.out.println ("db.confirmDelivery("+nuxrpd+", "+NUXRACCPTSIGN+", \""+NADELIVERBY+"\", \""+NAACCEPTBY+"\", \""+deliveryList+"\", \""+notDeliveredList+"\", \""+DEDELCOMMENTS+"\")");
-            System.out.println("Original Delivery result "+orgDeliveryResult);*/
+            /*     System.out.println ("db.confirmDelivery("+nuxrpd+", "+NUXRACCPTSIGN+", \""+NADELIVERBY+"\", \""+NAACCEPTBY+"\", \""+deliveryList+"\", \""+notDeliveredList+"\", \""+DEDELCOMMENTS+"\")");
+             System.out.println("Original Delivery result "+orgDeliveryResult);*/
 
             if (orgDeliveryResult == 0 && newDeliveryResult == 0) {
                 out.println("Database updated sucessfully");
+                Logger.getLogger(DeliveryConfirmation.class.getName()).info("Database updated sucessfully");
             } else if (orgDeliveryResult != 0 && newDeliveryResult != 0) {
                 out.println("Database not updated");
+                Logger.getLogger(DeliveryConfirmation.class.getName()).info("Database not updated");
             } else if (orgDeliveryResult != 0 && newDeliveryResult == 0) {
                 out.println("Database partially updated, delivered items were not updated correctly. Please contact STSBAC.");
+                Logger.getLogger(DeliveryConfirmation.class.getName()).info("Database partially updated, delivered items were not updated correctly. Please contact STSBAC.");
             } else if (orgDeliveryResult == 0 && newDeliveryResult != 0) {
                 out.println("Database partially updated, items left over were not updated correctly. Please contact STSBAC.");
+                    Logger.getLogger(DeliveryConfirmation.class.getName()).info("Database partially updated, items left over were not updated correctly. Please contact STSBAC.");
             }
+        
+            Logger.getLogger(DeliveryConfirmation.class.getName()).info("Servlet DeliveryConfirmation : end");
         } finally {
+
             out.close();
         }
     }

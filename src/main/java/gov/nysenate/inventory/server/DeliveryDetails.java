@@ -4,7 +4,6 @@ package gov.nysenate.inventory.server;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -14,6 +13,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -37,27 +37,28 @@ public class DeliveryDetails extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-           
-             String nuxrpd=request.getParameter("NUXRPD"); 
-           System.out.println("nuxrpickup : "+nuxrpd);
-            
-              // populate the list from the database and also get the details like other activities
+            Logger.getLogger(DeliveryDetails.class.getName()).info("Servlet DeliveryDetails : Start");
+
+            String nuxrpd = request.getParameter("NUXRPD");
+            System.out.println("nuxrpickup : " + nuxrpd);
+
+            // populate the list from the database and also get the details like other activities
             DbConnect db = new DbConnect();
-            ArrayList<String> deliveryDetails= new ArrayList<String>();
+            ArrayList<String> deliveryDetails = new ArrayList<String>();
             deliveryDetails = db.getDeliveryDetails(nuxrpd);
             String json = new Gson().toJson(deliveryDetails);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(json);
-            System.out.println("json : "+json);
+            System.out.println("json : " + json);
             out.print(json);
-             
-        } finally {            
+            Logger.getLogger(DeliveryDetails.class.getName()).info("Servlet DeliveryDetails : end");
+        } finally {
+
             out.close();
         }
     }
-    
-  
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP

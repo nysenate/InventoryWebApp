@@ -13,6 +13,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -38,6 +39,7 @@ public class ImgUpload extends HttpServlet {
         //Use out to send content to the user's browser
         PrintWriter out = response.getWriter();
         try {
+            Logger.getLogger(ImgUpload.class.getName()).info("Servlet ImgUpload : start");
             //Get the name of the file from the URL string
             String nauser = (String) request.getParameter("nauser");
             System.out.println("NAUSER:(" + nauser + ")");
@@ -56,6 +58,7 @@ public class ImgUpload extends HttpServlet {
                     nuxrefem = Integer.parseInt(nuxrefemString);
                     nuxrefemIsNumber = true;
                 } catch (Exception e) {
+                    Logger.getLogger(ImgUpload.class.getName()).fatal("Exception at Servlet ImgUpload : " + e.getMessage());
                     nuxrefemIsNumber = false;
                 }
 
@@ -95,8 +98,10 @@ public class ImgUpload extends HttpServlet {
                     out.println("Failure: Employee Xref must be a number. RECEIVED:" + nuxrefemString);
                 }
             }
+            Logger.getLogger(ImgUpload.class.getName()).info("Servlet ImgUpload : end");
         } catch (Exception e) {
             e.printStackTrace();
+            Logger.getLogger(ImgUpload.class.getName()).fatal("Exception at Servlet ImgUpload : " + e.getMessage());
             out.println("Failure");
         } finally {
             out.close();

@@ -4,11 +4,10 @@ package gov.nysenate.inventory.server;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -37,44 +36,45 @@ public class Search extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
+            Logger.getLogger(Search.class.getName()).info("Servlet Search : start");
             /* TODO output your page here. You may use following sample code. 
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet Search</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet Search at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");  */
-           String barcode_num=request.getParameter("barcode_num");
-            System.out.println("Serch Servlet  barcode_num "+barcode_num);
-          //  out.println("Barcode # "+barcode_num);
-            
-            //int barcode=Integer.valueOf(barcode_num);
-             System.out.println("Serch Servlet  barcode "+barcode_num);
-             DbConnect db=new DbConnect();
-            String details= db.getDetails(barcode_num);
-            
-          if (details.equals("no")) {
-              
-             out.println("Does not exist in system");
-          } else{
-            String model[]= details.split("\\|");
-            System.out.println("DETAILS:"+details+" MODEL LENGTH:"+model.length);
-            // out.println(" Model   :  "+model[0]+"\n Location :  "+model[1]+"\n Manufacturer : "+model[2]+"\n Signed By  :    "+model[3]);
-           //V_NUSENATE,V_NUXREFSN,V_NUSERIAL,V_DTISSUE,V_CDLOCATTO,V_CDLOCTYPETO,V_CDCATEGORY,V_DECOMMODITYF
-             //out.println(" Barcode   :  "+model[0]+"\n NUXREFSN :  "+model[1]+"\n NUSERIAL : "+model[2]+"\n DTISSUE  :    "+model[3]+"\n CDLOCATTO  :    "+model[4]+"\n CDLOCTYPETO :    "+model[5]+"\n CDCATEGORY  :    "+model[6]+"\n DECOMMODITYF  :    "+model[7]);
+             out.println("<html>");
+             out.println("<head>");
+             out.println("<title>Servlet Search</title>");            
+             out.println("</head>");
+             out.println("<body>");
+             out.println("<h1>Servlet Search at " + request.getContextPath() + "</h1>");
+             out.println("</body>");
+             out.println("</html>");  */
+            String barcode_num = request.getParameter("barcode_num");
+            System.out.println("Serch Servlet  barcode_num " + barcode_num);
+            //  out.println("Barcode # "+barcode_num);
 
-            //Psuedo JSON for now
-             out.println("{\"nusenate\":\""+model[0]+"\",\"nuxrefsn\":\""+model[1]+"\",\"dtissue\":\""+model[3]+"\",\"cdlocatto\":\""+model[4]+"\",\"cdloctypeto\":\""+model[5]+"\",\"cdcategory\":\""+model[6]+"\",\"adstreet1to\":\""+model[7].replaceAll("\"", "&#34;") +"\",\"decommodityf\":\""+model[8].replaceAll("\"", "&#34;")+"\"}");
-    
-          }
-            
-            
-          
-            
-            
-        } finally {            
+            //int barcode=Integer.valueOf(barcode_num);
+            System.out.println("Serch Servlet  barcode " + barcode_num);
+            DbConnect db = new DbConnect();
+            String details = db.getDetails(barcode_num);
+
+            if (details.equals("no")) {
+
+                out.println("Does not exist in system");
+            } else {
+                String model[] = details.split("\\|");
+                System.out.println("DETAILS:" + details + " MODEL LENGTH:" + model.length);
+                // out.println(" Model   :  "+model[0]+"\n Location :  "+model[1]+"\n Manufacturer : "+model[2]+"\n Signed By  :    "+model[3]);
+                //V_NUSENATE,V_NUXREFSN,V_NUSERIAL,V_DTISSUE,V_CDLOCATTO,V_CDLOCTYPETO,V_CDCATEGORY,V_DECOMMODITYF
+                //out.println(" Barcode   :  "+model[0]+"\n NUXREFSN :  "+model[1]+"\n NUSERIAL : "+model[2]+"\n DTISSUE  :    "+model[3]+"\n CDLOCATTO  :    "+model[4]+"\n CDLOCTYPETO :    "+model[5]+"\n CDCATEGORY  :    "+model[6]+"\n DECOMMODITYF  :    "+model[7]);
+
+                //Psuedo JSON for now
+                out.println("{\"nusenate\":\"" + model[0] + "\",\"nuxrefsn\":\"" + model[1] + "\",\"dtissue\":\"" + model[3] + "\",\"cdlocatto\":\"" + model[4] + "\",\"cdloctypeto\":\"" + model[5] + "\",\"cdcategory\":\"" + model[6] + "\",\"adstreet1to\":\"" + model[7].replaceAll("\"", "&#34;") + "\",\"decommodityf\":\"" + model[8].replaceAll("\"", "&#34;") + "\"}");
+
+            }
+
+
+
+            Logger.getLogger(Search.class.getName()).info("Servlet Search : end");
+
+        } finally {
             out.close();
         }
     }

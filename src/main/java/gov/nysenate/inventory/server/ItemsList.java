@@ -4,8 +4,6 @@ package gov.nysenate.inventory.server;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
-
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -15,6 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -38,7 +37,7 @@ public class ItemsList extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            
+            Logger.getLogger(ItemsList.class.getName()).info("Servlet ItemsList : start");
             String loc_code = request.getParameter("loc_code");
             ArrayList<VerList> itemList = new ArrayList<VerList>();
             DbConnect db = new DbConnect();
@@ -51,8 +50,8 @@ public class ItemsList extends HttpServlet {
             response.getWriter().write(json);
 
             out.print(json);
-            
-        } finally {            
+            Logger.getLogger(ItemsList.class.getName()).info("Servlet ItemsList : end");
+        } finally {
             out.close();
         }
     }

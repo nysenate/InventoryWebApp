@@ -20,6 +20,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -44,66 +45,66 @@ public class Login extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             /* TODO output your page here. You may use following sample code. */
-
+            Logger.getLogger(Login.class.getName()).info("Servlet Login : start");
             String name = request.getMethod().toString();
             String user = request.getParameter("user");
             String pwd = request.getParameter("pwd");
             String status = "N";
 
-         // create an object of the db class and pass user name and password to it   
-             //  Use this code if we decide to create a new table for user name and password and 
-             // validate it from database function
-             DbConnect db=new DbConnect();
-             status= db.validateUser(user, pwd);  
+            // create an object of the db class and pass user name and password to it   
+            //  Use this code if we decide to create a new table for user name and password and 
+            // validate it from database function
+            DbConnect db = new DbConnect();
+            status = db.validateUser(user, pwd);
 
-             
-             
-        //---------- Call the MyWorkplace web server and validate the user name and password
+
+
+            //---------- Call the MyWorkplace web server and validate the user name and password
           /*
              int userNumber = -1000;
 
-           Properties properties = new Properties();
-           InputStream ins =  db.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
-           properties.load(ins);
+             Properties properties = new Properties();
+             InputStream ins =  db.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
+             properties.load(ins);
      
-            String connectionString = properties.getProperty("myWpAPI");
+             String connectionString = properties.getProperty("myWpAPI");
             
-           // validating from myWorkPlace API 
-            URL url = new URL(connectionString + user + "+PVCXVNXCU=" + pwd);
-            URLConnection con = url.openConnection();
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuilder builder = new StringBuilder();
-            while ((inputLine = in.readLine()) != null) {
-                builder.append(inputLine.trim());
-            }
-            in.close();
-            String serverResponse = builder.toString(); // this string is the response we get from server
+             // validating from myWorkPlace API 
+             URL url = new URL(connectionString + user + "+PVCXVNXCU=" + pwd);
+             URLConnection con = url.openConnection();
+             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+             String inputLine;
+             StringBuilder builder = new StringBuilder();
+             while ((inputLine = in.readLine()) != null) {
+             builder.append(inputLine.trim());
+             }
+             in.close();
+             String serverResponse = builder.toString(); // this string is the response we get from server
 
-            int start = serverResponse.indexOf("<body>");
-            int end = serverResponse.indexOf("</body>");
+             int start = serverResponse.indexOf("<body>");
+             int end = serverResponse.indexOf("</body>");
 
-            String bodyText = serverResponse.substring(start + 6, end).trim(); // the server reponse is HTML page, we just need 
-            // content of BODY tag
-            // server checks if the user name and password combination is correct, if yes it returns us 
-            // the user number or it will return us -2 (invalid user)
-            try {
-                userNumber = Integer.parseInt(bodyText);
-            } catch (Exception e) {
-                out.println(e.getMessage() + " " + e.getStackTrace()[0].toString());
-            }
+             String bodyText = serverResponse.substring(start + 6, end).trim(); // the server reponse is HTML page, we just need 
+             // content of BODY tag
+             // server checks if the user name and password combination is correct, if yes it returns us 
+             // the user number or it will return us -2 (invalid user)
+             try {
+             userNumber = Integer.parseInt(bodyText);
+             } catch (Exception e) {
+             out.println(e.getMessage() + " " + e.getStackTrace()[0].toString());
+             }
 
 
-            if (userNumber >= 0) {
-                status = "VALID";
-            }
-         */
-     // ------------MyWorkPlace Validation end
+             if (userNumber >= 0) {
+             status = "VALID";
+             }
+             */
+            // ------------MyWorkPlace Validation end
 
 
             // pass the status to the app
             out.println(status);
-
+            Logger.getLogger(Login.class.getName()).info("Servlet Login : end");
         } finally {
             out.close();
         }

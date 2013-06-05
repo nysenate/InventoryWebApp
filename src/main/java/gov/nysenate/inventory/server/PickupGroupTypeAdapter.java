@@ -32,6 +32,4 @@ public class PickupGroupTypeAdapter implements JsonDeserializer<List<PickupGroup
         }
         return vals;
     }
-
-
- }
+}

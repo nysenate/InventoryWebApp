@@ -10,6 +10,7 @@ import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -39,7 +40,7 @@ public class VerificationReports extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
 
-
+            Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : start");
             String jsonString = request.getParameter("barcodes");
             String cdlocat = request.getParameter("loc_code");
 
@@ -61,11 +62,13 @@ public class VerificationReports extends HttpServlet {
             int result = db.setBarcodesInDatabase(cdlocat, barcodes);
             if (result == 0) {
                 out.println("Database updated sucessfully");
+                Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : Database updated sucessfully");
             } else {
                 out.println("Database not updated");
+                Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : Database not updated");
             }
 
-
+            Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : end");
         } finally {
             out.close();
         }
