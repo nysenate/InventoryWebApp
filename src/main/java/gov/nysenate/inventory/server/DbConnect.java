@@ -117,7 +117,7 @@ log.info("main function ");
      *----------------------------------------------------------------------------------------------------*/
 
     public String validateUser(String user, String pwd) {
-        String loginStatus = "Not Valid";
+        String loginStatus = "NOT VALID";
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             Properties properties = new Properties();
@@ -134,8 +134,15 @@ log.info("main function ");
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         } catch (SQLException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
-            System.out.println("incorrect user");
-            return loginStatus;
+            System.out.println (ex.getMessage());
+            int sqlErr =  ex.getErrorCode();        
+            if (sqlErr==1017) {  // Invalid Username/Password
+                return loginStatus;
+            }
+            else {
+                return "!!ERROR: "+ex.getMessage()+". PLEASE CONTACT STS/BAC.";
+            }
+                
 
         } catch (IOException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
