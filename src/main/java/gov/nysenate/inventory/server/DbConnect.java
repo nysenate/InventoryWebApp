@@ -439,7 +439,7 @@ log.info("main function ");
                 String NUSENATE = result.getString(1);
                 String CDCATEGORY = result.getString(2);
                 String DECOMMODITYF = result.getString(3);
-                String details = NUSENATE + ":  " + CDCATEGORY + " " + DECOMMODITYF;
+                String details = NUSENATE + "  " + CDCATEGORY + " " + DECOMMODITYF;
                 deliveryDetails.add(details);
             }
 
