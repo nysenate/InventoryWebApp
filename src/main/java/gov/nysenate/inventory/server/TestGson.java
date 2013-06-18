@@ -12,16 +12,34 @@ import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 /**
  *
  * @author senateuser
  */
 public class TestGson {
     
-    public static void main (String[] args) {
+    public static void main (String[] args) throws ParserConfigurationException {
         
         //Make Serial 
 
+                
+
+ /*       
         Gson gson = new Gson();
         Type listOfTestObject = new TypeToken<List<PickupGroup>>(){}.getType();
 
