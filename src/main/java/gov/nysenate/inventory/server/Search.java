@@ -36,7 +36,9 @@ public class Search extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            Logger.getLogger(Search.class.getName()).info("Servlet Search : start");
+              DbConnect db = new DbConnect();
+              db.ipAddr=request.getRemoteAddr();
+            Logger.getLogger(Search.class.getName()).info(db.ipAddr+"|"+"Servlet Search : start");
             /* TODO output your page here. You may use following sample code. 
              out.println("<html>");
              out.println("<head>");
@@ -52,7 +54,7 @@ public class Search extends HttpServlet {
 
             //int barcode=Integer.valueOf(barcode_num);
             System.out.println("Serch Servlet  barcode " + barcode_num);
-            DbConnect db = new DbConnect();
+         
             String details = db.getDetails(barcode_num);
 
             if (details.equals("no")) {
@@ -72,7 +74,7 @@ public class Search extends HttpServlet {
 
 
 
-            Logger.getLogger(Search.class.getName()).info("Servlet Search : end");
+            Logger.getLogger(Search.class.getName()).info(db.ipAddr+"|"+"Servlet Search : end");
 
         } finally {
             out.close();

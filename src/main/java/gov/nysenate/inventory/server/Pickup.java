@@ -78,8 +78,9 @@ public class Pickup extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-
-            Logger.getLogger(Pickup.class.getName()).info("Servlet Pickup : start");
+            DbConnect db = new DbConnect();
+             db.ipAddr=request.getRemoteAddr();
+            Logger.getLogger(Pickup.class.getName()).info(db.ipAddr+"|"+"Servlet Pickup : start");
             barcodeStr = request.getParameter("barcodes");
             originLocation = request.getParameter("originLocation");
             destinationLocation = request.getParameter("destinationLocation");
@@ -97,7 +98,7 @@ public class Pickup extends HttpServlet {
             DECOMMENTS = request.getParameter("DECOMMENTS").replaceAll("'", "''");
             String barcodes[] = barcodeStr.split(",");
             System.out.println("point 1 ");
-            DbConnect db = new DbConnect();
+           
             //String barcodes[] = {"077896", "078567","0268955"};
             System.out.println("Pickup Servlet NUXRRELSIGN:" + NUXRRELSIGN);
             nuxrpd = db.invTransit(originLocation, destinationLocation, barcodes, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, NADELIVERBY, NAACCEPTBY, NUXRACCPTSIGN, DECOMMENTS);
@@ -108,7 +109,7 @@ public class Pickup extends HttpServlet {
             } else {
                 out.println("Database not updated");
             }
-            Logger.getLogger(Pickup.class.getName()).info("Servlet Pickup : end");
+            Logger.getLogger(Pickup.class.getName()).info(db.ipAddr+"|"+"Servlet Pickup : end");
         } finally {
             out.close();
         }

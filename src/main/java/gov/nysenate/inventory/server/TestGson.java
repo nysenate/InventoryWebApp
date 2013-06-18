@@ -21,7 +21,7 @@ public class TestGson {
     public static void main (String[] args) {
         
         //Make Serial 
-
+        DbConnect.log.info("TESTING GSON to see if it works");
         Gson gson = new Gson();
         Type listOfTestObject = new TypeToken<List<PickupGroup>>(){}.getType();
 

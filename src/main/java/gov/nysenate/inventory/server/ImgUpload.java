@@ -39,7 +39,9 @@ public class ImgUpload extends HttpServlet {
         //Use out to send content to the user's browser
         PrintWriter out = response.getWriter();
         try {
-            Logger.getLogger(ImgUpload.class.getName()).info("Servlet ImgUpload : start");
+             DbConnect db = new DbConnect();
+             db.ipAddr=request.getRemoteAddr();
+            Logger.getLogger(ImgUpload.class.getName()).info(db.ipAddr+"|"+"Servlet ImgUpload : start");
             //Get the name of the file from the URL string
             String nauser = (String) request.getParameter("nauser");
             System.out.println("NAUSER:(" + nauser + ")");
@@ -58,7 +60,7 @@ public class ImgUpload extends HttpServlet {
                     nuxrefem = Integer.parseInt(nuxrefemString);
                     nuxrefemIsNumber = true;
                 } catch (Exception e) {
-                    Logger.getLogger(ImgUpload.class.getName()).fatal("Exception at Servlet ImgUpload : " + e.getMessage());
+                    Logger.getLogger(ImgUpload.class.getName()).fatal(db.ipAddr+"|"+"Exception at Servlet ImgUpload : " + e.getMessage());
                     nuxrefemIsNumber = false;
                 }
 
@@ -79,7 +81,7 @@ public class ImgUpload extends HttpServlet {
                         // set data equal to newData in prep for next block of data
                         data = newData;
                     }
-                    DbConnect db = new DbConnect();
+                   
                     nuxrsign = db.insertSignature(data, nuxrefem, nauser);
                     //define the path to save the file using the file name from the URL.
                     //String path = "c:\\Datafiles\\"+name+".png";
@@ -98,10 +100,10 @@ public class ImgUpload extends HttpServlet {
                     out.println("Failure: Employee Xref must be a number. RECEIVED:" + nuxrefemString);
                 }
             }
-            Logger.getLogger(ImgUpload.class.getName()).info("Servlet ImgUpload : end");
+            Logger.getLogger(ImgUpload.class.getName()).info(db.ipAddr+"|"+"Servlet ImgUpload : end");
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.getLogger(ImgUpload.class.getName()).fatal("Exception at Servlet ImgUpload : " + e.getMessage());
+            Logger.getLogger(ImgUpload.class.getName()).fatal(request.getRemoteAddr()+"|"+"Exception at Servlet ImgUpload : " + e.getMessage());
             out.println("Failure");
         } finally {
             out.close();

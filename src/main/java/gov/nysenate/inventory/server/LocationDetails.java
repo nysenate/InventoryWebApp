@@ -35,9 +35,11 @@ public class LocationDetails extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            Logger.getLogger(LocationDetails.class.getName()).info("Servlet LocationDetails : start");
+              DbConnect db = new DbConnect();
+                db.ipAddr=request.getRemoteAddr();
+            Logger.getLogger(LocationDetails.class.getName()).info(db.ipAddr+"|"+"Servlet LocationDetails : start");
             String barcode_num = request.getParameter("barcode_num");
-            DbConnect db = new DbConnect();
+          
             String details = db.getInvLocDetails(barcode_num);
 
             if (details.equals("no")) {
@@ -53,7 +55,7 @@ public class LocationDetails extends HttpServlet {
 
             }
 
-            Logger.getLogger(LocationDetails.class.getName()).info("Servlet LocationDetails : end");
+            Logger.getLogger(LocationDetails.class.getName()).info(db.ipAddr+"|"+"Servlet LocationDetails : end");
         } finally {
             out.close();
         }

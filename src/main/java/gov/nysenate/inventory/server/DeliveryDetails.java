@@ -37,13 +37,15 @@ public class DeliveryDetails extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            Logger.getLogger(DeliveryDetails.class.getName()).info("Servlet DeliveryDetails : Start");
+            DbConnect db = new DbConnect();
+              db.ipAddr=request.getRemoteAddr();
+            Logger.getLogger(DeliveryDetails.class.getName()).info(db.ipAddr+"|"+"Servlet DeliveryDetails : Start");
 
             String nuxrpd = request.getParameter("NUXRPD");
             System.out.println("nuxrpickup : " + nuxrpd);
 
             // populate the list from the database and also get the details like other activities
-            DbConnect db = new DbConnect();
+            
             ArrayList<String> deliveryDetails = new ArrayList<String>();
             deliveryDetails = db.getDeliveryDetails(nuxrpd);
             String json = new Gson().toJson(deliveryDetails);
@@ -52,7 +54,7 @@ public class DeliveryDetails extends HttpServlet {
             response.getWriter().write(json);
             System.out.println("json : " + json);
             out.print(json);
-            Logger.getLogger(DeliveryDetails.class.getName()).info("Servlet DeliveryDetails : end");
+            Logger.getLogger(DeliveryDetails.class.getName()).info(db.ipAddr+"|"+"Servlet DeliveryDetails : end");
         } finally {
 
             out.close();

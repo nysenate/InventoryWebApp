@@ -44,10 +44,12 @@ public class DeliveryList extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            Logger.getLogger(DeliveryList.class.getName()).info("Servlet DeliveryList : Start");
+             DbConnect db = new DbConnect();
+               db.ipAddr=request.getRemoteAddr();
+            Logger.getLogger(DeliveryList.class.getName()).info(db.ipAddr+"|"+"Servlet DeliveryList : Start");
             String loc_code = request.getParameter("loc_code");
 
-            DbConnect db = new DbConnect();
+           
             List<PickupGroup> pickupList = Collections.synchronizedList(new ArrayList<PickupGroup>());
             pickupList = db.getDeliveryList(loc_code.trim());
             String json = new Gson().toJson(pickupList);
@@ -58,7 +60,7 @@ public class DeliveryList extends HttpServlet {
             out.print(json);
 
 
-            Logger.getLogger(DeliveryList.class.getName()).info("Servlet DeliveryList : end");
+            Logger.getLogger(DeliveryList.class.getName()).info(db.ipAddr+"|"+"Servlet DeliveryList : end");
         } finally {
 
             out.close();

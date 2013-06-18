@@ -38,7 +38,9 @@ public class DeliveryConfirmation extends HttpServlet {
         int newDeliveryResult = 0;
         int orgDeliveryResult = 0;
         try {
-            Logger.getLogger(DeliveryConfirmation.class.getName()).info("Servlet DeliveryConfirmation : Start");
+              DbConnect db = new DbConnect();
+              db.ipAddr=request.getRemoteAddr();
+            Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Servlet DeliveryConfirmation : Start");
             // 1. Get the data from app request
             String nuxrpd = request.getParameter("NUXRPD");
             String deliveryItemsStr = request.getParameter("deliveryItemsStr");
@@ -75,18 +77,18 @@ public class DeliveryConfirmation extends HttpServlet {
 
 
             //3.  if there are items which are not delivered then create a new nuxrpd using other servlet    
-            DbConnect db = new DbConnect();
+          
             if (notDeliveredList.size() > 0) {
 
                 String barcodes[] = notDeliveredList.toArray(new String[notDeliveredList.size()]);
                 System.out.println("Not Deliveredd Items found");
-                Logger.getLogger(DeliveryConfirmation.class.getName()).info("Not Deliveredd Items found");
+                Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Not Deliveredd Items found");
                 /*-------Following code is copied from pickup servlet and we will be using it to create a new nuxrpickup-------------------*/
 
                 //String barcodes[] = {"077896", "078567","0268955"};
                 newDeliveryResult = db.createNewDelivery(nuxrpd, barcodes);
                 System.out.println("Not Delivered Items assigned to " + nuxrpd + " newDeliveryResult:" + newDeliveryResult);
-                Logger.getLogger(DeliveryConfirmation.class.getName()).info("Not Delivered Items assigned to " + nuxrpd + " newDeliveryResult:" + newDeliveryResult);
+                Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Not Delivered Items assigned to " + nuxrpd + " newDeliveryResult:" + newDeliveryResult);
                 //int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", 10, "Brian", 11);
             }
 
@@ -98,19 +100,19 @@ public class DeliveryConfirmation extends HttpServlet {
 
             if (orgDeliveryResult == 0 && newDeliveryResult == 0) {
                 out.println("Database updated sucessfully");
-                Logger.getLogger(DeliveryConfirmation.class.getName()).info("Database updated sucessfully");
+                Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Database updated sucessfully");
             } else if (orgDeliveryResult != 0 && newDeliveryResult != 0) {
                 out.println("Database not updated");
-                Logger.getLogger(DeliveryConfirmation.class.getName()).info("Database not updated");
+                Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Database not updated");
             } else if (orgDeliveryResult != 0 && newDeliveryResult == 0) {
                 out.println("Database partially updated, delivered items were not updated correctly. Please contact STSBAC.");
-                Logger.getLogger(DeliveryConfirmation.class.getName()).info("Database partially updated, delivered items were not updated correctly. Please contact STSBAC.");
+                Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Database partially updated, delivered items were not updated correctly. Please contact STSBAC.");
             } else if (orgDeliveryResult == 0 && newDeliveryResult != 0) {
                 out.println("Database partially updated, items left over were not updated correctly. Please contact STSBAC.");
-                    Logger.getLogger(DeliveryConfirmation.class.getName()).info("Database partially updated, items left over were not updated correctly. Please contact STSBAC.");
+                    Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Database partially updated, items left over were not updated correctly. Please contact STSBAC.");
             }
         
-            Logger.getLogger(DeliveryConfirmation.class.getName()).info("Servlet DeliveryConfirmation : end");
+            Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Servlet DeliveryConfirmation : end");
         } finally {
 
             out.close();

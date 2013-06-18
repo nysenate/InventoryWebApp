@@ -36,12 +36,14 @@ public class ItemDetails extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            Logger.getLogger(ItemDetails.class.getName()).info("Servlet ItemDetails : start");
+            DbConnect db = new DbConnect();
+             db.ipAddr=request.getRemoteAddr();
+            Logger.getLogger(ItemDetails.class.getName()).info(db.ipAddr+"|"+"Servlet ItemDetails : start");
             System.out.println("ItemDetails Servlet: getParameter");
             String barcode_num = request.getParameter("barcode_num");
             System.out.println("ItemDetails Servlet: getParameter");
             //int barcode = Integer.valueOf(barcode_num);
-            DbConnect db = new DbConnect();
+        
             String details = db.getDetails(barcode_num);
             System.out.println("ItemDetails Servlet: details:" + details);
 
@@ -57,7 +59,7 @@ public class ItemDetails extends HttpServlet {
                 //out.println(" " + model[0] + " : " + model[8]);
                 //Psuedo JSON for now
                 out.println("{\"nusenate\":\"" + model[0] + "\",\"nuxrefsn\":\"" + model[1] + "\",\"dtissue\":\"" + model[3] + "\",\"cdlocatto\":\"" + model[4] + "\",\"cdloctypeto\":\"" + model[5] + "\",\"cdcategory\":\"" + model[6] + "\",\"adstreet1to\":\"" + model[7].replaceAll("\"", "&#34;") + "\",\"decommodityf\":\"" + model[8].replaceAll("\"", "&#34;") + "\"}");
-                Logger.getLogger(ItemDetails.class.getName()).info("Servlet ItemDetails : end");
+                Logger.getLogger(ItemDetails.class.getName()).info(db.ipAddr+"|"+"Servlet ItemDetails : end");
             }
 
         } finally {

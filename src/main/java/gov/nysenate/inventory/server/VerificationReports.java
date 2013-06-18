@@ -39,8 +39,9 @@ public class VerificationReports extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-
-            Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : start");
+            DbConnect db = new DbConnect();
+             db.ipAddr=request.getRemoteAddr();
+            Logger.getLogger(VerificationReports.class.getName()).info(db.ipAddr+"|"+"Servlet VerificationReports : start");
             String jsonString = request.getParameter("barcodes");
             String cdlocat = request.getParameter("loc_code");
 
@@ -58,17 +59,17 @@ public class VerificationReports extends HttpServlet {
 
             String barcodes[] = jsonString.split(",");
 
-            DbConnect db = new DbConnect();
+           
             int result = db.setBarcodesInDatabase(cdlocat, barcodes);
             if (result == 0) {
                 out.println("Database updated sucessfully");
-                Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : Database updated sucessfully");
+                Logger.getLogger(VerificationReports.class.getName()).info(db.ipAddr+"|"+"Servlet VerificationReports : Database updated sucessfully");
             } else {
                 out.println("Database not updated");
-                Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : Database not updated");
+                Logger.getLogger(VerificationReports.class.getName()).info(db.ipAddr+"|"+"Servlet VerificationReports : Database not updated");
             }
 
-            Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : end");
+            Logger.getLogger(VerificationReports.class.getName()).info(db.ipAddr+"|"+"Servlet VerificationReports : end");
         } finally {
             out.close();
         }

@@ -37,13 +37,15 @@ public class LocCodeList extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            Logger.getLogger(LocCodeList.class.getName()).info("Servlet LocCodeList : start");
+            DbConnect db = new DbConnect();
+            db.ipAddr=request.getRemoteAddr();
+            Logger.getLogger(LocCodeList.class.getName()).info(db.ipAddr+"|"+"Servlet LocCodeList : start");
             String natype;
             try {
                 natype = request.getParameter("NATYPE");
             } catch (Exception e) {
                 natype = "ALL";
-                Logger.getLogger(LocCodeList.class.getName()).info("Servlet LocCodeList : " + "NATYPE SET TO ALL DUE TO EXCEPTION");
+                Logger.getLogger(LocCodeList.class.getName()).info(db.ipAddr+"|"+"Servlet LocCodeList : " + "NATYPE SET TO ALL DUE TO EXCEPTION");
                 System.out.println("NATYPE SET TO ALL DUE TO EXCEPTION");
             }
             if (natype == null) {
@@ -54,7 +56,7 @@ public class LocCodeList extends HttpServlet {
             }
 
             ArrayList<String> LocCodeList = new ArrayList<String>();
-            DbConnect db = new DbConnect();
+         
             LocCodeList = db.getLocCodes(natype);
 
             if (LocCodeList.size() == 0) {
@@ -67,7 +69,7 @@ public class LocCodeList extends HttpServlet {
             response.getWriter().write(json);
 
             out.print(json);
-            Logger.getLogger(LocCodeList.class.getName()).info("Servlet LocCodeList : end");
+            Logger.getLogger(LocCodeList.class.getName()).info(db.ipAddr+"|"+"Servlet LocCodeList : end");
         } finally {
             out.close();
         }

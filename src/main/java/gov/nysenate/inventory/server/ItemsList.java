@@ -37,10 +37,12 @@ public class ItemsList extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            Logger.getLogger(ItemsList.class.getName()).info("Servlet ItemsList : start");
+            DbConnect db = new DbConnect();
+            db.ipAddr=request.getRemoteAddr();
+            Logger.getLogger(ItemsList.class.getName()).info(db.ipAddr+"|"+"Servlet ItemsList : start");
             String loc_code = request.getParameter("loc_code");
             ArrayList<VerList> itemList = new ArrayList<VerList>();
-            DbConnect db = new DbConnect();
+            
             itemList = db.getLocationItemList(loc_code);
 
 
@@ -50,7 +52,7 @@ public class ItemsList extends HttpServlet {
             response.getWriter().write(json);
 
             out.print(json);
-            Logger.getLogger(ItemsList.class.getName()).info("Servlet ItemsList : end");
+            Logger.getLogger(ItemsList.class.getName()).info(db.ipAddr+"|"+"Servlet ItemsList : end");
         } finally {
             out.close();
         }

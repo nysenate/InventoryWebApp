@@ -28,7 +28,7 @@ import org.apache.log4j.Logger;
  */
 @WebServlet(name = "Login", urlPatterns = {"/Login"})
 public class Login extends HttpServlet {
-
+ //static Logger log = Logger.getLogger(DbConnect.class.getName());
     /**
      * Processes requests for both HTTP
      * <code>GET</code> and
@@ -45,7 +45,10 @@ public class Login extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             /* TODO output your page here. You may use following sample code. */
-            Logger.getLogger(Login.class.getName()).info("Servlet Login : start");
+              DbConnect db = new DbConnect();
+          
+           db.ipAddr=request.getRemoteAddr();         //Logger.getLogger(Login.class.getName()).info("Servlet Login : start");
+            db.log.info(db.ipAddr+"|"+"Servlet Login : start");
             String name = request.getMethod().toString();
             String user = request.getParameter("user");
             String pwd = request.getParameter("pwd");
@@ -54,7 +57,7 @@ public class Login extends HttpServlet {
             // create an object of the db class and pass user name and password to it   
             //  Use this code if we decide to create a new table for user name and password and 
             // validate it from database function
-            DbConnect db = new DbConnect();
+          
             status = db.validateUser(user, pwd);
 
 
@@ -104,7 +107,7 @@ public class Login extends HttpServlet {
 
             // pass the status to the app
             out.println(status);
-            Logger.getLogger(Login.class.getName()).info("Servlet Login : end");
+            Logger.getLogger(Login.class.getName()).info(db.ipAddr+"|"+"Servlet Login : end");
         } finally {
             out.close();
         }

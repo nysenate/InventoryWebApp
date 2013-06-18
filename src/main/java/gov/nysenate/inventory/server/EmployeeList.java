@@ -37,21 +37,23 @@ public class EmployeeList extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            Logger.getLogger(EmployeeList.class.getName()).info("Servlet EmployeeList : start");
+             DbConnect db = new DbConnect();
+              db.ipAddr=request.getRemoteAddr();
+            Logger.getLogger(EmployeeList.class.getName()).info(db.ipAddr+"|"+"Servlet EmployeeList : start");
             String employeeName = request.getParameter("employeeName");
             String cdempstatus = request.getParameter("cdempstatus");
             // Only show Active Employees if no Employee Status is passed.
             if (cdempstatus == null || cdempstatus.length() == 0) {
                 cdempstatus = "A";
             }
-            DbConnect db = new DbConnect();
+           
             ArrayList<Employee> employeeList = db.getEmployeeList(employeeName, cdempstatus);
             String json = new Gson().toJson(employeeList);
             out.println(json);
-            Logger.getLogger(EmployeeList.class.getName()).info("Servlet EmployeeList : end");
+            Logger.getLogger(EmployeeList.class.getName()).info(db.ipAddr+"|"+"Servlet EmployeeList : end");
         } catch (Exception e) {
             out.println("Failure " + e.getMessage());
-            Logger.getLogger(EmployeeList.class.getName()).fatal("Exception in Servlet EmployeeList : " + e.getMessage());
+            Logger.getLogger(EmployeeList.class.getName()).fatal(request.getRemoteAddr()+"|"+"Exception in Servlet EmployeeList : " + e.getMessage());
         } finally {
             out.close();
         }
