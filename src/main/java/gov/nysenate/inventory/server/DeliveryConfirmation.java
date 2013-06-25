@@ -38,8 +38,8 @@ public class DeliveryConfirmation extends HttpServlet {
         int newDeliveryResult = 0;
         int orgDeliveryResult = 0;
         try {
-              DbConnect db = new DbConnect();
-              db.ipAddr=request.getRemoteAddr();
+            DbConnect db = new DbConnect();
+            db.ipAddr=request.getRemoteAddr();
             Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Servlet DeliveryConfirmation : Start");
             // 1. Get the data from app request
             String nuxrpd = request.getParameter("NUXRPD");
@@ -67,14 +67,13 @@ public class DeliveryConfirmation extends HttpServlet {
                 notDeliveredList.add(deliveryItems[i]);// we will add all items first and remove non checked items
             }
 
-            // remove the checked items from the total list 
+            // remove the checked items from the total list            
             String checked[] = checkedStr.split(",");
             for (int i = 0; i < checked.length; i++) {
-                int pos = Integer.parseInt(checked[i].trim());
+                int pos = deliveryList.indexOf(checked[i].trim());
                 String item = deliveryList.get(pos).trim();
                 notDeliveredList.remove(item);
             }
-
 
             //3.  if there are items which are not delivered then create a new nuxrpd using other servlet    
           

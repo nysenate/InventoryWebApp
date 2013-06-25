@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,8 +38,16 @@ public class TestGson {
         
         //Make Serial 
 
-                
+        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        Type listOfTestObject = new TypeToken<List<InvItem>>(){}.getType();
 
+        //Make Serial 
+        List<InvItem> list = Collections.synchronizedList(new ArrayList<InvItem>() );
+        list.add(new InvItem("088998", "sdfsdfsd", "NEW",
+            "THIS IS THE FIRST ITEM"));
+        list.add(new InvItem("392343", "fgdsgfgs", "EXISTS",
+            "THIS IS THE SECOND ITEM"));
+       System.out.println (gson.toJson(list));       
  /*       
         Gson gson = new Gson();
         Type listOfTestObject = new TypeToken<List<PickupGroup>>(){}.getType();

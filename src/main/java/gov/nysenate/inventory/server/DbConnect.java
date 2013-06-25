@@ -448,12 +448,12 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
      * ---------------Function to return all the items related to a perticular delivery nuxrpd
      *----------------------------------------------------------------------------------------------------*/
 
-    public ArrayList getDeliveryDetails(String nuxrpd) {
+    public ArrayList<InvItem> getDeliveryDetails(String nuxrpd) {
         log.info(this.ipAddr+"|"+"getDeliveryDetails() begin : nuxrpd= " + nuxrpd);
         if (nuxrpd.isEmpty()) {
              throw new IllegalArgumentException("Invalid locCode");
         } 
-        ArrayList<String> deliveryDetails = new ArrayList<String>();
+        ArrayList<InvItem> deliveryDetails = new ArrayList<InvItem>();
         try {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
@@ -467,11 +467,11 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
                     + " and e.nuxrpd=" + nuxrpd;
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
-                String NUSENATE = result.getString(1);
-                String CDCATEGORY = result.getString(2);
-                String DECOMMODITYF = result.getString(3);
-                String details = NUSENATE + "  " + CDCATEGORY + " " + DECOMMODITYF;
-                deliveryDetails.add(details);
+                String nusenate = result.getString(1);
+                String cdcategory = result.getString(2);
+                String decommodityf = result.getString(3);
+                InvItem curInvItem = new InvItem(nusenate,  cdcategory, "EXISTING", decommodityf);
+                deliveryDetails.add(curInvItem);
             }
 
             // Close the connection

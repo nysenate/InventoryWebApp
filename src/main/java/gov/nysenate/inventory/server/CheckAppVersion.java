@@ -79,7 +79,12 @@ public class CheckAppVersion extends HttpServlet {
             int APKVersion = getAPKVersionNumber();
             String APKVersionName = this.getAPKVersionName();
             JsonObject myObj = new JsonObject();
-            myObj.addProperty("success", true);
+            if (APKVersion<0) {
+                myObj.addProperty("success", false);
+            }
+            else {
+                myObj.addProperty("success", true);
+            }
             myObj.addProperty("latestVersion", APKVersion);
             myObj.addProperty("latestVersionName", APKVersionName);
             myObj.addProperty("appURI", webFile.toString());
@@ -103,20 +108,23 @@ public class CheckAppVersion extends HttpServlet {
             try {
                 zip = new ZipFile(fileName);
             } catch (IOException ex) {
-                Logger.getLogger(TestGson.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, ex);
+                return "";
             }
             ZipEntry mft = zip.getEntry(zipEntry);
             try {
                 is = zip.getInputStream(mft);
             } catch (IOException ex) {
-                Logger.getLogger(TestGson.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, ex);
+                return "";
             }
                        
             } else {
             try {
                 is = new FileInputStream(fileName);
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(TestGson.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, ex);
+                return "";
             }
                 }
                
@@ -124,42 +132,56 @@ public class CheckAppVersion extends HttpServlet {
             try {
                  int bytesRead = is.read(buf);
                 } catch (IOException ex) {
-                    Logger.getLogger(TestGson.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, ex);
+                    return "";
             }
             try {
                  is.close();
                 } catch (IOException ex) {
-                    Logger.getLogger(TestGson.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                    Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, ex);
+                    return "";
+               }
                 if (zip != null) {
                     try {
                         zip.close();
                     } catch (IOException ex) {
-                        Logger.getLogger(TestGson.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                        Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, ex);
+                        return "";
+                }
                 }
                 String xml = AndroidXMLDecompress.decompressXML(buf);
                 return xml;
     }
     
     private int getAPKVersionNumber() {
-        String lookFor = "<manifest versionCode=\"resourceID ";
-        int start = APKManifest.indexOf(lookFor)+lookFor.length();
-        int end = APKManifest.indexOf("\"", start+1);
-        String rawVersion = APKManifest.substring(start, end).trim();
-        int xPos = rawVersion.indexOf("x");
-        String hexVersion = rawVersion.substring(xPos+1);
-        int version = Integer.parseInt(hexVersion, 16);
-        return version;       
+        try {
+            String lookFor = "<manifest versionCode=\"resourceID ";
+            int start = APKManifest.indexOf(lookFor)+lookFor.length();
+            int end = APKManifest.indexOf("\"", start+1);
+            String rawVersion = APKManifest.substring(start, end).trim();
+            int xPos = rawVersion.indexOf("x");
+            String hexVersion = rawVersion.substring(xPos+1);
+            int version = Integer.parseInt(hexVersion, 16);
+            return version;       
+        }
+        catch (Exception e) {
+            Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, e);
+            return -1;
+        }
     }
-
    
      private String getAPKVersionName() {
-        String lookFor = "versionName=\"";
-        int start = APKManifest.indexOf(lookFor)+lookFor.length();
-        int end = APKManifest.indexOf("\"", start+1);
-        String versionName = APKManifest.substring(start, end).trim();
-        return versionName;       
+         try {
+            String lookFor = "versionName=\"";
+            int start = APKManifest.indexOf(lookFor)+lookFor.length();
+            int end = APKManifest.indexOf("\"", start+1);
+            String versionName = APKManifest.substring(start, end).trim();
+            return versionName;     
+         }
+        catch (Exception e) {
+            Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, e);
+            return "";
+        }        
     }
 
 

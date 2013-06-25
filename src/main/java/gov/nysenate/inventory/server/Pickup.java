@@ -25,7 +25,6 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.activation.DataHandler;
@@ -118,7 +117,7 @@ public class Pickup extends HttpServlet {
     @SuppressWarnings("empty-statement")
     public void sendEmail() {
         Properties properties = new Properties();
-        InputStream in = this.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
+        InputStream in = this.getClass().getClassLoader().getResourceAsStream("config.properties");
         try {
             properties.load(in);
         } catch (IOException ex) {
@@ -179,8 +178,6 @@ public class Pickup extends HttpServlet {
             Logger.getLogger(Pickup.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-
-
         try {
             /*
              *            Properties properties = new Properties();
@@ -194,7 +191,7 @@ public class Pickup extends HttpServlet {
 
              */
 
-            in = this.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
+            in = this.getClass().getClassLoader().getResourceAsStream("config.properties");
             properties.load(in);
 
             String naemailTo1 = properties.getProperty("pickupEmailTo1");
@@ -204,12 +201,14 @@ public class Pickup extends HttpServlet {
             String naemailFrom = properties.getProperty("pickupEmailFrom");
             String naemailNameFrom = properties.getProperty("pickupEmailNameFrom");
 
-
             msgBody = sb.toString();
             MimeMessage msg = new MimeMessage(session);
+            System.out.println ("EMAILING FROM:"+naemailFrom+":"+naemailNameFrom);
             msg.setFrom(new InternetAddress(naemailFrom, naemailNameFrom));
+            System.out.println ("EMAILING TO1:"+naemailTo1+":"+naemailNameTo1);
             msg.addRecipient(Message.RecipientType.TO,
                     new InternetAddress(naemailTo1, naemailNameTo1));  //naemailTo, naemployeeTo
+            System.out.println ("EMAILING TO1:"+naemailTo2+":"+naemailNameTo2);
             msg.addRecipient(Message.RecipientType.TO,
                     new InternetAddress(naemailTo2, naemailNameTo2));  //naemailTo, naemployeeTo
             msg.setSubject("Equipment Pickup Receipt");

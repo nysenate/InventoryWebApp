@@ -5,9 +5,13 @@ package gov.nysenate.inventory.server;
  * and open the template in the editor.
  */
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -46,9 +50,12 @@ public class DeliveryDetails extends HttpServlet {
 
             // populate the list from the database and also get the details like other activities
             
-            ArrayList<String> deliveryDetails = new ArrayList<String>();
+            ArrayList<InvItem> deliveryDetails = new ArrayList<InvItem>();
+            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+            Type listOfTestObject = new TypeToken<List<InvItem>>(){}.getType();
+            
             deliveryDetails = db.getDeliveryDetails(nuxrpd);
-            String json = new Gson().toJson(deliveryDetails);
+            String json = gson.toJson(deliveryDetails);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(json);
