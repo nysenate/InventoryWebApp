@@ -3,6 +3,7 @@ package gov.nysenate.inventory.server;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -32,6 +33,9 @@ public class Search extends HttpServlet
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
+            DbConnect db = new DbConnect();
+            db.ipAddr=request.getRemoteAddr();
+             Logger.getLogger(Search.class.getName()).info(db.ipAddr+"|"+"Servlet Search : start");
             /* TODO output your page here. You may use following sample code. 
             out.println("<html>");
             out.println("<head>");
@@ -47,7 +51,7 @@ public class Search extends HttpServlet
             
             //int barcode=Integer.valueOf(barcode_num);
             System.out.println("Search Servlet  barcode "+barcode_num);
-            DbConnect db = new DbConnect();
+            
             String details = db.getDetails(barcode_num);
             
             if (details.equals("no")) {
@@ -64,13 +68,15 @@ public class Search extends HttpServlet
                 //Psuedo JSON for now
                 out.println("{\"nusenate\":\""+model[0]+"\",\"nuxrefsn\":\""+model[1]+"\",\"dtissue\":\""+model[3]+"\",\"cdlocatto\":\""+model[4]+"\",\"cdloctypeto\":\""+model[5]+"\",\"cdcategory\":\""+model[6]+"\",\"adstreet1to\":\""+model[7].replaceAll("\"", "&#34;") +"\",\"decommodityf\":\""+model[8].replaceAll("\"", "&#34;")+"\"}");
             }
-        }
-        finally {            
+
+
+
+            Logger.getLogger(Search.class.getName()).info(db.ipAddr+"|"+"Servlet Search : end");
+
+        } finally {
             out.close();
         }
     } // processRequest()
-
-
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
