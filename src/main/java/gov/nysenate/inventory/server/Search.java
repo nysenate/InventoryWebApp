@@ -66,8 +66,10 @@ public class Search extends HttpServlet
                 //out.println(" Barcode   :  "+model[0]+"\n NUXREFSN :  "+model[1]+"\n NUSERIAL : "+model[2]+"\n DTISSUE  :    "+model[3]+"\n CDLOCATTO  :    "+model[4]+"\n CDLOCTYPETO :    "+model[5]+"\n CDCATEGORY  :    "+model[6]+"\n DECOMMODITYF  :    "+model[7]);
 
                 //Psuedo JSON for now
-                out.println("{\"nusenate\":\""+model[0]+"\",\"nuxrefsn\":\""+model[1]+"\",\"dtissue\":\""+model[3]+"\",\"cdlocatto\":\""+model[4]+"\",\"cdloctypeto\":\""+model[5]+"\",\"cdcategory\":\""+model[6]+"\",\"adstreet1to\":\""+model[7].replaceAll("\"", "&#34;") +"\",\"decommodityf\":\""+model[8].replaceAll("\"", "&#34;")+"\"}");
-            }
+
+                out.println("{\"nusenate\":\""+model[0]+"\",\"nuxrefsn\":\""+model[1]+"\",\"dtissue\":\""+model[3]+"\",\"cdlocatto\":\""+model[4]+"\",\"cdloctypeto\":\""+model[5]+"\",\"cdcategory\":\""+model[6]+"\",\"adstreet1to\":\""+model[7].replaceAll("\"", "&#34;") +"\",\"decommodityf\":\""+model[8].replaceAll("\"", "&#34;")+"\",\"cdlocatfrom\":\""+model[9]+"\",\"deadjust\":\""+model[10].replaceAll("\"", "&#34;")+"\"}");
+             
+             }
 
 
 
