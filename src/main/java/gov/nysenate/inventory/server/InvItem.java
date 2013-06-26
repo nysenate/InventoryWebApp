@@ -13,6 +13,8 @@ public class InvItem
    @Expose  String type = "blah";
    @Expose  String nusenate = "blah";
    @Expose  String cdcategory = "blah";
+   @Expose  String cdlocat = "";
+   @Expose  String cdlocatto = "";
     
     boolean selected = false;
     
@@ -21,6 +23,8 @@ public class InvItem
     final int NUSENATE = -103;
     final int CDCATEGORY = -104;
     final int SELECTED = -105;   
+    final int CDLOCAT = -106;   
+    final int CDLOCATTO = -107;   
 
     public InvItem(String nusenate, String cdcategory, String type,
             String decommodityf) {
@@ -66,6 +70,22 @@ public class InvItem
         this.type = type;
     }
 
+    public String getCdlocat() {
+        return cdlocat;
+    }
+
+    public void setCdlocat(String cdlocat) {
+        this.cdlocat = cdlocat;
+    }
+
+    public String getCdlocatto() {
+        return cdlocatto;
+    }
+
+    public void setCdlocatto(String cdlocatto) {
+        this.cdlocatto = cdlocatto;
+    }
+    
     public void setSelected(boolean selected) {
         this.selected = selected;
     }

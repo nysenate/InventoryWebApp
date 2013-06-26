@@ -1,19 +1,14 @@
 package gov.nysenate.inventory.server;
 
 import com.google.gson.reflect.TypeToken;
-import com.sun.org.apache.bcel.internal.generic.Type;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.sql.Blob;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -29,8 +24,6 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.imageio.ImageIO;
-import oracle.jdbc.OracleConnection;
-import oracle.jdbc.OracleDriver;
 import oracle.sql.BLOB;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -226,7 +219,7 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
             //  String loc_code;
-            String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF FROM   "
+            String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF, B.CDLOCATTO FROM   "
                     + "  FM12SENXREF A,FD12ISSUE B, FM12COMMODTY C"
                     + " WHERE A.CDSTATUS='A'"
                     + " AND A.NUXREFSN=B.NUXREFSN"
@@ -240,6 +233,7 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
                 vl.NUSENATE = result.getString(1);
                 vl.CDCATEGORY = result.getString(2);
                 vl.DECOMMODITYF = result.getString(3);
+                vl.CDLOCATTO = result.getString(4);
                 itemList.add(vl);
             }
         } catch (SQLException e) {
@@ -457,7 +451,7 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
         try {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
-            String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF,e.nuxrpd FROM "
+            String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF,e.nuxrpd,b.cdlocatto, e.cdlocatto FROM "
                     + " FM12SENXREF A,FD12ISSUE B, FM12COMMODTY C,fd12invintrans d,fm12invintrans e "
                     + " WHERE A.CDSTATUS='A' "
                     + " AND A.NUXREFSN=B.NUXREFSN "
@@ -470,7 +464,11 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
                 String nusenate = result.getString(1);
                 String cdcategory = result.getString(2);
                 String decommodityf = result.getString(3);
+                String cdlocat = result.getString(5);
+                String cdlocatto = result.getString(6);
                 InvItem curInvItem = new InvItem(nusenate,  cdcategory, "EXISTING", decommodityf);
+                curInvItem.setCdlocat(cdlocat);
+                curInvItem.setCdlocatto(cdlocatto);
                 deliveryDetails.add(curInvItem);
             }
 

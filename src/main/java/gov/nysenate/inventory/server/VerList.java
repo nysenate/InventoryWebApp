@@ -13,4 +13,5 @@ public class VerList {
     String NUSENATE;
     String CDCATEGORY;
     String DECOMMODITYF;
+    String CDLOCATTO;
 }
