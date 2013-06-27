@@ -451,7 +451,7 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
         try {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
-            String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF,e.nuxrpd,b.cdlocatto, e.cdlocatto FROM "
+            String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF,e.nuxrpd,b.cdlocatto, e.cdlocatto, d.cdinvtrans FROM "
                     + " FM12SENXREF A,FD12ISSUE B, FM12COMMODTY C,fd12invintrans d,fm12invintrans e "
                     + " WHERE A.CDSTATUS='A' "
                     + " AND A.NUXREFSN=B.NUXREFSN "
@@ -466,9 +466,11 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
                 String decommodityf = result.getString(3);
                 String cdlocat = result.getString(5);
                 String cdlocatto = result.getString(6);
+                String cdintransit = result.getString(7);
                 InvItem curInvItem = new InvItem(nusenate,  cdcategory, "EXISTING", decommodityf);
                 curInvItem.setCdlocat(cdlocat);
                 curInvItem.setCdlocatto(cdlocatto);
+                curInvItem.setCdintransit(cdintransit);
                 deliveryDetails.add(curInvItem);
             }
 

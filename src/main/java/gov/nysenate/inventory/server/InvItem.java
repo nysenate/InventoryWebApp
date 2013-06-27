@@ -15,6 +15,7 @@ public class InvItem
    @Expose  String cdcategory = "blah";
    @Expose  String cdlocat = "";
    @Expose  String cdlocatto = "";
+   @Expose  String cdintransit = "";
     
     boolean selected = false;
     
@@ -25,6 +26,7 @@ public class InvItem
     final int SELECTED = -105;   
     final int CDLOCAT = -106;   
     final int CDLOCATTO = -107;   
+    final int CDINTRANSIT = -108;  // Note: Does not match the Andriod CDINTRANSIT value 
 
     public InvItem(String nusenate, String cdcategory, String type,
             String decommodityf) {
@@ -84,6 +86,15 @@ public class InvItem
 
     public void setCdlocatto(String cdlocatto) {
         this.cdlocatto = cdlocatto;
+    }
+
+    
+   public String getCdintransit() {
+        return cdintransit;
+    }
+    
+    public void setCdintransit(String cdlocat) {
+        this.cdintransit = cdintransit;
     }
     
     public void setSelected(boolean selected) {
