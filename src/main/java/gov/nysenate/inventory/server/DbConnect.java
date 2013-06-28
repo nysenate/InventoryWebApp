@@ -451,7 +451,7 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
         try {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
-            String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF,e.nuxrpd,b.cdlocatto, e.cdlocatto, d.cdinvtrans FROM "
+            String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF,e.nuxrpd,b.cdlocatto, e.cdlocatto, e.cdintransit FROM "
                     + " FM12SENXREF A,FD12ISSUE B, FM12COMMODTY C,fd12invintrans d,fm12invintrans e "
                     + " WHERE A.CDSTATUS='A' "
                     + " AND A.NUXREFSN=B.NUXREFSN "

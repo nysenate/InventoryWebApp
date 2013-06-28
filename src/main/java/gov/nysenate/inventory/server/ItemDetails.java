@@ -54,7 +54,7 @@ public class ItemDetails extends HttpServlet {
             } else {
                 String model[] = details.split("\\|");
 
-//                System.out.println(model.length+": CDINVTRANS:"+model[model.length-1]);
+//                System.out.println(model.length+": CDINTRANSIT:"+model[model.length-1]);
                 
                 // out.println(" Model   :  "+model[0]+"\n Location :  "+model[1]+"\n Manufacturer : "+model[2]+"\n Signed By  :    "+model[3]);
                 //V_NUSENATE,V_NUXREFSN,V_NUSERIAL,V_DTISSUE,V_CDLOCATTO,V_CDLOCTYPETO,V_CDCATEGORY,V_DECOMMODITYF
