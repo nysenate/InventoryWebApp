@@ -1,5 +1,6 @@
 package gov.nysenate.inventory.server;
 
+import static gov.nysenate.inventory.server.DbConnect.log;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -13,6 +14,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 
 /**
@@ -39,8 +41,22 @@ public class ImgUpload extends HttpServlet {
         //Use out to send content to the user's browser
         PrintWriter out = response.getWriter();
         try {
-             DbConnect db = new DbConnect();
-             db.ipAddr=request.getRemoteAddr();
+            HttpSession httpSession = request.getSession(false);
+            DbConnect db;            
+            if (httpSession==null) {
+                System.out.println ("****SESSION NOT FOUND");
+                db = new DbConnect();
+                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ImgUpload.processRequest ");                
+            }
+            else {
+                System.out.println ("SESSION FOUND!!!!");
+                String user = (String)httpSession.getAttribute("user");
+                String pwd = (String)httpSession.getAttribute("pwd");
+                System.out.println ("--------USER:"+user);
+                db = new DbConnect(user, pwd);
+                
+            }
+            db.ipAddr=request.getRemoteAddr();
             Logger.getLogger(ImgUpload.class.getName()).info(db.ipAddr+"|"+"Servlet ImgUpload : start");
             //Get the name of the file from the URL string
             String nauser = (String) request.getParameter("nauser");

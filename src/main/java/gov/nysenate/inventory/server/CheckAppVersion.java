@@ -175,6 +175,9 @@ public class CheckAppVersion extends HttpServlet {
             String lookFor = "versionName=\"";
             int start = APKManifest.indexOf(lookFor)+lookFor.length();
             int end = APKManifest.indexOf("\"", start+1);
+            if (start==-1) {
+                return "";
+            }
             String versionName = APKManifest.substring(start, end).trim();
             return versionName;     
          }

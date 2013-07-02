@@ -5,6 +5,7 @@ package gov.nysenate.inventory.server;
  * and open the template in the editor.
  */
 import com.google.gson.Gson;
+import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 
 /**
@@ -37,7 +39,21 @@ public class ItemsList extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            DbConnect db = new DbConnect();
+            HttpSession httpSession = request.getSession(false);
+            DbConnect db;            
+            if (httpSession==null) {
+                System.out.println ("****SESSION NOT FOUND");
+                db = new DbConnect();
+                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ItemsList.processRequest ");                
+            }
+            else {
+                System.out.println ("SESSION FOUND!!!!");
+                String user = (String)httpSession.getAttribute("user");
+                String pwd = (String)httpSession.getAttribute("pwd");
+                System.out.println ("--------USER:"+user);
+                db = new DbConnect(user, pwd);
+                
+            }
             db.ipAddr=request.getRemoteAddr();
             Logger.getLogger(ItemsList.class.getName()).info(db.ipAddr+"|"+"Servlet ItemsList : start");
             String loc_code = request.getParameter("loc_code");

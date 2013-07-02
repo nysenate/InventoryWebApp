@@ -9,6 +9,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -33,9 +34,22 @@ public class Search extends HttpServlet
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            DbConnect db = new DbConnect();
+            HttpSession httpSession = request.getSession(false);
+            DbConnect db;            
+            if (httpSession==null) {
+                System.out.println ("****SESSION NOT FOUND");
+                db = new DbConnect();
+            }
+            else {
+                System.out.println ("SESSION FOUND!!!!");
+                String user = (String)httpSession.getAttribute("user");
+                String pwd = (String)httpSession.getAttribute("pwd");
+                System.out.println ("--------USER:"+user);
+                db = new DbConnect(user, pwd);
+                
+            }
             db.ipAddr=request.getRemoteAddr();
-             Logger.getLogger(Search.class.getName()).info(db.ipAddr+"|"+"Servlet Search : start");
+            Logger.getLogger(Search.class.getName()).info(db.ipAddr+"|"+"Servlet Search : start");
             /* TODO output your page here. You may use following sample code. 
             out.println("<html>");
             out.println("<head>");
@@ -72,7 +86,7 @@ public class Search extends HttpServlet
 
                 //Psuedo JSON for now               
 
-                out.println("{\"nusenate\":\""+model[0]+"\",\"nuxrefsn\":\""+model[1]+"\",\"dtissue\":\""+model[3]+"\",\"cdlocatto\":\""+model[4]+"\",\"cdloctypeto\":\""+model[5]+"\",\"cdcategory\":\""+model[6]+"\",\"adstreet1to\":\""+model[7].replaceAll("\"", "&#34;") +"\",\"decommodityf\":\""+model[8].replaceAll("\"", "&#34;")+"\",\"cdstatus\":\""+model[10]+"\",\"deadjust\":\""+deadjust+"\"}");
+                out.println("{\"nusenate\":\""+model[0]+"\",\"nuxrefsn\":\""+model[1]+"\",\"dtissue\":\""+model[3]+"\",\"cdlocatto\":\""+model[4]+"\",\"cdloctypeto\":\""+model[5]+"\",\"cdcategory\":\""+model[6]+"\",\"adstreet1to\":\""+model[7].replaceAll("\"", "&#34;") +"\",\"decommodityf\":\""+model[8].replaceAll("\"", "&#34;")+"\",\"cdstatus\":\""+model[10]+"\",\"deadjust\":\""+deadjust+"\",\"dtlstinvntry\":\""+model[13]+"\"}");
              
              }
 

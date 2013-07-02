@@ -20,6 +20,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 
 /**
@@ -45,13 +46,14 @@ public class Login extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             /* TODO output your page here. You may use following sample code. */
-              DbConnect db = new DbConnect();
+            DbConnect db = new DbConnect();
           
-           db.ipAddr=request.getRemoteAddr();         //Logger.getLogger(Login.class.getName()).info("Servlet Login : start");
+            db.ipAddr=request.getRemoteAddr();         //Logger.getLogger(Login.class.getName()).info("Servlet Login : start");
             db.log.info(db.ipAddr+"|"+"Servlet Login : start");
             String name = request.getMethod().toString();
             String user = request.getParameter("user");
             String pwd = request.getParameter("pwd");
+            HttpSession httpSession = request.getSession(true);
             String status = "N";
 
             // create an object of the db class and pass user name and password to it   
@@ -60,6 +62,15 @@ public class Login extends HttpServlet {
           
             status = db.validateUser(user, pwd);
 
+
+            if (status.equalsIgnoreCase("VALID")) {
+                httpSession.setAttribute("user", user);
+                httpSession.setAttribute("pwd", pwd);
+            }
+            else {
+                httpSession.setAttribute("user", null);
+                httpSession.setAttribute("pwd", null);
+            }
 
 
             //---------- Call the MyWorkplace web server and validate the user name and password

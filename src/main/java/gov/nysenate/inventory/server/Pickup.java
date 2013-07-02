@@ -1,5 +1,6 @@
 package gov.nysenate.inventory.server;
 
+import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -36,6 +37,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import org.apache.commons.io.IOUtils;
 //import sun.misc.IOUtils;
 
@@ -77,8 +79,22 @@ public class Pickup extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            DbConnect db = new DbConnect();
-             db.ipAddr=request.getRemoteAddr();
+            HttpSession httpSession = request.getSession(false);
+            DbConnect db;            
+            if (httpSession==null) {
+                System.out.println ("****SESSION NOT FOUND");
+                db = new DbConnect();
+                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");                
+            }
+            else {
+                System.out.println ("SESSION FOUND!!!!");
+                String user = (String)httpSession.getAttribute("user");
+                String pwd = (String)httpSession.getAttribute("pwd");
+                System.out.println ("--------USER:"+user);
+                db = new DbConnect(user, pwd);
+                
+            }
+            db.ipAddr=request.getRemoteAddr();
             Logger.getLogger(Pickup.class.getName()).info(db.ipAddr+"|"+"Servlet Pickup : start");
             barcodeStr = request.getParameter("barcodes");
             originLocation = request.getParameter("originLocation");

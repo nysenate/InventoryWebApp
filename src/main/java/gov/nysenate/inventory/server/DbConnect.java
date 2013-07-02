@@ -37,12 +37,36 @@ import org.apache.log4j.Logger;
  * @author Patil
  */
 public class DbConnect {
-    String ipAddr="";
-static Logger log = Logger.getLogger(DbConnect.class.getName());
+
+    String ipAddr = "";
+    static Logger log = Logger.getLogger(DbConnect.class.getName());
+    static Properties properties = new Properties();
+    static InputStream in;
+    static private String userName,  password;
+   
+    DbConnect() {
+        properties = new Properties();
+        in = getClass().getClassLoader().getResourceAsStream("config.properties");
+        try {
+            properties.load(in);
+            userName = properties.getProperty("user");
+            password = properties.getProperty("password");
+
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(DbConnect.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+
+    }
+
+    DbConnect(String user, String pwd) {
+        userName = user;
+        password = pwd;
+        System.out.println("NEW DBCONNECT userName:"+userName);
+    }
+
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Main function for testing other functions
      *----------------------------------------------------------------------------------------------------*/
-
     public static void main(String args[]) {
         log.info("main function ");
         /*    String barcode_num = "77030";
@@ -80,19 +104,13 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to establish and return database connection 
      *----------------------------------------------------------------------------------------------------*/
+
     public static Connection getDbConnection() {
         log.info("getDbConnection() begin ");
         Connection conn = null;
         try {
             // Get the connection string, user name and password from the properties file
-
-            Properties properties = new Properties();
-            DbConnect db = new DbConnect();
-            InputStream in = db.getClass().getClassLoader().getResourceAsStream("config.properties");
-            properties.load(in);
             String connectionString = properties.getProperty("connectionString");
-            String userName = properties.getProperty("user");
-            String password = properties.getProperty("password");
 
             Class.forName("oracle.jdbc.driver.OracleDriver");
             conn = DriverManager.getConnection(connectionString, userName, password);
@@ -100,10 +118,6 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         } catch (SQLException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
-        } catch (IOException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         }
         log.info("getDbConnection() end");
@@ -156,16 +170,16 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
      *----------------------------------------------------------------------------------------------------*/
 
     public String getDetails(String barcodeNum) {
-        log.info(this.ipAddr+"|"+"getDetails() begin : barcodeNum= " + barcodeNum);
+        log.info(this.ipAddr + "|" + "getDetails() begin : barcodeNum= " + barcodeNum);
         if ((Integer.parseInt(barcodeNum) <= 0)) {
-           System.out.println("Error in DbConnect.getDetails() - Barcode Number Not Valid");
-            log.error(this.ipAddr+"|"+"Error in DbConnect.getDetails() - Barcode Number Not Valid");
-           throw new IllegalArgumentException("Invalid Barcode Number");
-       }
-       String details = null;
+            System.out.println("Error in DbConnect.getDetails() - Barcode Number Not Valid");
+            log.error(this.ipAddr + "|" + "Error in DbConnect.getDetails() - Barcode Number Not Valid");
+            throw new IllegalArgumentException("Invalid Barcode Number");
+        }
+        String details = null;
         try {
             Connection conn = getDbConnection();
-            CallableStatement cs = conn.prepareCall("{?=call PATIL.INV_APP.GET_INV_DETAILS(?)}");
+            CallableStatement cs = conn.prepareCall("{?=call INV_APP.GET_INV_DETAILS(?)}");
             cs.registerOutParameter(1, Types.VARCHAR);
             cs.setString(2, barcodeNum);
             cs.executeUpdate();
@@ -175,8 +189,8 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
         } catch (SQLException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         }
-        log.info(this.ipAddr+"|"+"getDetails() details = " + details);
-        log.info(this.ipAddr+"|"+"getDetails() end ");
+        log.info(this.ipAddr + "|" + "getDetails() details = " + details);
+        log.info(this.ipAddr + "|" + "getDetails() end ");
         return details;
     }
     /*-------------------------------------------------------------------------------------------------------
@@ -184,15 +198,15 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
      *----------------------------------------------------------------------------------------------------*/
 
     public String getInvLocDetails(String locCode) {
-       log.info(this.ipAddr+"|"+"getInvLocDetails() begin : locCode= " + locCode);
+        log.info(this.ipAddr + "|" + "getInvLocDetails() begin : locCode= " + locCode);
         if (locCode.isEmpty() || locCode == null) {
-            log.info(this.ipAddr+"|"+"Invalid location Code " + locCode);
+            log.info(this.ipAddr + "|" + "Invalid location Code " + locCode);
             throw new IllegalArgumentException("Invalid location Code");
-        }   
+        }
         String details = null;
         try {
             Connection conn = getDbConnection();
-            CallableStatement cs = conn.prepareCall("{?=call PATIL.INV_APP.GET_INV_LOC_CODE(?)}");
+            CallableStatement cs = conn.prepareCall("{?=call INV_APP.GET_INV_LOC_CODE(?)}");
             cs.registerOutParameter(1, Types.VARCHAR);
             cs.setString(2, locCode);
             cs.executeUpdate();
@@ -201,7 +215,7 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
         } catch (SQLException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         }
-        log.info(this.ipAddr+"|"+"getInvLocDetails() end ");
+        log.info(this.ipAddr + "|" + "getInvLocDetails() end ");
         return details;
     }
     /*-------------------------------------------------------------------------------------------------------
@@ -209,11 +223,11 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
      *----------------------------------------------------------------------------------------------------*/
 
     public ArrayList getLocationItemList(String locCode) {
-        log.info(this.ipAddr+"|"+"getLocationItemList() begin : locCode= " + locCode);
+        log.info(this.ipAddr + "|" + "getLocationItemList() begin : locCode= " + locCode);
         if (locCode.isEmpty() || locCode == null) {
-             throw new IllegalArgumentException("Invalid location Code");
-        } 
-         
+            throw new IllegalArgumentException("Invalid location Code");
+        }
+
         ArrayList<VerList> itemList = new ArrayList<VerList>();
         try {
             Connection conn = getDbConnection();
@@ -238,9 +252,9 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            log.fatal(this.ipAddr+"|"+"SQLException in getLocationItemList() : " + e.getMessage());
+            log.fatal(this.ipAddr + "|" + "SQLException in getLocationItemList() : " + e.getMessage());
         }
-        log.info(this.ipAddr+"|"+"getLocationItemList() end");
+        log.info(this.ipAddr + "|" + "getLocationItemList() end");
         return itemList;
     }
     /*-------------------------------------------------------------------------------------------------------
@@ -256,23 +270,23 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
      *----------------------------------------------------------------------------------------------------*/
 
     public ArrayList getLocCodes(String natype) {
-        log.info(this.ipAddr+"|"+"getLocCodes(String natype) begin : natype= " + natype);
+        log.info(this.ipAddr + "|" + "getLocCodes(String natype) begin : natype= " + natype);
         if (natype.isEmpty() || natype == null) {
-             throw new IllegalArgumentException("Invalid location Code");
-        }  
+            throw new IllegalArgumentException("Invalid location Code");
+        }
         ArrayList<String> locCodes = new ArrayList<String>();
         try {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
-           
+
             String qry = "select distinct cdlocat,adstreet1, cdloctype from sl16location a where a.cdstatus='A' ORDER BY cdlocat, cdloctype";
             if (natype.equalsIgnoreCase("DELIVERY")) {
                 qry = "select distinct cdlocat,adstreet1, cdloctype from sl16location a where a.cdstatus='A' AND cdlocat IN (SELECT a2.cdlocatto FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A')) ORDER BY cdlocat, cdloctype";
             }
 
-           ResultSet result = stmt.executeQuery(qry);
+            ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
-           
+
                 String locCode = result.getString(1);
                 String adstreet1 = result.getString(2);
                 String cdloctype = result.getString(3);
@@ -282,7 +296,7 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        log.info(this.ipAddr+"|"+"getLocCodes() end");
+        log.info(this.ipAddr + "|" + "getLocCodes() end");
         return locCodes;
     }
 
@@ -290,10 +304,10 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
      * ---------------Function to insert items found at given location(barcodes) for verification
      *----------------------------------------------------------------------------------------------------*/
     public int setBarcodesInDatabase(String cdlocat, String barcodes[]) {
-        log.info(this.ipAddr+"|"+"setBarcodesInDatabase() begin : cdlocat= " + cdlocat + " &barcodes= " + barcodes);
+        log.info(this.ipAddr + "|" + "setBarcodesInDatabase() begin : cdlocat= " + cdlocat + " &barcodes= " + barcodes);
         if (cdlocat.isEmpty() || barcodes == null) {
-             throw new IllegalArgumentException("Invalid location Code");
-        } 
+            throw new IllegalArgumentException("Invalid location Code");
+        }
         int result = 0;
         String r = "";
         try {
@@ -308,7 +322,7 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
             for (int i = 0; i < barcodes.length; i++) {
                 // left padding 0 to string 
                 String barcodeStr = String.format("%6s", barcodes[i]).replace(' ', '0');
-                CallableStatement cs = conn.prepareCall("{?=call PATIL.INV_APP.copy_data(?,?)}");
+                CallableStatement cs = conn.prepareCall("{?=call INV_APP.copy_data(?,?)}");
                 cs.registerOutParameter(1, Types.VARCHAR);
                 cs.setString(2, cdlocat);
                 cs.setString(3, barcodeStr);
@@ -317,9 +331,9 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
                 System.out.println(r);
             }
         } catch (SQLException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, this.ipAddr+"|"+ex.getMessage());
+            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, this.ipAddr + "|" + ex.getMessage());
         }
-        log.info(this.ipAddr+"|"+"setBarcodesInDatabase() end");
+        log.info(this.ipAddr + "|" + "setBarcodesInDatabase() end");
         return result;
     }
     /*-------------------------------------------------------------------------------------------------------
@@ -327,10 +341,10 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
      *----------------------------------------------------------------------------------------------------*/
 
     public int invTransit(String CDLOCATFROM, String CDLOCATTO, String[] barcode, String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN, String DEPUCOMMENTS) {
-        log.info(this.ipAddr+"|"+"invTransit() begin : CDLOCATFROM = " + CDLOCATFROM + " &CDLOCATTO= " + CDLOCATTO + " &barcode= " + barcode + " &NAPICKUPBY= " + NAPICKUPBY + " &NARELEASEBY= " + NARELEASEBY + " &NUXRRELSIGN= " + NUXRRELSIGN + " &NADELIVERBY= " + NADELIVERBY + " &NAACCEPTBY= " + NAACCEPTBY + " &NUXRACCPTSIGN= " + NUXRACCPTSIGN + " &DEPUCOMMENTS= " + DEPUCOMMENTS);
+        log.info(this.ipAddr + "|" + "invTransit() begin : CDLOCATFROM = " + CDLOCATFROM + " &CDLOCATTO= " + CDLOCATTO + " &barcode= " + barcode + " &NAPICKUPBY= " + NAPICKUPBY + " &NARELEASEBY= " + NARELEASEBY + " &NUXRRELSIGN= " + NUXRRELSIGN + " &NADELIVERBY= " + NADELIVERBY + " &NAACCEPTBY= " + NAACCEPTBY + " &NUXRACCPTSIGN= " + NUXRACCPTSIGN + " &DEPUCOMMENTS= " + DEPUCOMMENTS);
         if (CDLOCATFROM.isEmpty() || CDLOCATTO == null || barcode == null) {
-             throw new IllegalArgumentException("Invalid CDLOCATFROM or CDLOCATTO or barcode");
-        } 
+            throw new IllegalArgumentException("Invalid CDLOCATFROM or CDLOCATTO or barcode");
+        }
         int nuxrpd = 0;
 
         try {
@@ -382,7 +396,7 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
             return -1;
         }
-        log.info(this.ipAddr+"|"+"invTransit() end");
+        log.info(this.ipAddr + "|" + "invTransit() end");
         return nuxrpd;
     }
     /*-------------------------------------------------------------------------------------------------------
@@ -390,10 +404,10 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
      *----------------------------------------------------------------------------------------------------*/
 
     public List<PickupGroup> getDeliveryList(String locCode) {
-        log.info(this.ipAddr+"|"+"getDeliveryList() begin : locCode= " + locCode);
+        log.info(this.ipAddr + "|" + "getDeliveryList() begin : locCode= " + locCode);
         if (locCode.isEmpty()) {
-             throw new IllegalArgumentException("Invalid locCode");
-        } 
+            throw new IllegalArgumentException("Invalid locCode");
+        }
         java.lang.reflect.Type listOfTestObject = new TypeToken<List<PickupGroup>>() {
         }.getType();
         List<PickupGroup> pickupList = Collections.synchronizedList(new ArrayList<PickupGroup>());
@@ -410,7 +424,7 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
                     + " AND b.cdstatus = 'A'"
                     + " AND c.cdlocat = a.cdlocatfrom"
                     + " GROUP BY a.nuxrpd, a.dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode"
-                    + " ORDER BY a.dtpickup NULLS LAST";                   
+                    + " ORDER BY a.dtpickup NULLS LAST";
             System.out.println(qry);
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
@@ -425,16 +439,16 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
                 String adzipcode = result.getString(9);
                 int nucount = result.getInt(10);
                 //String pickupDetails = NUXRPD + " : From " + CDLOCATFROM + "\n To " + CDLOCATTO + "\n Pickup by : " + NAPICKUPBY;
-                pickupList.add(new PickupGroup(nuxrpd, dtpickup, napickupby, nareleaseby, cdlocatfrom,  adstreet1, adcity, adstate, adzipcode, nucount));
+                pickupList.add(new PickupGroup(nuxrpd, dtpickup, napickupby, nareleaseby, cdlocatfrom, adstreet1, adcity, adstate, adzipcode, nucount));
             }
 
             // Close the connection
             conn.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            log.fatal(this.ipAddr+"|"+"SQLException in getDeliveryList() : " + e.getMessage());
+            log.fatal(this.ipAddr + "|" + "SQLException in getDeliveryList() : " + e.getMessage());
         }
-        log.info(this.ipAddr+"|"+"getDeliveryList() end");
+        log.info(this.ipAddr + "|" + "getDeliveryList() end");
         return pickupList;
 
     }
@@ -443,10 +457,10 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
      *----------------------------------------------------------------------------------------------------*/
 
     public ArrayList<InvItem> getDeliveryDetails(String nuxrpd) {
-        log.info(this.ipAddr+"|"+"getDeliveryDetails() begin : nuxrpd= " + nuxrpd);
+        log.info(this.ipAddr + "|" + "getDeliveryDetails() begin : nuxrpd= " + nuxrpd);
         if (nuxrpd.isEmpty()) {
-             throw new IllegalArgumentException("Invalid locCode");
-        } 
+            throw new IllegalArgumentException("Invalid locCode");
+        }
         ArrayList<InvItem> deliveryDetails = new ArrayList<InvItem>();
         try {
             Connection conn = getDbConnection();
@@ -467,7 +481,7 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
                 String cdlocat = result.getString(5);
                 String cdlocatto = result.getString(6);
                 String cdintransit = result.getString(7);
-                InvItem curInvItem = new InvItem(nusenate,  cdcategory, "EXISTING", decommodityf);
+                InvItem curInvItem = new InvItem(nusenate, cdcategory, "EXISTING", decommodityf);
                 curInvItem.setCdlocat(cdlocat);
                 curInvItem.setCdlocatto(cdlocatto);
                 curInvItem.setCdintransit(cdintransit);
@@ -478,9 +492,9 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
             conn.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            log.fatal(this.ipAddr+"|"+"SQLException in getDeliveryDetails() : " + e.getMessage());
+            log.fatal(this.ipAddr + "|" + "SQLException in getDeliveryDetails() : " + e.getMessage());
         }
-        log.info(this.ipAddr+"|"+"getDeliveryDetails() end");
+        log.info(this.ipAddr + "|" + "getDeliveryDetails() end");
         return deliveryDetails;
     }
     /*-------------------------------------------------------------------------------------------------------
@@ -495,10 +509,10 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
      *----------------------------------------------------------------------------------------------------*/
 
     public int insertSignature(byte[] imageInArray, int nuxrefem, String nauser) {
-        log.info(this.ipAddr+"|"+"insertSignature() begin : nuxrefem= " + nuxrefem + " &nauser=" + nauser);
+        log.info(this.ipAddr + "|" + "insertSignature() begin : nuxrefem= " + nuxrefem + " &nauser=" + nauser);
         if (imageInArray == null || nuxrefem < 0 || nauser == null) {
-           throw new IllegalArgumentException("Invalid imageInArray or nuxrefem or nauser");
-       }
+            throw new IllegalArgumentException("Invalid imageInArray or nuxrefem or nauser");
+        }
         Connection con = getDbConnection();
         System.out.println("DbConnect insertSignature byte Image Length:" + imageInArray.length);
 
@@ -519,7 +533,7 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
             System.out.println("Image should have been converted to a white background jpg.");
         } catch (Exception e) {
             e.printStackTrace();
-            log.fatal(this.ipAddr+"|"+"Exception in insertSignature() : " + e.getMessage());
+            log.fatal(this.ipAddr + "|" + "Exception in insertSignature() : " + e.getMessage());
         }
 
         PreparedStatement ps;
@@ -563,11 +577,11 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
         } catch (SQLException ex) {
             System.out.println("!!!!!!!!!!SQL EXCEPTION OCCURED");
             System.out.println(ex.getMessage());
-            log.fatal(this.ipAddr+"|"+"SQLException in insertSignature() : " + ex.getMessage());
+            log.fatal(this.ipAddr + "|" + "SQLException in insertSignature() : " + ex.getMessage());
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        log.info(this.ipAddr+"|"+"insertSignature() end");
+        log.info(this.ipAddr + "|" + "insertSignature() end");
         return nuxrsign;
 
     }
@@ -576,10 +590,10 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
      * ---------------Function to 
      *----------------------------------------------------------------------------------------------------*/
     public ArrayList<Employee> getEmployeeList(String nalast) {
-     //   if(nalast==null){
-     //       throw new IllegalArgumentException("Invalid nalast");
-     //   }
-        log.info(this.ipAddr+"|"+"getEmployeeList(String nalast) begin : nalast= " + nalast);
+        //   if(nalast==null){
+        //       throw new IllegalArgumentException("Invalid nalast");
+        //   }
+        log.info(this.ipAddr + "|" + "getEmployeeList(String nalast) begin : nalast= " + nalast);
         return getEmployeeList(nalast, "A");
     }
     /*-------------------------------------------------------------------------------------------------------
@@ -587,11 +601,11 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
      *----------------------------------------------------------------------------------------------------*/
 
     public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus) {
-        log.info(this.ipAddr+"|"+"getEmployeeList(String nalast, String cdempstatus) begin : nalast= " + nalast + " &cdempstatus=" + cdempstatus);
-    // if(nalast.isEmpty()||cdempstatus.isEmpty()){
-    // throw new IllegalArgumentException("Invalid nalst or cdempstatus");    
-   //  }
-     ArrayList<Employee> employeeList = new ArrayList<Employee>();
+        log.info(this.ipAddr + "|" + "getEmployeeList(String nalast, String cdempstatus) begin : nalast= " + nalast + " &cdempstatus=" + cdempstatus);
+        // if(nalast.isEmpty()||cdempstatus.isEmpty()){
+        // throw new IllegalArgumentException("Invalid nalst or cdempstatus");    
+        //  }
+        ArrayList<Employee> employeeList = new ArrayList<Employee>();
         try {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
@@ -616,9 +630,9 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            log.fatal(this.ipAddr+"|"+"SQLException in getEmployeeList() : " + e.getMessage());
+            log.fatal(this.ipAddr + "|" + "SQLException in getEmployeeList() : " + e.getMessage());
         }
-        log.info(this.ipAddr+"|"+"getEmployeeList() end");
+        log.info(this.ipAddr + "|" + "getEmployeeList() end");
         return employeeList;
     }
 
@@ -629,25 +643,25 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
         log.info(this.ipAddr + "|" + "getEmployeeList() begin : nuxrpd= " + nuxrpd + " &NUXRACCPTSIGN=" + NUXRACCPTSIGN + " &NADELIVERBY=" + NADELIVERBY + " &NAACCEPTBY=" + NAACCEPTBY + " &deliveryList=" + deliveryList);
         System.out.println("confirmDelivery nuxrpd " + nuxrpd);
         int result = -1;
-   try {
+        try {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
-    
+
             //1. update the master table 
             // Get data from the fm12invintrans table for calling function
-        
+
             String cdlocatfrom = "";
             String CDLOCTYPEFRM = "";
             String cdlocatto = "";
             String CDLOCTYPETO = "";
-        
-  
+
+
             String qry1 = "SELECT CDLOCATTO,CDLOCTYPETO,CDLOCATFROM,CDLOCTYPEFRM FROM "
                     + "fm12invintrans  "
                     + " WHERE CDSTATUS='A' "
                     + " and nuxrpd=" + nuxrpd;
-            
-         
+
+
             ResultSet res1 = stmt.executeQuery(qry1);
             while (res1.next()) {
                 cdlocatto = res1.getString(1);
@@ -655,10 +669,10 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
                 cdlocatfrom = res1.getString(3);
                 CDLOCTYPEFRM = res1.getString(4);
             }
-            
+
 
             //System.out.println ("(confirmDelivery) updating current delivery nuxrpd:"+nuxrpd);
-            
+
             String query = "update FM12invintrans "
                     + "set CDINTRANSIT='N' "
                     + " ,DTTXNUPDATE=SYSDATE "
@@ -669,22 +683,22 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
                     + "' ,DTDELIVERY=SYSDATE "
                     + "  ,DEDELCOMMENTS='" + DEDELCOMMENTS
                     + "' where NUXRPD=" + nuxrpd;
-           result = stmt.executeUpdate(query);
+            result = stmt.executeUpdate(query);
             conn.commit();
             System.out.println("(confirmDelivery):" + query);
- 
-           conn.commit();
-    
+
+            conn.commit();
+
             //2. update the details table 
-                   // we dont need to update the details table since we are marking the record in master as N   
+            // we dont need to update the details table since we are marking the record in master as N   
             //3. call the function to move the items in database
-           
+
             // work on it and call the function multiple times for each item in the list
-           
-           
+
+
             for (int i = 0; i < deliveryList.size(); i++) {
                 String nusenate = deliveryList.get(i).toString();
-                CallableStatement cs = conn.prepareCall("{?=call PATIL.move_inventory_item(?,?,?)}");
+                CallableStatement cs = conn.prepareCall("{?=call move_inventory_item(?,?,?)}");
                 cs.registerOutParameter(1, Types.VARCHAR);
                 cs.setString(2, nusenate);
                 cs.setString(3, cdlocatfrom);
@@ -694,27 +708,31 @@ static Logger log = Logger.getLogger(DbConnect.class.getName());
 
             }
 
-           //3. return result
-          result = 0;
-          conn.close();
-    
-   } catch (SQLException ex) {
-                 System.out.println(ex.getMessage());
-            log.fatal(this.ipAddr + "|" + "SQLException in confirmDelivery() : " + ex.getMessage());
-        } 
-        log.info(this.ipAddr + "|" + "confirmDelivery() end ");
-   return result;
-}
+            //3. return result
+            result = 0;
+            conn.close();
 
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+            log.fatal(this.ipAddr + "|" + "SQLException in confirmDelivery() : " + ex.getMessage());
+        }
+        log.info(this.ipAddr + "|" + "confirmDelivery() end ");
+        return result;
+    }
+
+    public void setUsernamePwd (String user, String pwd) {
+        userName = user;
+        password = pwd;
+    }
 
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to create new delivery i.e. inserts new records into FM12InvInTrans-----
      *----------------------------------------------------------------------------------------------------*/
     public int createNewDelivery(String nuxrpd, String[] barcode) {
         log.info(this.ipAddr + "|" + "createNewDelivery() begin : nuxrpd= " + nuxrpd + " &barcode= " + barcode);
-    /*  if(nuxrpd==null||barcode==null){
-          throw new IllegalArgumentException("Invalid nuxrpd or barcode");
-      }*/
+        /*  if(nuxrpd==null||barcode==null){
+         throw new IllegalArgumentException("Invalid nuxrpd or barcode");
+         }*/
         try {
             String CDLOCATFROM = "";
             String CDLOCATTO = "";

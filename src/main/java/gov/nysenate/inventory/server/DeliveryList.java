@@ -20,6 +20,8 @@ import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import static gov.nysenate.inventory.server.DbConnect.log;
+import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 
 /**
@@ -44,8 +46,22 @@ public class DeliveryList extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-             DbConnect db = new DbConnect();
-               db.ipAddr=request.getRemoteAddr();
+            HttpSession httpSession = request.getSession(false);
+            DbConnect db;            
+            if (httpSession==null) {
+                System.out.println ("****SESSION NOT FOUND");
+                db = new DbConnect();
+                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND DeliveryList.processRequest ");                
+            }
+            else {
+                System.out.println ("SESSION FOUND!!!!");
+                String user = (String)httpSession.getAttribute("user");
+                String pwd = (String)httpSession.getAttribute("pwd");
+                System.out.println ("--------USER:"+user);
+                db = new DbConnect(user, pwd);
+                
+            }
+            db.ipAddr=request.getRemoteAddr();
             Logger.getLogger(DeliveryList.class.getName()).info(db.ipAddr+"|"+"Servlet DeliveryList : Start");
             String loc_code = request.getParameter("loc_code");
 
