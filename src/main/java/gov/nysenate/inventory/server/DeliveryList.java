@@ -4,22 +4,18 @@ package gov.nysenate.inventory.server;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import static gov.nysenate.inventory.server.DbConnect.log;
 import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
@@ -47,11 +43,20 @@ public class DeliveryList extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             HttpSession httpSession = request.getSession(false);
-            DbConnect db;            
+            DbConnect db;
+            String userFallback = null;
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
                 log.info(db.ipAddr + "|" + "****SESSION NOT FOUND DeliveryList.processRequest ");                
+                try {
+                   userFallback  = request.getParameter("userFallback");
+                }
+                catch (Exception e) {
+                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND DeliveryList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                } 
+                out.println("");  // If sessions is not working, tablet will bomb for now with this
+                return;
             }
             else {
                 System.out.println ("SESSION FOUND!!!!");
@@ -67,7 +72,7 @@ public class DeliveryList extends HttpServlet {
 
            
             List<PickupGroup> pickupList = Collections.synchronizedList(new ArrayList<PickupGroup>());
-            pickupList = db.getDeliveryList(loc_code.trim());
+            pickupList = db.getDeliveryList(loc_code.trim(), userFallback);
             String json = new Gson().toJson(pickupList);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");

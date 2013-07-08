@@ -4,13 +4,9 @@ package gov.nysenate.inventory.server;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -42,12 +38,21 @@ public class VerificationReports extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             HttpSession httpSession = request.getSession(false);
-            DbConnect db;            
+            DbConnect db;      
+            String userFallback = null;
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
                 log.info(db.ipAddr + "|" + "****SESSION NOT FOUND VerificationReports.processRequest ");                
-            }
+               try {
+                   userFallback  = request.getParameter("userFallback");
+                }
+                catch (Exception e) {
+                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND VerificationReports.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                } 
+                out.println("");  // If sessions is not working, tablet will bomb for now with this
+                return;
+             }
             else {
                 System.out.println ("SESSION FOUND!!!!");
                 String user = (String)httpSession.getAttribute("user");
@@ -76,7 +81,7 @@ public class VerificationReports extends HttpServlet {
             String barcodes[] = jsonString.split(",");
 
            
-            int result = db.setBarcodesInDatabase(cdlocat, barcodes);
+            int result = db.setBarcodesInDatabase(cdlocat, barcodes, userFallback);
             if (result == 0) {
                 out.println("Database updated sucessfully");
                 Logger.getLogger(VerificationReports.class.getName()).info(db.ipAddr+"|"+"Servlet VerificationReports : Database updated sucessfully");

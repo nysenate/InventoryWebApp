@@ -42,10 +42,17 @@ public class DeliveryConfirmation extends HttpServlet {
         try {
             HttpSession httpSession = request.getSession(false);
             DbConnect db;            
+            String userFallback = null;
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
                 log.info(db.ipAddr + "|" + "****SESSION NOT FOUND DeliveryConfirmation.processRequest ");                
+                try {
+                   userFallback  = request.getParameter("userFallback");
+                }
+                catch (Exception e) {
+                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND DeliveryConfirmation.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                } 
             }
             else {
                 System.out.println ("SESSION FOUND!!!!");
@@ -54,6 +61,7 @@ public class DeliveryConfirmation extends HttpServlet {
                 System.out.println ("--------USER:"+user);
                 db = new DbConnect(user, pwd);
             }
+            
             db.ipAddr=request.getRemoteAddr();
             Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Servlet DeliveryConfirmation : Start");
             // 1. Get the data from app request
@@ -64,14 +72,7 @@ public class DeliveryConfirmation extends HttpServlet {
             String NADELIVERBY = request.getParameter("NADELIVERBY");
             String NAACCEPTBY = request.getParameter("NAACCEPTBY");
             String DEDELCOMMENTS = request.getParameter("DECOMMENTS");
-            /* System.out.println ("nuxrpd:"+nuxrpd);
-             System.out.println ("deliveryItemsStr:"+deliveryItemsStr);
-             System.out.println ("checkedStr:"+checkedStr);
-             System.out.println ("NUXRACCPTSIGN:"+NUXRACCPTSIGN);
-             System.out.println ("NADELIVERBY:"+NADELIVERBY);
-             System.out.println ("NAACCEPTBY:"+NAACCEPTBY);
-             System.out.println ("DEDELCOMMENTS:"+DEDELCOMMENTS);*/
-
+     
             //2. create list of items which are not delivered, delivered and comapte them
 
             String deliveryItems[] = deliveryItemsStr.split(",");
@@ -95,12 +96,12 @@ public class DeliveryConfirmation extends HttpServlet {
             if (notDeliveredList.size() > 0) {
 
                 String barcodes[] = notDeliveredList.toArray(new String[notDeliveredList.size()]);
-                System.out.println("Not Deliveredd Items found");
+                System.out.println("Not Delivered Items found");
                 Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Not Deliveredd Items found");
                 /*-------Following code is copied from pickup servlet and we will be using it to create a new nuxrpickup-------------------*/
 
                 //String barcodes[] = {"077896", "078567","0268955"};
-                newDeliveryResult = db.createNewDelivery(nuxrpd, barcodes);
+                newDeliveryResult = db.createNewDelivery(nuxrpd, barcodes, userFallback);
                 System.out.println("Not Delivered Items assigned to " + nuxrpd + " newDeliveryResult:" + newDeliveryResult);
                 Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Not Delivered Items assigned to " + nuxrpd + " newDeliveryResult:" + newDeliveryResult);
                 //int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", 10, "Brian", 11);
@@ -108,10 +109,12 @@ public class DeliveryConfirmation extends HttpServlet {
 
             // 4. update the items in the details table and the master table that the nuxrpd is delivered and the items will not show up in the queries later
 
-            orgDeliveryResult = db.confirmDelivery(nuxrpd, NUXRACCPTSIGN, NADELIVERBY, NAACCEPTBY, deliveryList, notDeliveredList, DEDELCOMMENTS);
+            orgDeliveryResult = db.confirmDelivery(nuxrpd, NUXRACCPTSIGN, NADELIVERBY, NAACCEPTBY, deliveryList, notDeliveredList, DEDELCOMMENTS, userFallback);
             /*     System.out.println ("db.confirmDelivery("+nuxrpd+", "+NUXRACCPTSIGN+", \""+NADELIVERBY+"\", \""+NAACCEPTBY+"\", \""+deliveryList+"\", \""+notDeliveredList+"\", \""+DEDELCOMMENTS+"\")");
              System.out.println("Original Delivery result "+orgDeliveryResult);*/
 
+            // 5. Return the update results to the client.
+            
             if (orgDeliveryResult == 0 && newDeliveryResult == 0) {
                 out.println("Database updated sucessfully");
                 Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Database updated sucessfully");

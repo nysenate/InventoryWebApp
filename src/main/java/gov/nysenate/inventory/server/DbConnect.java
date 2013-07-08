@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -169,7 +168,7 @@ public class DbConnect {
      * ---------------Function to return details of given barcode (item details)
      *----------------------------------------------------------------------------------------------------*/
 
-    public String getDetails(String barcodeNum) {
+    public String getDetails(String barcodeNum, String userFallback) {
         log.info(this.ipAddr + "|" + "getDetails() begin : barcodeNum= " + barcodeNum);
         if ((Integer.parseInt(barcodeNum) <= 0)) {
             System.out.println("Error in DbConnect.getDetails() - Barcode Number Not Valid");
@@ -197,7 +196,7 @@ public class DbConnect {
      * ---------------Function to return details related to given location code( Address, type etc) 
      *----------------------------------------------------------------------------------------------------*/
 
-    public String getInvLocDetails(String locCode) {
+    public String getInvLocDetails(String locCode, String userFallback) {
         log.info(this.ipAddr + "|" + "getInvLocDetails() begin : locCode= " + locCode);
         if (locCode.isEmpty() || locCode == null) {
             log.info(this.ipAddr + "|" + "Invalid location Code " + locCode);
@@ -222,7 +221,7 @@ public class DbConnect {
      * ---------------Function to return arraylist of all the items at a given location codes 
      *----------------------------------------------------------------------------------------------------*/
 
-    public ArrayList getLocationItemList(String locCode) {
+    public ArrayList getLocationItemList(String locCode, String userFallback) {
         log.info(this.ipAddr + "|" + "getLocationItemList() begin : locCode= " + locCode);
         if (locCode.isEmpty() || locCode == null) {
             throw new IllegalArgumentException("Invalid location Code");
@@ -261,15 +260,15 @@ public class DbConnect {
      * ---------------Function to return arraylist of all the location codes 
      *----------------------------------------------------------------------------------------------------*/
 
-    public ArrayList getLocCodes() {
+    public ArrayList getLocCodes(String userFallback) {
         log.info("getLocCodes() begin  ");
-        return getLocCodes("ALL");
+        return getLocCodes("ALL", userFallback);
     }
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to return arraylist of all the location codes 
      *----------------------------------------------------------------------------------------------------*/
 
-    public ArrayList getLocCodes(String natype) {
+    public ArrayList getLocCodes(String natype, String userFallback) {
         log.info(this.ipAddr + "|" + "getLocCodes(String natype) begin : natype= " + natype);
         if (natype.isEmpty() || natype == null) {
             throw new IllegalArgumentException("Invalid location Code");
@@ -303,7 +302,7 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to insert items found at given location(barcodes) for verification
      *----------------------------------------------------------------------------------------------------*/
-    public int setBarcodesInDatabase(String cdlocat, String barcodes[]) {
+    public int setBarcodesInDatabase(String cdlocat, String barcodes[], String userFallback) {
         log.info(this.ipAddr + "|" + "setBarcodesInDatabase() begin : cdlocat= " + cdlocat + " &barcodes= " + barcodes);
         if (cdlocat.isEmpty() || barcodes == null) {
             throw new IllegalArgumentException("Invalid location Code");
@@ -340,7 +339,7 @@ public class DbConnect {
      * ---------------Function to start a new pickup-delivery
      *----------------------------------------------------------------------------------------------------*/
 
-    public int invTransit(String CDLOCATFROM, String CDLOCATTO, String[] barcode, String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN, String DEPUCOMMENTS) {
+    public int invTransit(String CDLOCATFROM, String CDLOCATTO, String[] barcode, String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN, String DEPUCOMMENTS, String userFallback) {
         log.info(this.ipAddr + "|" + "invTransit() begin : CDLOCATFROM = " + CDLOCATFROM + " &CDLOCATTO= " + CDLOCATTO + " &barcode= " + barcode + " &NAPICKUPBY= " + NAPICKUPBY + " &NARELEASEBY= " + NARELEASEBY + " &NUXRRELSIGN= " + NUXRRELSIGN + " &NADELIVERBY= " + NADELIVERBY + " &NAACCEPTBY= " + NAACCEPTBY + " &NUXRACCPTSIGN= " + NUXRACCPTSIGN + " &DEPUCOMMENTS= " + DEPUCOMMENTS);
         if (CDLOCATFROM.isEmpty() || CDLOCATTO == null || barcode == null) {
             throw new IllegalArgumentException("Invalid CDLOCATFROM or CDLOCATTO or barcode");
@@ -403,7 +402,7 @@ public class DbConnect {
      * ---------------Function to return all the in transit deliveries to the given location
      *----------------------------------------------------------------------------------------------------*/
 
-    public List<PickupGroup> getDeliveryList(String locCode) {
+    public List<PickupGroup> getDeliveryList(String locCode, String userFallback) {
         log.info(this.ipAddr + "|" + "getDeliveryList() begin : locCode= " + locCode);
         if (locCode.isEmpty()) {
             throw new IllegalArgumentException("Invalid locCode");
@@ -456,7 +455,7 @@ public class DbConnect {
      * ---------------Function to return all the items related to a perticular delivery nuxrpd
      *----------------------------------------------------------------------------------------------------*/
 
-    public ArrayList<InvItem> getDeliveryDetails(String nuxrpd) {
+    public ArrayList<InvItem> getDeliveryDetails(String nuxrpd, String userFallback) {
         log.info(this.ipAddr + "|" + "getDeliveryDetails() begin : nuxrpd= " + nuxrpd);
         if (nuxrpd.isEmpty()) {
             throw new IllegalArgumentException("Invalid locCode");
@@ -501,14 +500,14 @@ public class DbConnect {
      * ---------------Function to 
      *----------------------------------------------------------------------------------------------------*/
 
-    int invPickup(String originLocation, String destinationLocation, String[] barcodes, String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN) {
+    int invPickup(String originLocation, String destinationLocation, String[] barcodes, String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN, String userFallback) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to insert signature into database
      *----------------------------------------------------------------------------------------------------*/
 
-    public int insertSignature(byte[] imageInArray, int nuxrefem, String nauser) {
+    public int insertSignature(byte[] imageInArray, int nuxrefem, String nauser, String userFallback) {
         log.info(this.ipAddr + "|" + "insertSignature() begin : nuxrefem= " + nuxrefem + " &nauser=" + nauser);
         if (imageInArray == null || nuxrefem < 0 || nauser == null) {
             throw new IllegalArgumentException("Invalid imageInArray or nuxrefem or nauser");
@@ -589,7 +588,7 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to 
      *----------------------------------------------------------------------------------------------------*/
-    public ArrayList<Employee> getEmployeeList(String nalast) {
+    public ArrayList<Employee> getEmployeeList(String nalast, String userFallback) {
         //   if(nalast==null){
         //       throw new IllegalArgumentException("Invalid nalast");
         //   }
@@ -600,7 +599,7 @@ public class DbConnect {
      * ---------------Function to return the list of employee names
      *----------------------------------------------------------------------------------------------------*/
 
-    public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus) {
+    public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus, String userFallback) {
         log.info(this.ipAddr + "|" + "getEmployeeList(String nalast, String cdempstatus) begin : nalast= " + nalast + " &cdempstatus=" + cdempstatus);
         // if(nalast.isEmpty()||cdempstatus.isEmpty()){
         // throw new IllegalArgumentException("Invalid nalst or cdempstatus");    
@@ -639,7 +638,7 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to confirm delivery i.e. updates the FD12Issue table and changes location-----
      *------------------------------------------------------------------------------------------------------*/
-    public int confirmDelivery(String nuxrpd, String NUXRACCPTSIGN, String NADELIVERBY, String NAACCEPTBY, ArrayList deliveryList, ArrayList notDeliveredList, String DEDELCOMMENTS) {
+    public int confirmDelivery(String nuxrpd, String NUXRACCPTSIGN, String NADELIVERBY, String NAACCEPTBY, ArrayList deliveryList, ArrayList notDeliveredList, String DEDELCOMMENTS, String userFallback) {
         log.info(this.ipAddr + "|" + "getEmployeeList() begin : nuxrpd= " + nuxrpd + " &NUXRACCPTSIGN=" + NUXRACCPTSIGN + " &NADELIVERBY=" + NADELIVERBY + " &NAACCEPTBY=" + NAACCEPTBY + " &deliveryList=" + deliveryList);
         System.out.println("confirmDelivery nuxrpd " + nuxrpd);
         int result = -1;
@@ -651,30 +650,27 @@ public class DbConnect {
             // Get data from the fm12invintrans table for calling function
 
             String cdlocatfrom = "";
-            String CDLOCTYPEFRM = "";
+            String cdloctypefrm = "";
             String cdlocatto = "";
-            String CDLOCTYPETO = "";
+            String cdloctypeto = "";
 
-
-            String qry1 = "SELECT CDLOCATTO,CDLOCTYPETO,CDLOCATFROM,CDLOCTYPEFRM FROM "
-                    + "fm12invintrans  "
+            String qry1 = "SELECT CDLOCATTO,CDLOCTYPETO,CDLOCATFROM,CDLOCTYPEFRM "
+                    + " FROM fm12invintrans  "
                     + " WHERE CDSTATUS='A' "
-                    + " and nuxrpd=" + nuxrpd;
-
+                    + " AND nuxrpd=" + nuxrpd;
 
             ResultSet res1 = stmt.executeQuery(qry1);
             while (res1.next()) {
                 cdlocatto = res1.getString(1);
-                CDLOCTYPETO = res1.getString(2);
+                cdloctypeto = res1.getString(2);
                 cdlocatfrom = res1.getString(3);
-                CDLOCTYPEFRM = res1.getString(4);
+                cdloctypefrm = res1.getString(4);
             }
-
 
             //System.out.println ("(confirmDelivery) updating current delivery nuxrpd:"+nuxrpd);
 
-            String query = "update FM12invintrans "
-                    + "set CDINTRANSIT='N' "
+            String query = "UPDATE fm12invintrans "
+                    + "SET CDINTRANSIT='N' "
                     + " ,DTTXNUPDATE=SYSDATE "
                     + " ,NATXNUPDUSER=USER "
                     + " ,NUXRACCPTSIGN=" + NUXRACCPTSIGN
@@ -682,7 +678,7 @@ public class DbConnect {
                     + "' ,NAACCEPTBY='" + NAACCEPTBY
                     + "' ,DTDELIVERY=SYSDATE "
                     + "  ,DEDELCOMMENTS='" + DEDELCOMMENTS
-                    + "' where NUXRPD=" + nuxrpd;
+                    + "' WHERE NUXRPD=" + nuxrpd;
             result = stmt.executeUpdate(query);
             conn.commit();
             System.out.println("(confirmDelivery):" + query);
@@ -698,11 +694,12 @@ public class DbConnect {
 
             for (int i = 0; i < deliveryList.size(); i++) {
                 String nusenate = deliveryList.get(i).toString();
-                CallableStatement cs = conn.prepareCall("{?=call move_inventory_item(?,?,?)}");
+                CallableStatement cs = conn.prepareCall("{?=call move_inventory_item(?,?,?,?)}");
                 cs.registerOutParameter(1, Types.VARCHAR);
                 cs.setString(2, nusenate);
                 cs.setString(3, cdlocatfrom);
                 cs.setString(4, cdlocatto);
+                cs.setString(5, nuxrpd);
                 cs.executeUpdate();
                 String r = cs.getString(1);
 
@@ -728,7 +725,7 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to create new delivery i.e. inserts new records into FM12InvInTrans-----
      *----------------------------------------------------------------------------------------------------*/
-    public int createNewDelivery(String nuxrpd, String[] barcode) {
+    public int createNewDelivery(String nuxrpd, String[] barcode, String userFallback) {
         log.info(this.ipAddr + "|" + "createNewDelivery() begin : nuxrpd= " + nuxrpd + " &barcode= " + barcode);
         /*  if(nuxrpd==null||barcode==null){
          throw new IllegalArgumentException("Invalid nuxrpd or barcode");
@@ -771,7 +768,7 @@ public class DbConnect {
 
             // Call invTransit() function 
             DbConnect db = new DbConnect();
-            db.invTransit(CDLOCATFROM, CDLOCATTO, barcode, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, NADELIVERBY, NAACCEPTBY, NUXRACCPTSIGN, DECOMMENT);
+            db.invTransit(CDLOCATFROM, CDLOCATTO, barcode, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, NADELIVERBY, NAACCEPTBY, NUXRACCPTSIGN, DECOMMENT, userFallback);
             // Close the connection
             conn.close();
         } catch (SQLException e) {

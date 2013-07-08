@@ -1,8 +1,8 @@
 package gov.nysenate.inventory.server;
 
+import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URLEncoder;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -35,10 +35,20 @@ public class Search extends HttpServlet
         PrintWriter out = response.getWriter();
         try {
             HttpSession httpSession = request.getSession(false);
-            DbConnect db;            
+            DbConnect db;     
+            String userFallback = null;
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
+                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND Search.processRequest ");                 
+                try {
+                   userFallback  = request.getParameter("userFallback");
+                }
+                catch (Exception e) {
+                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND Search.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                } 
+                out.println("");  // If sessions is not working, tablet will bomb for now with this
+                return;
             }
             else {
                 System.out.println ("SESSION FOUND!!!!");
@@ -50,15 +60,6 @@ public class Search extends HttpServlet
             }
             db.ipAddr=request.getRemoteAddr();
             Logger.getLogger(Search.class.getName()).info(db.ipAddr+"|"+"Servlet Search : start");
-            /* TODO output your page here. You may use following sample code. 
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet Search</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet Search at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");  */
             String barcode_num = request.getParameter("barcode_num");
             System.out.println("Search Servlet  barcode_num "+barcode_num);
             //  out.println("Barcode # "+barcode_num);
@@ -66,7 +67,7 @@ public class Search extends HttpServlet
             //int barcode=Integer.valueOf(barcode_num);
             System.out.println("Search Servlet  barcode "+barcode_num);
             
-            String details = db.getDetails(barcode_num);
+            String details = db.getDetails(barcode_num, userFallback);
             
             if (details.equals("no")) {
               

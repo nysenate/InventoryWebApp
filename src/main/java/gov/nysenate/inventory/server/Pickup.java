@@ -80,11 +80,20 @@ public class Pickup extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             HttpSession httpSession = request.getSession(false);
-            DbConnect db;            
+            DbConnect db;         
+            String userFallback = null;
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");                
+                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");  
+                try {
+                   userFallback  = request.getParameter("userFallback");
+                }
+                catch (Exception e) {
+                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                } 
+                out.println("");  // If sessions is not working, tablet will bomb for now with this
+                return;
             }
             else {
                 System.out.println ("SESSION FOUND!!!!");
@@ -116,7 +125,7 @@ public class Pickup extends HttpServlet {
            
             //String barcodes[] = {"077896", "078567","0268955"};
             System.out.println("Pickup Servlet NUXRRELSIGN:" + NUXRRELSIGN);
-            nuxrpd = db.invTransit(originLocation, destinationLocation, barcodes, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, NADELIVERBY, NAACCEPTBY, NUXRACCPTSIGN, DECOMMENTS);
+            nuxrpd = db.invTransit(originLocation, destinationLocation, barcodes, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, NADELIVERBY, NAACCEPTBY, NUXRACCPTSIGN, DECOMMENTS, userFallback);
             //int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", 10, "Brian", 11);
             if (nuxrpd > -1) {
                 sendEmail();

@@ -44,11 +44,18 @@ public class DeliveryDetails extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             HttpSession httpSession = request.getSession(false);
-            DbConnect db;            
+            DbConnect db;          
+            String userFallback = null;
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
                 log.info(db.ipAddr + "|" + "****SESSION NOT FOUND DeliveryDetails.processRequest ");                
+                try {
+                   userFallback  = request.getParameter("userFallback");
+                }
+                catch (Exception e) {
+                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND DeliveryDetails.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                } 
             }
             else {
                 System.out.println ("SESSION FOUND!!!!");
@@ -70,7 +77,7 @@ public class DeliveryDetails extends HttpServlet {
             Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
             Type listOfTestObject = new TypeToken<List<InvItem>>(){}.getType();
             
-            deliveryDetails = db.getDeliveryDetails(nuxrpd);
+            deliveryDetails = db.getDeliveryDetails(nuxrpd, userFallback);
             String json = gson.toJson(deliveryDetails);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");

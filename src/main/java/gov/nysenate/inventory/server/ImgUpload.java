@@ -1,14 +1,9 @@
 package gov.nysenate.inventory.server;
 
 import static gov.nysenate.inventory.server.DbConnect.log;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
-import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -42,14 +37,23 @@ public class ImgUpload extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             HttpSession httpSession = request.getSession(false);
-            DbConnect db;            
+            DbConnect db;         
+            String userFallback = null;
             if (httpSession==null) {
-                System.out.println ("****SESSION NOT FOUND");
+                System.out.println ("**** IMGUPLOAD SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ImgUpload.processRequest ");                
+                log.info(db.ipAddr + "|" + "****IMGUPLOAD SESSION NOT FOUND ImgUpload.processRequest ");                
+                try {
+                   userFallback  = request.getParameter("userFallback");
+                }
+                catch (Exception e) {
+                    log.info(db.ipAddr + "|" + "****IMGUPLOAD SESSION NOT FOUND ImgUpload.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                } 
+//                out.println("");  // If sessions is not working, tablet will bomb for now with this
+//                return;
             }
             else {
-                System.out.println ("SESSION FOUND!!!!");
+                System.out.println ("IMGUPLOAD SESSION FOUND!!!!");
                 String user = (String)httpSession.getAttribute("user");
                 String pwd = (String)httpSession.getAttribute("pwd");
                 System.out.println ("--------USER:"+user);
@@ -97,8 +101,10 @@ public class ImgUpload extends HttpServlet {
                         // set data equal to newData in prep for next block of data
                         data = newData;
                     }
-                   
-                    nuxrsign = db.insertSignature(data, nuxrefem, nauser);
+                    System.out.println("IMGUPLOAD insertSignature({"+data.length+"},"+nuxrefem+","+nauser+","+userFallback+")");
+                            
+                 
+                    nuxrsign = db.insertSignature(data, nuxrefem, nauser, userFallback);
                     //define the path to save the file using the file name from the URL.
                     //String path = "c:\\Datafiles\\"+name+".png";
 

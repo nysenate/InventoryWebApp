@@ -38,11 +38,18 @@ public class LocationDetails extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             HttpSession httpSession = request.getSession(false);
-            DbConnect db;            
+            DbConnect db;
+            String userFallback = null;
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
                 log.info(db.ipAddr + "|" + "****SESSION NOT FOUND LocationDetails.processRequest ");                
+                try {
+                   userFallback  = request.getParameter("userFallback");
+                }
+                catch (Exception e) {
+                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND LocationDetails.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                } 
             }
             else {
                 System.out.println ("SESSION FOUND!!!!");
@@ -56,7 +63,7 @@ public class LocationDetails extends HttpServlet {
             Logger.getLogger(LocationDetails.class.getName()).info(db.ipAddr+"|"+"Servlet LocationDetails : start");
             String barcode_num = request.getParameter("barcode_num");
           
-            String details = db.getInvLocDetails(barcode_num);
+            String details = db.getInvLocDetails(barcode_num, userFallback);
 
             if (details.equals("no")) {
                 out.println("{\"cdlocat\":\"" + "" + "\",\"delocat\":\"" + "Does not exist in system" + "\",\"adstreet1\":\"" + "" + "\",\"adstreet2\":\"" + "" + "\",\"adcity\":\"" + "" + "\",\"adstate\":\"" + "" + "\",\"adzipcode\":\"" + "" + "\",\"nucount\":\"" + "" + "\",\"cdrespctrhd\":\"" + "" + "\"}");

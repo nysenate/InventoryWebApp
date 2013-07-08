@@ -40,12 +40,18 @@ public class LocCodeList extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             HttpSession httpSession = request.getSession(false);
-            DbConnect db;            
+            DbConnect db;  
+            String userFallback = null;
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND DeliveryConfirmation.processRequest ");                
-            }
+                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND LocCodeList.processRequest ");                
+                try {
+                   userFallback  = request.getParameter("userFallback");
+                }
+                catch (Exception e) {
+                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND LocCodeList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                }             }
             else {
                 System.out.println ("SESSION FOUND!!!!");
                 String user = (String)httpSession.getAttribute("user");
@@ -73,7 +79,7 @@ public class LocCodeList extends HttpServlet {
 
             ArrayList<String> LocCodeList = new ArrayList<String>();
          
-            LocCodeList = db.getLocCodes(natype);
+            LocCodeList = db.getLocCodes(natype, userFallback);
 
             if (LocCodeList.size() == 0) {
                 System.out.println("NO LOCATION CODES FOUND");

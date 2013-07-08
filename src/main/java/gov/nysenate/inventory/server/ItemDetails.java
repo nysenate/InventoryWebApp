@@ -39,11 +39,20 @@ public class ItemDetails extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             HttpSession httpSession = request.getSession(false);
-            DbConnect db;            
+            DbConnect db;
+            String userFallback = null;
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
                 log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ItemDetails.processRequest ");                
+                try {
+                   userFallback  = request.getParameter("userFallback");
+                }
+                catch (Exception e) {
+                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ItemDetails.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                } 
+                out.println("");  // If sessions is not working, tablet will bomb for now with this
+                return;
             }
             else {
                 System.out.println ("SESSION FOUND!!!!");
@@ -55,14 +64,8 @@ public class ItemDetails extends HttpServlet {
             }
             db.ipAddr=request.getRemoteAddr();
             Logger.getLogger(ItemDetails.class.getName()).info(db.ipAddr+"|"+"Servlet ItemDetails : start");
-            //System.out.println("ItemDetails Servlet: getParameter");
             String barcode_num = request.getParameter("barcode_num");
-            //System.out.println("ItemDetails Servlet: getParameter");
-            //int barcode = Integer.valueOf(barcode_num);
-        
-            String details = db.getDetails(barcode_num);
-            //System.out.println("ItemDetails Servlet: details:" + details);
-
+            String details = db.getDetails(barcode_num, userFallback);
 
             if (details.equals("no")) {
 
@@ -70,11 +73,6 @@ public class ItemDetails extends HttpServlet {
             } else {
                 String model[] = details.split("\\|");
 
-//                System.out.println(model.length+": CDINTRANSIT:"+model[model.length-1]);
-                
-                // out.println(" Model   :  "+model[0]+"\n Location :  "+model[1]+"\n Manufacturer : "+model[2]+"\n Signed By  :    "+model[3]);
-                //V_NUSENATE,V_NUXREFSN,V_NUSERIAL,V_DTISSUE,V_CDLOCATTO,V_CDLOCTYPETO,V_CDCATEGORY,V_DECOMMODITYF
-                //out.println(" " + model[0] + " : " + model[8]);
                 //Psuedo JSON for now
                 out.println("{\"nusenate\":\"" + model[0] + "\",\"nuxrefsn\":\"" + model[1] + "\",\"dtissue\":\"" + model[3] + "\",\"cdlocatto\":\"" + model[4] + "\",\"cdloctypeto\":\"" + model[5] + "\",\"cdcategory\":\"" + model[6] + "\",\"adstreet1to\":\"" + model[7].replaceAll("\"", "&#34;") + "\",\"decommodityf\":\"" + model[8].replaceAll("\"", "&#34;")  + "\",\"cdlocatfrom\":\"" + model[9] + "\",\"cdintransit\":\"" + model[12] + "\"}");
                 Logger.getLogger(ItemDetails.class.getName()).info(db.ipAddr+"|"+"Servlet ItemDetails : end");

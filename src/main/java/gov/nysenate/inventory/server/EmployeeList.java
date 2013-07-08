@@ -41,10 +41,18 @@ public class EmployeeList extends HttpServlet {
         try {
             HttpSession httpSession = request.getSession(false);
             DbConnect db;            
+            String userFallback = null;
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND EmployeeList.processRequest ");                
+                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND EmployeeList.processRequest ");
+                try {
+                   userFallback  = request.getParameter("userFallback");
+                }
+                catch (Exception e) {
+                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND EmployeeList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                } 
+                
             }
             else {
                 System.out.println ("SESSION FOUND!!!!");
@@ -52,7 +60,6 @@ public class EmployeeList extends HttpServlet {
                 String pwd = (String)httpSession.getAttribute("pwd");
                 System.out.println ("--------USER:"+user);
                 db = new DbConnect(user, pwd);
-                
             }
             db.ipAddr=request.getRemoteAddr();
             Logger.getLogger(EmployeeList.class.getName()).info(db.ipAddr+"|"+"Servlet EmployeeList : start");
@@ -63,7 +70,7 @@ public class EmployeeList extends HttpServlet {
                 cdempstatus = "A";
             }
            
-            ArrayList<Employee> employeeList = db.getEmployeeList(employeeName, cdempstatus);
+            ArrayList<Employee> employeeList = db.getEmployeeList(employeeName, cdempstatus, userFallback);
             String json = new Gson().toJson(employeeList);
             out.println(json);
             Logger.getLogger(EmployeeList.class.getName()).info(db.ipAddr+"|"+"Servlet EmployeeList : end");

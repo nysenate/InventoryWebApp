@@ -40,11 +40,20 @@ public class ItemsList extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             HttpSession httpSession = request.getSession(false);
-            DbConnect db;            
+            DbConnect db;        
+            String userFallback = null;
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ItemsList.processRequest ");                
+                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ItemsList.processRequest ");  
+                try {
+                   userFallback  = request.getParameter("userFallback");
+                }
+                catch (Exception e) {
+                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ItemsList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                } 
+                out.println("");  // If sessions is not working, tablet will bomb for now with this
+                return;
             }
             else {
                 System.out.println ("SESSION FOUND!!!!");
@@ -59,7 +68,7 @@ public class ItemsList extends HttpServlet {
             String loc_code = request.getParameter("loc_code");
             ArrayList<VerList> itemList = new ArrayList<VerList>();
             
-            itemList = db.getLocationItemList(loc_code);
+            itemList = db.getLocationItemList(loc_code, userFallback);
 
 
             String json = new Gson().toJson(itemList);
