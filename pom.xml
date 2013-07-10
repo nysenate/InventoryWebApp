@@ -4,7 +4,7 @@
 
     <groupId>gov.nysenate</groupId>
     <artifactId>InventoryWebApp</artifactId>
-    <version>1.0-alpha1</version>
+    <version>1.0-alpha2</version>
     <packaging>war</packaging>
 
     <name>InventoryWebApp</name>
@@ -81,6 +81,7 @@
     </dependencies>
 
     <build>
+        <finalName>${project.artifactId}##${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
