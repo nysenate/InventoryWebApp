@@ -61,6 +61,8 @@ public class Pickup extends HttpServlet {
     String NAACCEPTBY = "";
     String NUXRACCPTSIGN = "";
     String DECOMMENTS = "";
+    String cdloctypeto = "";
+    String cdloctypefrm = "";
     int nuxrpd = -1;
     byte[] attachment = null;
 
@@ -120,17 +122,34 @@ public class Pickup extends HttpServlet {
             }
             NUXRACCPTSIGN = request.getParameter("NUXRACCPTSIGN");
             DECOMMENTS = request.getParameter("DECOMMENTS").replaceAll("'", "''");
+            cdloctypeto  = "";
+            try {
+                 cdloctypeto =   request.getParameter("cdloctypeto");
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+            cdloctypefrm  = "";
+            try {
+                 cdloctypefrm =   request.getParameter("cdloctypefrm");
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
             String barcodes[] = barcodeStr.split(",");
             System.out.println("point 1 ");
            
             //String barcodes[] = {"077896", "078567","0268955"};
             System.out.println("Pickup Servlet NUXRRELSIGN:" + NUXRRELSIGN);
-            nuxrpd = db.invTransit(originLocation, destinationLocation, barcodes, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, NADELIVERBY, NAACCEPTBY, NUXRACCPTSIGN, DECOMMENTS, userFallback);
+            nuxrpd = db.invTransit(originLocation, cdloctypefrm,  destinationLocation, cdloctypeto, barcodes, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, NADELIVERBY, NAACCEPTBY, NUXRACCPTSIGN, DECOMMENTS, userFallback);
             //int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", 10, "Brian", 11);
+            System.out.println ("INV TRANSIT RETURNED NUXRPD:"+nuxrpd);
             if (nuxrpd > -1) {
                 sendEmail();
+            System.out.println ("INV TRANSIT UPDATED CORRECTLY");
                 out.println("Database updated sucessfully");
             } else {
+            System.out.println ("INV TRANSIT FAILED TO UPDATE");
                 out.println("Database not updated");
             }
             Logger.getLogger(Pickup.class.getName()).info(db.ipAddr+"|"+"Servlet Pickup : end");

@@ -232,12 +232,14 @@ public class DbConnect {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
             //  String loc_code;
-            String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF, B.CDLOCATTO FROM   "
-                    + "  FM12SENXREF A,FD12ISSUE B, FM12COMMODTY C"
+            String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF, B.CDLOCATTO, DECODE(b.cdstatus, 'I', b.cdstatus, c.cdstatus) cdstatus "
+                    + " FROM FM12SENXREF A,FD12ISSUE B, FM12COMMODTY C"
                     + " WHERE A.CDSTATUS='A'"
+                    + " AND b.cdstatus = 'A'"
+                    + " AND c.cdstatus = 'A'"
                     + " AND A.NUXREFSN=B.NUXREFSN"
                     + " AND B.NUXREFCO=C.NUXREFCO"
-                    + " and b.cdlocatto = '" + locCode + "'";
+                    + " AND b.cdlocatto = '" + locCode + "'";
 
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
@@ -247,6 +249,7 @@ public class DbConnect {
                 vl.CDCATEGORY = result.getString(2);
                 vl.DECOMMODITYF = result.getString(3);
                 vl.CDLOCATTO = result.getString(4);
+                vl.CDSTATUS = result.getString(5);
                 itemList.add(vl);
             }
         } catch (SQLException e) {
@@ -339,7 +342,7 @@ public class DbConnect {
      * ---------------Function to start a new pickup-delivery
      *----------------------------------------------------------------------------------------------------*/
 
-    public int invTransit(String CDLOCATFROM, String CDLOCATTO, String[] barcode, String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN, String DEPUCOMMENTS, String userFallback) {
+    public int invTransit(String CDLOCATFROM, String cdloctypefrm, String CDLOCATTO, String cdloctypeto, String[] barcode, String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN, String DEPUCOMMENTS, String userFallback) {
         log.info(this.ipAddr + "|" + "invTransit() begin : CDLOCATFROM = " + CDLOCATFROM + " &CDLOCATTO= " + CDLOCATTO + " &barcode= " + barcode + " &NAPICKUPBY= " + NAPICKUPBY + " &NARELEASEBY= " + NARELEASEBY + " &NUXRRELSIGN= " + NUXRRELSIGN + " &NADELIVERBY= " + NADELIVERBY + " &NAACCEPTBY= " + NAACCEPTBY + " &NUXRACCPTSIGN= " + NUXRACCPTSIGN + " &DEPUCOMMENTS= " + DEPUCOMMENTS);
         if (CDLOCATFROM.isEmpty() || CDLOCATTO == null || barcode == null) {
             throw new IllegalArgumentException("Invalid CDLOCATFROM or CDLOCATTO or barcode");
@@ -377,8 +380,8 @@ public class DbConnect {
 
             //2. insert into FM12INVinTRANS    
 
-            String updQry = "INSERT INTO FM12INVINTRANS (NUXRPD,CDLOCATTO,CDLOCATFROM,CDINTRANSIT, NAPICKUPBY, NARELEASEBY,NUXRRELSIGN,NADELIVERBY,NAACCEPTBY,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,NATXNUPDUSER,DEPUCOMMENTS, DTPICKUP) "
-                    + "VALUES(" + nuxrpd + ",'" + CDLOCATTO + "','" + CDLOCATFROM + "','" + "Y" + "','" + NAPICKUPBY + "','" + NARELEASEBY + "'," + NUXRRELSIGN + ",'" + NAACCEPTBY + "'," + NUXRACCPTSIGN + ",'" + "A" + "',SYSDATE,SYSDATE,'" + NAPICKUPBY + "','" + NAPICKUPBY + "','" + DEPUCOMMENTS + "',SYSDATE)";
+            String updQry = "INSERT INTO FM12INVINTRANS (NUXRPD,CDLOCATTO, cdloctypeto, CDLOCATFROM, cdloctypefrm, CDINTRANSIT, NAPICKUPBY, NARELEASEBY,NUXRRELSIGN,NADELIVERBY,NAACCEPTBY,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,NATXNUPDUSER,DEPUCOMMENTS, DTPICKUP) "
+                    + "VALUES(" + nuxrpd + ",'" + CDLOCATTO + "','" + cdloctypeto + "','" + CDLOCATFROM + "','"  + cdloctypefrm + "','" + "Y" + "','" + NAPICKUPBY + "','" + NARELEASEBY + "'," + NUXRRELSIGN + ",'" + NAACCEPTBY + "'," + NUXRACCPTSIGN + ",'" + "A" + "',SYSDATE,SYSDATE,'" + NAPICKUPBY + "','" + NAPICKUPBY + "','" + DEPUCOMMENTS + "',SYSDATE)";
             System.out.println("inside 3 query : " + updQry);
             ResultSet result2 = stmt.executeQuery(updQry);
 
@@ -392,6 +395,7 @@ public class DbConnect {
                 ResultSet result3 = stmt.executeQuery(insertQry);
             }
         } catch (SQLException ex) {
+            ex.printStackTrace();
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
             return -1;
         }
@@ -732,7 +736,9 @@ public class DbConnect {
          }*/
         try {
             String CDLOCATFROM = "";
+            String cdloctypefrm = "";
             String CDLOCATTO = "";
+            String cdloctypeto = "";
             String NAPICKUPBY = "";
             String NUXRPUSIGN = "1234";
             String NARELEASEBY = "";
@@ -747,7 +753,7 @@ public class DbConnect {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
             // Get the details from the master table
-            String qry = "SELECT NUXRPD,CDLOCATFROM ,CDLOCATTO ,NAPICKUPBY, NARELEASEBY, NUXRRELSIGN FROM   "
+            String qry = "SELECT NUXRPD,CDLOCATFROM, CDLOCTYPEFRM, CDLOCATTO,CDLOCTYPETO, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN FROM   "
                     + "  FM12INVINTRANS"
                     + " WHERE CDSTATUS='A'"
                     + " AND CDINTRANSIT='Y'"
@@ -757,8 +763,10 @@ public class DbConnect {
             while (result.next()) {
                 String NUXRPD = result.getString(1);
                 CDLOCATFROM = result.getString(2);
-                CDLOCATTO = result.getString(3);
-                NAPICKUPBY = result.getString(4);
+                cdloctypefrm = result.getString(3);
+                CDLOCATTO = result.getString(4);
+                cdloctypeto = result.getString(5);
+                NAPICKUPBY = result.getString(6);
                 //              NUXRPUSIGN = result.getString(5);
                 NARELEASEBY = result.getString(5);
                 NUXRRELSIGN = result.getString(6);
@@ -768,7 +776,7 @@ public class DbConnect {
 
             // Call invTransit() function 
             DbConnect db = new DbConnect();
-            db.invTransit(CDLOCATFROM, CDLOCATTO, barcode, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, NADELIVERBY, NAACCEPTBY, NUXRACCPTSIGN, DECOMMENT, userFallback);
+            db.invTransit(CDLOCATFROM, cdloctypefrm, cdloctypeto, CDLOCATTO, barcode, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, NADELIVERBY, NAACCEPTBY, NUXRACCPTSIGN, DECOMMENT, userFallback);
             // Close the connection
             conn.close();
         } catch (SQLException e) {
