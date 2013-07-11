@@ -113,6 +113,7 @@ public class DbConnect {
 
             Class.forName("oracle.jdbc.driver.OracleDriver");
             conn = DriverManager.getConnection(connectionString, userName, password);
+            
 
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
@@ -517,6 +518,9 @@ public class DbConnect {
             throw new IllegalArgumentException("Invalid imageInArray or nuxrefem or nauser");
         }
         Connection con = getDbConnection();
+        if (con==null) {
+            log.fatal(this.ipAddr + "|" + "Null Connection in insertSignature() after getDbConnection().");
+        }
         System.out.println("DbConnect insertSignature byte Image Length:" + imageInArray.length);
 
         Blob blobValue;
@@ -542,6 +546,13 @@ public class DbConnect {
         PreparedStatement ps;
         try {
             Statement stmtSequence = con.createStatement();
+            if (con==null) {
+                System.out.println("insertSignature Connection was NULL when creating statement from it");
+            }
+            else if (stmtSequence==null) {
+                System.out.println("insertSignature could not createStatement from Connection");
+                
+            }
             ResultSet rsSequence = stmtSequence.executeQuery("select FP12SIGNREF_SQNC.NEXTVAL FROM DUAL");
 
             while (rsSequence.next()) {
@@ -550,6 +561,7 @@ public class DbConnect {
 
             con.setAutoCommit(false);
             //blobValue = new SerialBlob(imageInArray);
+            System.out.println ("insert into FD12INVSIGNS nuxrsign:"+nuxrsign+", nuxrefem:"+nuxrefem+", nauser:"+nauser);
             ps = con.prepareStatement("insert into FD12INVSIGNS (nuxrsign, blsign, nuxrefem, cdstatus, natxnorguser, natxnupduser, dttxnorigin, dttxnupdate ) values(?, empty_blob(), ?, 'A', ?,  ?, SYSDATE, SYSDATE )");
             ps.setInt(1, nuxrsign);
             ps.setInt(2, nuxrefem);
@@ -578,12 +590,14 @@ public class DbConnect {
             con.commit();
 
         } catch (SQLException ex) {
-            System.out.println("!!!!!!!!!!SQL EXCEPTION OCCURED");
+            System.out.println("!!!!!!!!!!SQL EXCEPTION OCCURED:"+ ex.getMessage());
             System.out.println(ex.getMessage());
             log.fatal(this.ipAddr + "|" + "SQLException in insertSignature() : " + ex.getMessage());
         } catch (IOException ex) {
+            System.out.println("!!!!!!!!!!IO EXCEPTION OCCURED:"+ ex.getMessage());
             ex.printStackTrace();
-        }
+            log.fatal(this.ipAddr + "|" + "IOException in insertSignature() : " + ex.getMessage());
+        } 
         log.info(this.ipAddr + "|" + "insertSignature() end");
         return nuxrsign;
 
