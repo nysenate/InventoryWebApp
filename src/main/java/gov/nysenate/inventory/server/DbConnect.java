@@ -332,18 +332,27 @@ public class DbConnect {
                 r = cs.getString(1);
                 System.out.println(r);
             }
-        } catch (SQLException ex) {
+        }
+        catch (SQLException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, this.ipAddr + "|" + ex.getMessage());
         }
         log.info(this.ipAddr + "|" + "setBarcodesInDatabase() end");
         return result;
     }
+
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to start a new pickup-delivery
      *----------------------------------------------------------------------------------------------------*/
 
-    public int invTransit(String CDLOCATFROM, String cdloctypefrm, String CDLOCATTO, String cdloctypeto, String[] barcode, String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN, String DEPUCOMMENTS, String userFallback) {
-        log.info(this.ipAddr + "|" + "invTransit() begin : CDLOCATFROM = " + CDLOCATFROM + " &CDLOCATTO= " + CDLOCATTO + " &barcode= " + barcode + " &NAPICKUPBY= " + NAPICKUPBY + " &NARELEASEBY= " + NARELEASEBY + " &NUXRRELSIGN= " + NUXRRELSIGN + " &NADELIVERBY= " + NADELIVERBY + " &NAACCEPTBY= " + NAACCEPTBY + " &NUXRACCPTSIGN= " + NUXRACCPTSIGN + " &DEPUCOMMENTS= " + DEPUCOMMENTS);
+    public int invTransit(String CDLOCATFROM, String cdloctypefrm, String CDLOCATTO, String cdloctypeto, String[] barcode,
+            String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN,
+            String DEPUCOMMENTS, String userFallback) {
+
+        log.info(this.ipAddr + "|" + "invTransit() begin : CDLOCATFROM = " + CDLOCATFROM + " CDLOCTYPEFRM= " + cdloctypefrm
+                + " &CDLOCATTO= " + CDLOCATTO + " CDLOCATYPETO= " + cdloctypeto + " &barcode= " + barcode + " &NAPICKUPBY= " + NAPICKUPBY
+                + " &NARELEASEBY= " + NARELEASEBY + " &NUXRRELSIGN= " + NUXRRELSIGN + " &NADELIVERBY= " + NADELIVERBY
+                + " &NAACCEPTBY= " + NAACCEPTBY + " &NUXRACCPTSIGN= " + NUXRACCPTSIGN + " &DEPUCOMMENTS= " + DEPUCOMMENTS);
+
         if (CDLOCATFROM.isEmpty() || CDLOCATTO == null || barcode == null) {
             throw new IllegalArgumentException("Invalid CDLOCATFROM or CDLOCATTO or barcode");
         }
