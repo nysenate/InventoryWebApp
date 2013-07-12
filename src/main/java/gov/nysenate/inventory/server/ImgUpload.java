@@ -71,8 +71,10 @@ public class ImgUpload extends HttpServlet {
             int nuxrsign = -1;
             if (nauser == null || nauser.length() < 1) {
                 out.println("Failure: No Username given");
+                System.out.println ("ImgUpload Failure: No Username given");
             } else if (nuxrefemString == null || nuxrefemString.length() < 1) {
                 out.println("Failure: No Employee Xref given");
+                System.out.println ("ImgUpload Failure: No Employee Xref given");
             } else {
                 boolean nuxrefemIsNumber = false;
 
@@ -115,18 +117,22 @@ public class ImgUpload extends HttpServlet {
                     //out.println("Success");
                     if (nuxrsign < 0) {
                         out.println("Failure: NUXRSIGN:" + nuxrsign);
+                        System.out.println ("ImgUpload Return: Failure: NUXRSIGN:" + nuxrsign);
                     } else {
                         out.println("NUXRSIGN:" + nuxrsign);
+                        System.out.println ("ImgUpload Return: NUXRSIGN:" + nuxrsign);
                     }
                 } else {
                     out.println("Failure: Employee Xref must be a number. RECEIVED:" + nuxrefemString);
+                    System.out.println ("ImgUpload Return: NUXRSIGN:" + nuxrsign);                    
                 }
             }
             Logger.getLogger(ImgUpload.class.getName()).info(db.ipAddr+"|"+"Servlet ImgUpload : end");
         } catch (Exception e) {
             e.printStackTrace();
             Logger.getLogger(ImgUpload.class.getName()).fatal(request.getRemoteAddr()+"|"+"Exception at Servlet ImgUpload : " + e.getMessage());
-            out.println("Failure");
+            System.out.println("Failure: "+ e.getMessage()+" "+e.getStackTrace()[0].toString());
+            out.println("Failure: "+ e.getMessage()+" "+e.getStackTrace()[0].toString());
         } finally {
             out.close();
         }
