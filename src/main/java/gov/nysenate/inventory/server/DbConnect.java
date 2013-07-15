@@ -721,15 +721,17 @@ public class DbConnect {
 
             for (int i = 0; i < deliveryList.size(); i++) {
                 String nusenate = deliveryList.get(i).toString();
-                CallableStatement cs = conn.prepareCall("{?=call move_inventory_item(?,?,?,?)}");
+                CallableStatement cs = conn.prepareCall("{?=call move_inventory_item(?,?,?,?,?,?)}");
                 cs.registerOutParameter(1, Types.VARCHAR);
                 cs.setString(2, nusenate);
                 cs.setString(3, cdlocatfrom);
-                cs.setString(4, cdlocatto);
-                cs.setString(5, nuxrpd);
+                cs.setString(4,cdloctypefrm);
+                cs.setString(5, cdlocatto);
+                cs.setString(6, cdloctypeto);
+                cs.setString(7, nuxrpd);
                 cs.executeUpdate();
                 String r = cs.getString(1);
-
+                System.out.println (r+"=call move_inventory_item("+nusenate+","+cdlocatfrom+","+cdloctypefrm+","+cdlocatto+","+cdloctypeto+","+nuxrpd+")");
             }
 
             //3. return result
