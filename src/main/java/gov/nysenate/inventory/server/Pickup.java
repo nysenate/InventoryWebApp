@@ -1,24 +1,11 @@
 package gov.nysenate.inventory.server;
 
 import static gov.nysenate.inventory.server.DbConnect.log;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
-import java.util.Properties;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,11 +13,20 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -38,8 +34,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
 import org.apache.commons.io.IOUtils;
-//import sun.misc.IOUtils;
 
 /**
  *
@@ -47,24 +43,6 @@ import org.apache.commons.io.IOUtils;
  */
 @WebServlet(name = "Pickup", urlPatterns = {"/Pickup"})
 public class Pickup extends HttpServlet {
-
-    String msgBody = "";
-    String naemailTo = "";
-    String naemployeeTo = "MR. SO AND SO";
-    String barcodeStr = "";
-    String originLocation = "";
-    String destinationLocation = "";
-    String NAPICKUPBY = "";
-    String NUXRRELSIGN = "";
-    String NARELEASEBY = "";
-    String NADELIVERBY = "";
-    String NAACCEPTBY = "";
-    String NUXRACCPTSIGN = "";
-    String DECOMMENTS = "";
-    String cdloctypeto = "";
-    String cdloctypefrm = "";
-    int nuxrpd = -1;
-    byte[] attachment = null;
 
     /**
      * Processes requests for both HTTP
@@ -78,6 +56,24 @@ public class Pickup extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        String msgBody = "";
+        String naemailTo = "";
+        String naemployeeTo = "MR. SO AND SO";
+        String barcodeStr = "";
+        String originLocation = "";
+        String destinationLocation = "";
+        String NAPICKUPBY = "";
+        String NUXRRELSIGN = "";
+        String NARELEASEBY = "";
+        String NADELIVERBY = "";
+        String NAACCEPTBY = "";
+        String NUXRACCPTSIGN = "";
+        String DECOMMENTS = "";
+        String cdloctypeto = "";
+        String cdloctypefrm = "";
+        int nuxrpd = -1;
+
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
@@ -146,7 +142,7 @@ public class Pickup extends HttpServlet {
             //int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", 10, "Brian", 11);
             System.out.println ("INV TRANSIT RETURNED NUXRPD:"+nuxrpd);
             if (nuxrpd > -1) {
-                sendEmail();
+                sendEmail(naemployeeTo, NAPICKUPBY, originLocation, destinationLocation, nuxrpd, msgBody);
             System.out.println ("INV TRANSIT UPDATED CORRECTLY");
                 out.println("Database updated sucessfully");
             } else {
@@ -160,7 +156,8 @@ public class Pickup extends HttpServlet {
     }
 
     @SuppressWarnings("empty-statement")
-    public void sendEmail() {
+    public void sendEmail(String naemployeeTo, String NAPICKUPBY, String originLocation, String destinationLocation, final int nuxrpd, String msgBody) {
+        byte[] attachment = null;
         Properties properties = new Properties();
         InputStream in = this.getClass().getClassLoader().getResourceAsStream("config.properties");
         try {
@@ -170,7 +167,7 @@ public class Pickup extends HttpServlet {
         }
 
         String smtpServer = properties.getProperty("smtpServer");
-        String pickupReceiptURL = properties.getProperty("pickupReceiptURL");
+        final String pickupReceiptURL = properties.getProperty("pickupReceiptURL");
 
         Properties props = new Properties();
         props.setProperty("mail.smtp.host", smtpServer);
@@ -179,16 +176,16 @@ public class Pickup extends HttpServlet {
 
         System.out.println("Trying to send an email");
         sb.append("Dear ");
-        sb.append(this.naemployeeTo);
-        sb.append("<br/><br/> Equipment was picked up by <b>" + this.NAPICKUPBY + "</b> from <b>" + this.originLocation + "</b> with the destination of <b>" + this.destinationLocation + "</b>");
+        sb.append(naemployeeTo);
+        sb.append("<br/><br/> Equipment was picked up by <b>" + NAPICKUPBY + "</b> from <b>" + originLocation + "</b> with the destination of <b>" + destinationLocation + "</b>");
         sb.append("<br /><br />To view Equipment Pickup Receipt, please open the PDF attachment included in this e-mail.");
-        sb.append(this.nuxrpd);
+        sb.append(nuxrpd);
         sb.append("'>HERE</a>.");// &destype=CACHE&desformat=PDF
 
         try {
-            this.attachment = bytesFromUrlWithJavaIO(pickupReceiptURL + this.nuxrpd); // +"&destype=CACHE&desformat=PDF
+            attachment = bytesFromUrlWithJavaIO(pickupReceiptURL + nuxrpd); // +"&destype=CACHE&desformat=PDF
             //saveFileFromUrlWithJavaIO(this.nuxrpd+".pdf", );
-            System.out.println("ATTACHMENT SIZE:" + attachment.length + " " + ((double) (attachment.length) / 1024.0) + "KB");
+            System.out.println("ATTACHMENT SIZE:" + attachment.length + " " + ((attachment.length) / 1024.0) + "KB");
         } catch (MalformedURLException ex) {
             Logger.getLogger(Pickup.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -203,18 +200,22 @@ public class Pickup extends HttpServlet {
             attachmentPart.setDataHandler(
                     new DataHandler(
                     new DataSource() {
+                @Override
                 public String getContentType() {
                     return "application/pdf";
                 }
 
+                @Override
                 public InputStream getInputStream() throws IOException {
-                    return new ByteArrayInputStream(attachment);
+                                    return new ByteArrayInputStream(bytesFromUrlWithJavaIO(pickupReceiptURL + nuxrpd));
                 }
 
+                @Override
                 public String getName() {
                     return "pickup_receipt.pdf";
                 }
 
+                @Override
                 public OutputStream getOutputStream() throws IOException {
                     return null;
                 }
