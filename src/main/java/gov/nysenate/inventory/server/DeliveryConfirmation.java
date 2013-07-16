@@ -4,16 +4,18 @@ package gov.nysenate.inventory.server;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -35,6 +37,7 @@ public class DeliveryConfirmation extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        Logger log = Logger.getLogger(DeliveryConfirmation.class.getName());
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         int newDeliveryResult = 0;
@@ -63,77 +66,57 @@ public class DeliveryConfirmation extends HttpServlet {
             }
             
             db.ipAddr=request.getRemoteAddr();
-            Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Servlet DeliveryConfirmation : Start");
+            log.info(db.ipAddr + "|" + "Servlet DeliveryConfirmation : Start");
+
             // 1. Get the data from app request
             String nuxrpd = request.getParameter("NUXRPD");
-            String deliveryItemsStr = request.getParameter("deliveryItemsStr");
-            String checkedStr = request.getParameter("checkedStr");
+            String[] itemsInDelivery = request.getParameterValues("deliveryItemsStr[]");
+            String[] checkedStr = request.getParameterValues("checkedStr[]");
             String NUXRACCPTSIGN = request.getParameter("NUXRACCPTSIGN");
             String NADELIVERBY = request.getParameter("NADELIVERBY");
             String NAACCEPTBY = request.getParameter("NAACCEPTBY");
             String DEDELCOMMENTS = request.getParameter("DECOMMENTS");
-     
-            //2. create list of items which are not delivered, delivered and comapte them
+            String[] notChecked = generateNotCheckedItems(itemsInDelivery, checkedStr);
 
-            String deliveryItems[] = deliveryItemsStr.split(",");
-            ArrayList<String> deliveryList = new ArrayList<String>();
-            ArrayList<String> notDeliveredList = new ArrayList<String>();
-            for (int i = 0; i < deliveryItems.length; i++) {
-                deliveryList.add(deliveryItems[i]);
-                notDeliveredList.add(deliveryItems[i]);// we will add all items first and remove non checked items
+            // Make delivery
+            orgDeliveryResult = db.confirmDelivery(nuxrpd, NUXRACCPTSIGN, NADELIVERBY, NAACCEPTBY, checkedStr, DEDELCOMMENTS, userFallback);
+            log.info(db.ipAddr + "|" + "Delivered Items: " + Arrays.toString(itemsInDelivery));
+
+            if (notChecked.length > 0) {
+                // Make new row in FM12INVINTRANS for items not delivered.
+                newDeliveryResult = db.createNewDelivery(nuxrpd, notChecked, userFallback);
+                log.info(db.ipAddr + "|" + "Not Delivered Items: " + Arrays.toString(notChecked));
             }
-
-            // remove the checked items from the total list            
-            String checked[] = checkedStr.split(",");
-            for (int i = 0; i < checked.length; i++) {
-                int pos = deliveryList.indexOf(checked[i].trim());
-                String item = deliveryList.get(pos).trim();
-                notDeliveredList.remove(item);
+            else {
+                log.info(db.ipAddr + "|" + "All items delivered.");
             }
-
-            //3.  if there are items which are not delivered then create a new nuxrpd using other servlet    
-          
-            if (notDeliveredList.size() > 0) {
-
-                String barcodes[] = notDeliveredList.toArray(new String[notDeliveredList.size()]);
-                System.out.println("Not Delivered Items found");
-                Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Not Deliveredd Items found");
-                /*-------Following code is copied from pickup servlet and we will be using it to create a new nuxrpickup-------------------*/
-
-                //String barcodes[] = {"077896", "078567","0268955"};
-                newDeliveryResult = db.createNewDelivery(nuxrpd, barcodes, userFallback);
-                System.out.println("Not Delivered Items assigned to " + nuxrpd + " newDeliveryResult:" + newDeliveryResult);
-                Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Not Delivered Items assigned to " + nuxrpd + " newDeliveryResult:" + newDeliveryResult);
-                //int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", 10, "Brian", 11);
-            }
-
-            // 4. update the items in the details table and the master table that the nuxrpd is delivered and the items will not show up in the queries later
-
-            orgDeliveryResult = db.confirmDelivery(nuxrpd, NUXRACCPTSIGN, NADELIVERBY, NAACCEPTBY, deliveryList, notDeliveredList, DEDELCOMMENTS, userFallback);
-            /*     System.out.println ("db.confirmDelivery("+nuxrpd+", "+NUXRACCPTSIGN+", \""+NADELIVERBY+"\", \""+NAACCEPTBY+"\", \""+deliveryList+"\", \""+notDeliveredList+"\", \""+DEDELCOMMENTS+"\")");
-             System.out.println("Original Delivery result "+orgDeliveryResult);*/
-
-            // 5. Return the update results to the client.
             
             if (orgDeliveryResult == 0 && newDeliveryResult == 0) {
                 out.println("Database updated sucessfully");
-                Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Database updated sucessfully");
+                log.info(db.ipAddr + "|" + "Database updated sucessfully");
             } else if (orgDeliveryResult != 0 && newDeliveryResult != 0) {
                 out.println("Database not updated");
-                Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Database not updated");
+                log.info(db.ipAddr + "|" + "Database not updated");
             } else if (orgDeliveryResult != 0 && newDeliveryResult == 0) {
                 out.println("Database partially updated, delivered items were not updated correctly. Please contact STSBAC.");
-                Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Database partially updated, delivered items were not updated correctly. Please contact STSBAC.");
+                log.info(db.ipAddr + "|" + "Database partially updated, delivered items were not updated correctly. Please contact STSBAC.");
             } else if (orgDeliveryResult == 0 && newDeliveryResult != 0) {
                 out.println("Database partially updated, items left over were not updated correctly. Please contact STSBAC.");
-                    Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Database partially updated, items left over were not updated correctly. Please contact STSBAC.");
+                log.info(db.ipAddr + "|" + "Database partially updated, items left over were not updated correctly. Please contact STSBAC.");
             }
         
-            Logger.getLogger(DeliveryConfirmation.class.getName()).info(db.ipAddr+"|"+"Servlet DeliveryConfirmation : end");
+            log.info(db.ipAddr + "|" + "Servlet DeliveryConfirmation : end");
         } finally {
-
             out.close();
         }
+    }
+
+    private String[] generateNotCheckedItems(String[] deliveryItemsStr, String[] checkedStr) {
+        ArrayList<String> notChecked = new ArrayList<String>(Arrays.asList(deliveryItemsStr));
+        for (String chkItem : checkedStr) {
+            notChecked.remove(chkItem);
+        }
+        return notChecked.toArray(new String[notChecked.size()]);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
