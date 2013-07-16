@@ -1,6 +1,5 @@
 package gov.nysenate.inventory.server;
 
-import com.google.gson.reflect.TypeToken;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -18,18 +17,19 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
 import javax.imageio.ImageIO;
+
 import oracle.sql.BLOB;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
+import com.google.gson.reflect.TypeToken;
 
 /**
  *
@@ -389,15 +389,18 @@ public class DbConnect {
             }
 
             //2. insert into FM12INVinTRANS    
-
-            String updQry = "INSERT INTO FM12INVINTRANS (NUXRPD,CDLOCATTO, cdloctypeto, CDLOCATFROM, cdloctypefrm, CDINTRANSIT, NAPICKUPBY, NARELEASEBY,NUXRRELSIGN,NADELIVERBY,NAACCEPTBY,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,NATXNUPDUSER,DEPUCOMMENTS, DTPICKUP) "
-                    + "VALUES(" + nuxrpd + ",'" + CDLOCATTO + "','" + cdloctypeto + "','" + CDLOCATFROM + "','"  + cdloctypefrm + "','" + "Y" + "','" + NAPICKUPBY + "','" + NARELEASEBY + "'," + NUXRRELSIGN + ",'" + NAACCEPTBY + "'," + NUXRACCPTSIGN + ",'" + "A" + "',SYSDATE,SYSDATE,'" + NAPICKUPBY + "','" + NAPICKUPBY + "','" + DEPUCOMMENTS + "',SYSDATE)";
+            String updQry = "INSERT INTO FM12INVINTRANS (NUXRPD,CDLOCATTO, cdloctypeto, CDLOCATFROM, cdloctypefrm, CDINTRANSIT,"
+                    + "NAPICKUPBY, NARELEASEBY,NUXRRELSIGN,NADELIVERBY,NAACCEPTBY,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,"
+                    + "NATXNUPDUSER,DEPUCOMMENTS, DTPICKUP) "
+                    + "VALUES(" + nuxrpd + ",'" + CDLOCATTO + "','" + cdloctypeto + "','" + CDLOCATFROM + "','" + cdloctypefrm + "','" + "Y" + "','"
+                    + NAPICKUPBY + "','" + NARELEASEBY + "'," + NUXRRELSIGN + ",'" + NAACCEPTBY + "'," + NUXRACCPTSIGN + ",'" + "A"
+                    + "',SYSDATE,SYSDATE,'" + NAPICKUPBY + "','" + NAPICKUPBY + "','" + DEPUCOMMENTS + "',SYSDATE)";
+            log.info(updQry);
             System.out.println("inside 3 query : " + updQry);
             ResultSet result2 = stmt.executeQuery(updQry);
 
 
             // 3. insert barcodes into FD12INVINTRANS      
-
             for (int i = 0; i < barcode.length; i++) {
                 String insertQry = "INSERT INTO FD12INVINTRANS (NUXRPD,NUSENATE,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,NATXNUPDUSER) "
                         + "VALUES(" + nuxrpd + ",'" + barcode[i] + "','" + "A" + "',SYSDATE,SYSDATE,'" + NAPICKUPBY + "','" + NAPICKUPBY + "')";
@@ -665,8 +668,9 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to confirm delivery i.e. updates the FD12Issue table and changes location-----
      *------------------------------------------------------------------------------------------------------*/
-    public int confirmDelivery(String nuxrpd, String NUXRACCPTSIGN, String NADELIVERBY, String NAACCEPTBY, ArrayList deliveryList, ArrayList notDeliveredList, String DEDELCOMMENTS, String userFallback) {
-        log.info(this.ipAddr + "|" + "getEmployeeList() begin : nuxrpd= " + nuxrpd + " &NUXRACCPTSIGN=" + NUXRACCPTSIGN + " &NADELIVERBY=" + NADELIVERBY + " &NAACCEPTBY=" + NAACCEPTBY + " &deliveryList=" + deliveryList);
+    public int confirmDelivery(String nuxrpd, String NUXRACCPTSIGN, String NADELIVERBY, String NAACCEPTBY, String[] deliveryList, String DEDELCOMMENTS, String userFallback) {
+        log.info(this.ipAddr + "|" + "confirmDelivery() begin : nuxrpd= " + nuxrpd + " &NUXRACCPTSIGN=" + NUXRACCPTSIGN + " &NADELIVERBY=" + NADELIVERBY + " &NAACCEPTBY=" + NAACCEPTBY
+                + " &deliveryList=" + Arrays.toString(deliveryList));
         System.out.println("confirmDelivery nuxrpd " + nuxrpd);
         int result = -1;
         try {
@@ -694,7 +698,8 @@ public class DbConnect {
                 cdloctypefrm = res1.getString(4);
             }
 
-            //System.out.println ("(confirmDelivery) updating current delivery nuxrpd:"+nuxrpd);
+            log.info("cdlocatto= " + cdlocatto + " cdlocatypeto= " + cdloctypeto + " cdlocatfrom= " + cdlocatfrom + " cdloctypefrm= " + cdloctypefrm);
+            System.out.println("(confirmDelivery) updating current delivery nuxrpd:" + nuxrpd);
 
             String query = "UPDATE fm12invintrans "
                     + "SET CDINTRANSIT='N' "
@@ -718,9 +723,9 @@ public class DbConnect {
 
             // work on it and call the function multiple times for each item in the list
 
-
-            for (int i = 0; i < deliveryList.size(); i++) {
-                String nusenate = deliveryList.get(i).toString();
+            for (String item : deliveryList) {
+                String nusenate = item;
+                log.info("CALL MOVE_INVENTORY_ITEM ***: (" + nusenate + "," + cdlocatfrom + "," + cdloctypefrm + "," + cdlocatto + "," + cdloctypeto + "," + nuxrpd + ")");
                 CallableStatement cs = conn.prepareCall("{?=call move_inventory_item(?,?,?,?,?,?)}");
                 cs.registerOutParameter(1, Types.VARCHAR);
                 cs.setString(2, nusenate);
@@ -755,17 +760,13 @@ public class DbConnect {
      * ---------------Function to create new delivery i.e. inserts new records into FM12InvInTrans-----
      *----------------------------------------------------------------------------------------------------*/
     public int createNewDelivery(String nuxrpd, String[] barcode, String userFallback) {
-        log.info(this.ipAddr + "|" + "createNewDelivery() begin : nuxrpd= " + nuxrpd + " &barcode= " + barcode);
-        /*  if(nuxrpd==null||barcode==null){
-         throw new IllegalArgumentException("Invalid nuxrpd or barcode");
-         }*/
+        log.info(this.ipAddr + "|" + "createNewDelivery() begin : nuxrpd= " + nuxrpd + " &barcode= " + Arrays.toString(barcode));
         try {
             String CDLOCATFROM = "";
             String cdloctypefrm = "";
             String CDLOCATTO = "";
             String cdloctypeto = "";
             String NAPICKUPBY = "";
-            String NUXRPUSIGN = "1234";
             String NARELEASEBY = "";
             String NUXRRELSIGN = "";
             String NADELIVERBY = "";
@@ -781,8 +782,7 @@ public class DbConnect {
             String qry = "SELECT NUXRPD,CDLOCATFROM, CDLOCTYPEFRM, CDLOCATTO,CDLOCTYPETO, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN FROM   "
                     + "  FM12INVINTRANS"
                     + " WHERE CDSTATUS='A'"
-                    + " AND CDINTRANSIT='Y'"
-                    + " and nuxrpd='" + nuxrpd + "'";
+                    + " and nuxrpd=" + nuxrpd;
 
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
@@ -792,16 +792,15 @@ public class DbConnect {
                 CDLOCATTO = result.getString(4);
                 cdloctypeto = result.getString(5);
                 NAPICKUPBY = result.getString(6);
-                //              NUXRPUSIGN = result.getString(5);
-                NARELEASEBY = result.getString(5);
-                NUXRRELSIGN = result.getString(6);
+                NARELEASEBY = result.getString(7);
+                NUXRRELSIGN = result.getString(8);
             }
             System.out.println("createNewDelivery");
             System.out.println("CDLOCATFROM  " + CDLOCATFROM + "CDLOCATTO  " + CDLOCATTO + "NAPICKUPBY  " + NAPICKUPBY);
 
             // Call invTransit() function 
             DbConnect db = new DbConnect();
-            db.invTransit(CDLOCATFROM, cdloctypefrm, cdloctypeto, CDLOCATTO, barcode, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, NADELIVERBY, NAACCEPTBY, NUXRACCPTSIGN, DECOMMENT, userFallback);
+            db.invTransit(CDLOCATFROM, cdloctypefrm, CDLOCATTO, cdloctypeto, barcode, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, NADELIVERBY, NAACCEPTBY, NUXRACCPTSIGN, DECOMMENT, userFallback);
             // Close the connection
             conn.close();
         } catch (SQLException e) {
