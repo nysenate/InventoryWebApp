@@ -56,6 +56,8 @@ public class DeliveryDetails extends HttpServlet {
                 catch (Exception e) {
                     log.info(db.ipAddr + "|" + "****SESSION NOT FOUND DeliveryDetails.processRequest could not process Fallback Username. Generic Username will be used instead.");                
                 } 
+                out.println("Session timed out");
+                return;                
             }
             else {
                 System.out.println ("SESSION FOUND!!!!");

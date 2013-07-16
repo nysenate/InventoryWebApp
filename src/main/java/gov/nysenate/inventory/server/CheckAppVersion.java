@@ -5,6 +5,7 @@
 package gov.nysenate.inventory.server;
 
 import com.google.gson.JsonObject;
+import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -76,8 +77,13 @@ public class CheckAppVersion extends HttpServlet {
             APKManifest = parseAPK(localFile.toString(), "AndroidManifest.xml");
                
             //send a JSON response with the app Version and file URI
-            int APKVersion = getAPKVersionNumber();
-            String APKVersionName = this.getAPKVersionName();
+            int APKVersion = -1;
+            String APKVersionName = "";
+            if (APKManifest!=null && APKManifest.trim().length()>0) {
+                APKVersion = getAPKVersionNumber();
+                APKVersionName = this.getAPKVersionName();
+            }
+            
             JsonObject myObj = new JsonObject();
             if (APKVersion<0) {
                 myObj.addProperty("success", false);
@@ -103,19 +109,21 @@ public class CheckAppVersion extends HttpServlet {
        int fileSize = (int)f.length();
        f = null;
        System.gc();
+       DbConnect db = new DbConnect();
                
        if (fileName.endsWith(".apk") || fileName.endsWith(".zip")) {
             try {
                 zip = new ZipFile(fileName);
             } catch (IOException ex) {
-                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, ex);
+                  log.info(db.ipAddr + "|" + "***WARNING: "+fileName+" not found on Server. The Server cannot check for the latest version of the App or allow the App to be downloaded without the file on the server.");                
+//                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
                 return "";
             }
             ZipEntry mft = zip.getEntry(zipEntry);
             try {
                 is = zip.getInputStream(mft);
             } catch (IOException ex) {
-                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, ex);
+                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
                 return "";
             }
                        
@@ -123,7 +131,7 @@ public class CheckAppVersion extends HttpServlet {
             try {
                 is = new FileInputStream(fileName);
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, ex);
+                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
                 return "";
             }
                 }
@@ -132,20 +140,20 @@ public class CheckAppVersion extends HttpServlet {
             try {
                  int bytesRead = is.read(buf);
                 } catch (IOException ex) {
-                    Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, ex);
+                    Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
                     return "";
             }
             try {
                  is.close();
                 } catch (IOException ex) {
-                    Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, ex);
+                    Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
                     return "";
                }
                 if (zip != null) {
                     try {
                         zip.close();
                     } catch (IOException ex) {
-                        Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, ex);
+                        Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
                         return "";
                 }
                 }
@@ -165,7 +173,7 @@ public class CheckAppVersion extends HttpServlet {
             return version;       
         }
         catch (Exception e) {
-            Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, e);
+            Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, e.getMessage(), e);
             return -1;
         }
     }
@@ -182,7 +190,7 @@ public class CheckAppVersion extends HttpServlet {
             return versionName;     
          }
         catch (Exception e) {
-            Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, null, e);
+            Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, e.getMessage(), e);
             return "";
         }        
     }

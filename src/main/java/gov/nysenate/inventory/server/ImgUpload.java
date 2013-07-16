@@ -49,6 +49,7 @@ public class ImgUpload extends HttpServlet {
                 catch (Exception e) {
                     log.info(db.ipAddr + "|" + "****IMGUPLOAD SESSION NOT FOUND ImgUpload.processRequest could not process Fallback Username. Generic Username will be used instead.");                
                 } 
+                // Seems like ImgUpload can never find a SESSION. Possibly due to Client POSTING instead of using GET???
 //                out.println("");  // If sessions is not working, tablet will bomb for now with this
 //                return;
             }

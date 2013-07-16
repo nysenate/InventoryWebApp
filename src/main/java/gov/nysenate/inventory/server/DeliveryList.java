@@ -55,10 +55,11 @@ public class DeliveryList extends HttpServlet {
                 catch (Exception e) {
                     log.info(db.ipAddr + "|" + "****SESSION NOT FOUND DeliveryList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
                 } 
-                out.println("");  // If sessions is not working, tablet will bomb for now with this
-                return;
+                out.println("Session timed out");
+                return;            
             }
             else {
+                long  lastAccess = (System.currentTimeMillis() - httpSession.getLastAccessedTime());
                 System.out.println ("SESSION FOUND!!!!");
                 String user = (String)httpSession.getAttribute("user");
                 String pwd = (String)httpSession.getAttribute("pwd");

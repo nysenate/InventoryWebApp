@@ -1,9 +1,9 @@
-package gov.nysenate.inventory.server;
-
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+package gov.nysenate.inventory.server;
+
 import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -13,14 +13,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.apache.log4j.Logger;
 
 /**
  *
- * @author Patil
+ * @author senateuser
  */
-@WebServlet(name = "ItemDetails", urlPatterns = {"/ItemDetails"})
-public class ItemDetails extends HttpServlet {
+@WebServlet(name = "KeepSessionAlive", urlPatterns = {"/KeepSessionAlive"})
+public class KeepSessionAlive extends HttpServlet {
 
     /**
      * Processes requests for both HTTP
@@ -34,51 +33,36 @@ public class ItemDetails extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        //System.out.println("ItemDetails Servlet: start");
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+        DbConnect db;             
         try {
             HttpSession httpSession = request.getSession(false);
-            DbConnect db;
             String userFallback = null;
+            db = new DbConnect();   
             if (httpSession==null) {
-                System.out.println ("****SESSION NOT FOUND");
-                db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ItemDetails.processRequest ");                
-                try {
-                   userFallback  = request.getParameter("userFallback");
-                }
-                catch (Exception e) {
-                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ItemDetails.processRequest could not process Fallback Username. Generic Username will be used instead.");                
-                } 
-                out.println("Session timed out");
-                return;
+                    System.out.println ("****SESSION NOT FOUND");
+                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND KeepSessionAlive.processRequest ");                
+                    out.println("Session timed out");
             }
             else {
-                System.out.println ("SESSION FOUND!!!!");
-                String user = (String)httpSession.getAttribute("user");
-                String pwd = (String)httpSession.getAttribute("pwd");
-                System.out.println ("--------USER:"+user);
-                db = new DbConnect(user, pwd);
-                
+                    String user = (String)httpSession.getAttribute("user");
+                    String pwd = (String)httpSession.getAttribute("pwd");
+                    db = new DbConnect(user, pwd);                
+                    System.out.println ("SESSION FOUND!!!");
+                     log.info(db.ipAddr + "|" + "****SESSION FOUND KeepAlive USER:"+user);                
+                    /* TODO output your page here. You may use following sample code. */
+                     out.println("<!DOCTYPE html>");
+                     out.println("<html>");
+                     out.println("<head>");
+                     out.println("<title>Servlet KeepSessionAlive</title>");            
+                     out.println("</head>");
+                     out.println("<body>");
+                     out.println("<h1>Servlet KeepSessionAlive at " + request.getContextPath() + "</h1>");
+                     out.println("</body>");
+                     out.println("</html>");
             }
-            db.ipAddr=request.getRemoteAddr();
-            Logger.getLogger(ItemDetails.class.getName()).info(db.ipAddr+"|"+"Servlet ItemDetails : start");
-            String barcode_num = request.getParameter("barcode_num");
-            String details = db.getDetails(barcode_num, userFallback);
-
-            if (details.equals("no")) {
-
-                out.println("Does not exist in system");
-            } else {
-                String model[] = details.split("\\|");
-
-                //Psuedo JSON for now
-                out.println("{\"nusenate\":\"" + model[0] + "\",\"nuxrefsn\":\"" + model[1] + "\",\"dtissue\":\"" + model[3] + "\",\"cdlocatto\":\"" + model[4] + "\",\"cdloctypeto\":\"" + model[5] + "\",\"cdcategory\":\"" + model[6] + "\",\"adstreet1to\":\"" + model[7].replaceAll("\"", "&#34;") + "\",\"decommodityf\":\"" + model[8].replaceAll("\"", "&#34;")  + "\",\"cdlocatfrom\":\"" + model[9] + "\",\"cdstatus\":\"" + model[10] + "\",\"cdintransit\":\"" + model[12] + "\"}");
-                Logger.getLogger(ItemDetails.class.getName()).info(db.ipAddr+"|"+"Servlet ItemDetails : end");
-            }
-
-        } finally {
+        } finally {            
             out.close();
         }
     }

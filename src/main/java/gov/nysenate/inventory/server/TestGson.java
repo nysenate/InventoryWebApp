@@ -35,9 +35,14 @@ import org.xml.sax.InputSource;
 public class TestGson {
     
     public static void main (String[] args) throws ParserConfigurationException {
+
+        System.out.println (convertTime((long)((3*60*60*1000)+(32*60*1000)+(18*1000)+383)));
+        System.out.println (convertTime((long)1533));
+        System.out.println (convertTime((long)434));
         
         //Make Serial 
-
+       
+/*
         Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
         Type listOfTestObject = new TypeToken<List<InvItem>>(){}.getType();
 
@@ -72,5 +77,33 @@ public class TestGson {
          System.out.println (json);*/
     };
 
+    public static String convertTime(long time) {
+        long secDiv = 1000;        
+        long minDiv = 1000 * 60;
+        long hourDiv = 1000 * 60 *60;
+        long minutes = time % hourDiv;
+        long seconds = minutes % minDiv;
+        int hoursConverted = (int)(time/hourDiv);
+        int minutesConverted = (int)(minutes/minDiv);
+        int secondsConverted = (int)(seconds/secDiv);
+      
+        StringBuffer  returnTime = new StringBuffer();
+        if (hoursConverted>0) {
+            returnTime.append("Hours:");
+            returnTime.append(hoursConverted);
+            returnTime.append(" ");
+        }
+        if (hoursConverted>0||minutesConverted>0) {
+            returnTime.append("Minutes:");
+            returnTime.append(minutesConverted);
+            returnTime.append(" ");
+        }
+        returnTime.append("Seconds:");
+        returnTime.append(secondsConverted);
+        returnTime.append(" ");
+        
+        return returnTime.toString();
+    }
+    
     
 }

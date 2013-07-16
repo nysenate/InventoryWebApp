@@ -94,11 +94,12 @@ public class Pickup extends HttpServlet {
                 catch (Exception e) {
                     log.info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest could not process Fallback Username. Generic Username will be used instead.");                
                 } 
-                out.println("");  // If sessions is not working, tablet will bomb for now with this
+                out.println("Session timed out");
                 return;
             }
             else {
-                System.out.println ("SESSION FOUND!!!!");
+                long  lastAccess = (System.currentTimeMillis() - httpSession.getLastAccessedTime());
+                System.out.println ("SESSION FOUND!!!! LAST ACCESSED:"+this.convertTime(lastAccess));
                 String user = (String)httpSession.getAttribute("user");
                 String pwd = (String)httpSession.getAttribute("pwd");
                 System.out.println ("--------USER:"+user);
@@ -337,6 +338,34 @@ public class Pickup extends HttpServlet {
                 fout.close();
             }
         }
+    }
+    
+    public String convertTime(long time) {
+        long secDiv = 1000;        
+        long minDiv = 1000 * 60;
+        long hourDiv = 1000 * 60 *60;
+        long minutes = time % hourDiv;
+        long seconds = minutes % minDiv;
+        int hoursConverted = (int)(time/hourDiv);
+        int minutesConverted = (int)(minutes/minDiv);
+        int secondsConverted = (int)(seconds/secDiv);
+      
+        StringBuffer  returnTime = new StringBuffer();
+        if (hoursConverted>0) {
+            returnTime.append("Hours:");
+            returnTime.append(hoursConverted);
+            returnTime.append(" ");
+        }
+        if (hoursConverted>0||minutesConverted>0) {
+            returnTime.append("Minutes:");
+            returnTime.append(minutesConverted);
+            returnTime.append(" ");
+        }
+        returnTime.append("Seconds:");
+        returnTime.append(secondsConverted);
+        returnTime.append(" ");
+        
+        return returnTime.toString();
     }
 
     private byte[] getDoc(String p_url) throws IOException {

@@ -50,7 +50,7 @@ public class VerificationReports extends HttpServlet {
                 catch (Exception e) {
                     log.info(db.ipAddr + "|" + "****SESSION NOT FOUND VerificationReports.processRequest could not process Fallback Username. Generic Username will be used instead.");                
                 } 
-                out.println("");  // If sessions is not working, tablet will bomb for now with this
+                out.println("Session timed out");
                 return;
              }
             else {

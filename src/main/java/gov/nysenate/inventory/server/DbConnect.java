@@ -639,7 +639,7 @@ public class DbConnect {
                 nalast = "";
             }
             //  String loc_code;
-            String qry = "SELECT a.nuxrefem, a.nalast, a.nafirst, a.namidinit, a.nasuffix"
+            String qry = "SELECT a.nuxrefem, a.nafirst, a.nalast, a.namidinit, a.nasuffix"
                     + " FROM pm21personn a "
                     + " WHERE a.cdempstatus LIKE '" + cdempstatus + "'"
                     + "  AND a.nalast LIKE'" + nalast + "%'"
