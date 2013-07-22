@@ -76,8 +76,8 @@ public class DeliveryConfirmation extends HttpServlet {
             String[] itemsInDelivery = request.getParameterValues("deliveryItemsStr[]");
             String[] checkedStr = request.getParameterValues("checkedStr[]");
             String NUXRACCPTSIGN = request.getParameter("NUXRACCPTSIGN");
-            String NADELIVERBY = request.getParameter("NADELIVERBY");
-            String NAACCEPTBY = request.getParameter("NAACCEPTBY");
+            String NADELIVERBY = request.getParameter("NADELIVERBY").toUpperCase();
+            String NAACCEPTBY = request.getParameter("NAACCEPTBY").toUpperCase();
             String DEDELCOMMENTS = request.getParameter("DECOMMENTS");
             String[] notChecked = generateNotCheckedItems(itemsInDelivery, checkedStr);
 

@@ -111,6 +111,14 @@ public class Pickup extends HttpServlet {
             NUXRRELSIGN = request.getParameter("NUXRRELSIGN");
             NARELEASEBY = request.getParameter("NARELEASEBY").replaceAll("'", "''");;
             NADELIVERBY = request.getParameter("NADELIVERBY");
+
+            if (NAPICKUPBY != null) {
+                NAPICKUPBY = NAPICKUPBY.toUpperCase();
+            }
+            if (NADELIVERBY != null) {
+                NADELIVERBY = NADELIVERBY.toUpperCase();
+            }
+
             NAACCEPTBY = "";
             try {
                 NAACCEPTBY = request.getParameter("NAACCEPTBY").replaceAll("'", "''");

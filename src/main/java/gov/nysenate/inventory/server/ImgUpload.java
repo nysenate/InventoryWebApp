@@ -1,15 +1,18 @@
 package gov.nysenate.inventory.server;
 
 import static gov.nysenate.inventory.server.DbConnect.log;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -64,9 +67,12 @@ public class ImgUpload extends HttpServlet {
             db.ipAddr=request.getRemoteAddr();
             Logger.getLogger(ImgUpload.class.getName()).info(db.ipAddr+"|"+"Servlet ImgUpload : start");
             //Get the name of the file from the URL string
-            String nauser = (String) request.getParameter("nauser");
+            String nauser = request.getParameter("nauser");
+            if (nauser != null) {
+                nauser = nauser.toUpperCase();
+            }
             System.out.println("NAUSER:(" + nauser + ")");
-            String nuxrefemString = (String) request.getParameter("nuxrefem");
+            String nuxrefemString = request.getParameter("nuxrefem");
             System.out.println("NUXREFEM:(" + nuxrefemString + ")");
             int nuxrefem = -1;
             int nuxrsign = -1;

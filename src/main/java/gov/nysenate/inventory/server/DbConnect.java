@@ -795,6 +795,13 @@ public class DbConnect {
                 NARELEASEBY = result.getString(7);
                 NUXRRELSIGN = result.getString(8);
             }
+            if (NAPICKUPBY != null) {
+                NAPICKUPBY = NAPICKUPBY.toUpperCase();
+            }
+            if (NARELEASEBY != null) {
+                NARELEASEBY = NARELEASEBY.toUpperCase();
+            }
+
             System.out.println("createNewDelivery");
             System.out.println("CDLOCATFROM  " + CDLOCATFROM + "CDLOCATTO  " + CDLOCATTO + "NAPICKUPBY  " + NAPICKUPBY);
 
