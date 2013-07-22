@@ -4,9 +4,10 @@ package gov.nysenate.inventory.server;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+import gov.nysenate.inventory.model.Transaction;
+
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.servlet.ServletException;
@@ -37,11 +38,14 @@ public class DeliveryConfirmation extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         Logger log = Logger.getLogger(DeliveryConfirmation.class.getName());
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         int newDeliveryResult = 0;
         int orgDeliveryResult = 0;
+        Transaction trans = new Transaction();
+
         try {
             HttpSession httpSession = request.getSession(false);
             DbConnect db;            
@@ -68,27 +72,25 @@ public class DeliveryConfirmation extends HttpServlet {
                 db = new DbConnect(user, pwd);
             }
             
-            db.ipAddr=request.getRemoteAddr();
+            db.ipAddr = request.getRemoteAddr();
             log.info(db.ipAddr + "|" + "Servlet DeliveryConfirmation : Start");
 
-            // 1. Get the data from app request
-            String nuxrpd = request.getParameter("NUXRPD");
-            String[] itemsInDelivery = request.getParameterValues("deliveryItemsStr[]");
-            String[] checkedStr = request.getParameterValues("checkedStr[]");
-            String NUXRACCPTSIGN = request.getParameter("NUXRACCPTSIGN");
-            String NADELIVERBY = request.getParameter("NADELIVERBY").toUpperCase();
-            String NAACCEPTBY = request.getParameter("NAACCEPTBY").toUpperCase();
-            String DEDELCOMMENTS = request.getParameter("DECOMMENTS");
-            String[] notChecked = generateNotCheckedItems(itemsInDelivery, checkedStr);
+            trans.setNuxrpd(Integer.parseInt((request.getParameter("NUXRPD"))));
+            trans.setItemsToDeliver(request.getParameterValues("deliveryItemsStr[]"));
+            trans.setCheckedItems(request.getParameterValues("checkedStr[]"));
+            trans.setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
+            trans.setNaDeliverBy(request.getParameter("NADELIVERBY"));
+            trans.setNaAcceptBy(request.getParameter("NAACCEPTBY"));
+            trans.setDeliveryComments(request.getParameter("DECOMMENTS"));
+            trans.generateNotCheckedItems();
 
-            // Make delivery
-            orgDeliveryResult = db.confirmDelivery(nuxrpd, NUXRACCPTSIGN, NADELIVERBY, NAACCEPTBY, checkedStr, DEDELCOMMENTS, userFallback);
-            log.info(db.ipAddr + "|" + "Delivered Items: " + Arrays.toString(itemsInDelivery));
+            orgDeliveryResult = db.confirmDelivery(trans, userFallback);
+            log.info(db.ipAddr + "|" + "Delivered Items: " + Arrays.toString(trans.getCheckedItems()));
 
-            if (notChecked.length > 0) {
+            if (trans.getNotCheckedItems().length > 0) {
                 // Make new row in FM12INVINTRANS for items not delivered.
-                newDeliveryResult = db.createNewDelivery(nuxrpd, notChecked, userFallback);
-                log.info(db.ipAddr + "|" + "Not Delivered Items: " + Arrays.toString(notChecked));
+                newDeliveryResult = db.createNewDelivery(trans, userFallback);
+                log.info(db.ipAddr + "|" + "Not Delivered Items: " + Arrays.toString(trans.getNotCheckedItems()));
             }
             else {
                 log.info(db.ipAddr + "|" + "All items delivered.");
@@ -112,14 +114,6 @@ public class DeliveryConfirmation extends HttpServlet {
         } finally {
             out.close();
         }
-    }
-
-    private String[] generateNotCheckedItems(String[] deliveryItemsStr, String[] checkedStr) {
-        ArrayList<String> notChecked = new ArrayList<String>(Arrays.asList(deliveryItemsStr));
-        for (String chkItem : checkedStr) {
-            notChecked.remove(chkItem);
-        }
-        return notChecked.toArray(new String[notChecked.size()]);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

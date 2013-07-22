@@ -1,6 +1,6 @@
 package gov.nysenate.inventory.server;
 
-import static gov.nysenate.inventory.server.DbConnect.log;
+import gov.nysenate.inventory.model.Transaction;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -57,114 +57,52 @@ public class Pickup extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String msgBody = "";
-        String naemailTo = "";
-        String naemployeeTo = "MR. SO AND SO";
-        String barcodeStr = "";
-        String originLocation = "";
-        String destinationLocation = "";
-        String NAPICKUPBY = "";
-        String NUXRRELSIGN = "";
-        String NARELEASEBY = "";
-        String NADELIVERBY = "";
-        String NAACCEPTBY = "";
-        String NUXRACCPTSIGN = "";
-        String DECOMMENTS = "";
-        String cdloctypeto = "";
-        String cdloctypefrm = "";
-        int nuxrpd = -1;
-
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        try {
-            HttpSession httpSession = request.getSession(false);
-            DbConnect db;         
-            String userFallback = null;
-            if (httpSession==null) {
-                System.out.println ("****SESSION NOT FOUND");
-                db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");  
-                try {
-                   userFallback  = request.getParameter("userFallback");
-                }
-                catch (Exception e) {
-                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest could not process Fallback Username. Generic Username will be used instead.");                
-                } 
-                out.println("Session timed out");
-                return;
-            }
-            else {
-                long  lastAccess = (System.currentTimeMillis() - httpSession.getLastAccessedTime());
-                System.out.println ("SESSION FOUND!!!! LAST ACCESSED:"+this.convertTime(lastAccess));
-                String user = (String)httpSession.getAttribute("user");
-                String pwd = (String)httpSession.getAttribute("pwd");
-                System.out.println ("--------USER:"+user);
-                db = new DbConnect(user, pwd);
-                
-            }
-            db.ipAddr=request.getRemoteAddr();
-            Logger.getLogger(Pickup.class.getName()).info(db.ipAddr+"|"+"Servlet Pickup : start");
-            barcodeStr = request.getParameter("barcodes");
-            originLocation = request.getParameter("originLocation");
-            destinationLocation = request.getParameter("destinationLocation");
-            NAPICKUPBY = request.getParameter("NAPICKUPBY");
-            NUXRRELSIGN = request.getParameter("NUXRRELSIGN");
-            NARELEASEBY = request.getParameter("NARELEASEBY").replaceAll("'", "''");;
-            NADELIVERBY = request.getParameter("NADELIVERBY");
+        Logger log = Logger.getLogger(Pickup.class.getName());
+        Transaction transaction = new Transaction();
+        DbConnect db = checkHttpSession(request, out);
+        db.ipAddr = request.getRemoteAddr();
+        
+        log.info(db.ipAddr + "|" + "Servlet Pickup : start");
 
-            if (NAPICKUPBY != null) {
-                NAPICKUPBY = NAPICKUPBY.toUpperCase();
-            }
-            if (NADELIVERBY != null) {
-                NADELIVERBY = NADELIVERBY.toUpperCase();
-            }
+        transaction.setItemsToDeliver(request.getParameterValues("barcode[]"));
+        transaction.getOrigin().setCdLoc(request.getParameter("originLocation"));
+        transaction.getOrigin().setCdLocType(request.getParameter("cdloctypefrm"));
+        transaction.getDestination().setCdLoc(request.getParameter("destinationLocation"));
+        transaction.getDestination().setCdLocType(request.getParameter("cdloctypeto"));
+        transaction.setNaPickupBy(request.getParameter("NAPICKUPBY"));
+        transaction.setNuxrRelSign(request.getParameter("NUXRRELSIGN"));
+        transaction.setNaReleaseBy(request.getParameter("NARELEASEBY").replaceAll("'", "''"));
+        transaction.setNaDeliverBy(request.getParameter("NADELIVERBY"));
+        transaction.setPickupComments(request.getParameter("DECOMMENTS").replaceAll("'", "''"));
+        transaction.setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
 
-            NAACCEPTBY = "";
-            try {
-                NAACCEPTBY = request.getParameter("NAACCEPTBY").replaceAll("'", "''");
-            } catch (NullPointerException e) {
-                NAACCEPTBY = "";
-            }
-            NUXRACCPTSIGN = request.getParameter("NUXRACCPTSIGN");
-            DECOMMENTS = request.getParameter("DECOMMENTS").replaceAll("'", "''");
-            cdloctypeto  = "";
-            try {
-                 cdloctypeto =   request.getParameter("cdloctypeto");
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-            cdloctypefrm  = "";
-            try {
-                 cdloctypefrm =   request.getParameter("cdloctypefrm");
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-            String barcodes[] = barcodeStr.split(",");
-            System.out.println("point 1 ");
-           
-            //String barcodes[] = {"077896", "078567","0268955"};
-            System.out.println("Pickup Servlet NUXRRELSIGN:" + NUXRRELSIGN);
-            nuxrpd = db.invTransit(originLocation, cdloctypefrm,  destinationLocation, cdloctypeto, barcodes, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, NADELIVERBY, NAACCEPTBY, NUXRACCPTSIGN, DECOMMENTS, userFallback);
-            //int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", 10, "Brian", 11);
-            System.out.println ("INV TRANSIT RETURNED NUXRPD:"+nuxrpd);
-            if (nuxrpd > -1) {
-                sendEmail(naemployeeTo, NAPICKUPBY, originLocation, destinationLocation, nuxrpd, msgBody);
-            System.out.println ("INV TRANSIT UPDATED CORRECTLY");
-                out.println("Database updated sucessfully");
-            } else {
-            System.out.println ("INV TRANSIT FAILED TO UPDATE");
-                out.println("Database not updated");
-            }
-            Logger.getLogger(Pickup.class.getName()).info(db.ipAddr+"|"+"Servlet Pickup : end");
-        } finally {
-            out.close();
+        int dbResponse = db.invTransit(transaction, request.getParameter("userFallback"));
+        transaction.setNuxrpd(dbResponse);
+
+        if (transaction.getNuxrpd() > -1) {
+            sendEmail(transaction);
+            System.out.println("INV TRANSIT UPDATED CORRECTLY");
+            out.println("Database updated sucessfully");
         }
+        else {
+            System.out.println("INV TRANSIT FAILED TO UPDATE");
+            out.println("Database not updated");
+        }
+        log.info(db.ipAddr + "|" + "Servlet Pickup : end");
+        out.close();
+    }
+
+
+    public void sendEmail(Transaction trans) {
+        sendEmail(trans.getNaPickupBy(), trans.getOrigin().getCdLoc(), trans.getDestination().getCdLoc(), trans.getNuxrpd());
     }
 
     @SuppressWarnings("empty-statement")
-    public void sendEmail(String naemployeeTo, String NAPICKUPBY, String originLocation, String destinationLocation, final int nuxrpd, String msgBody) {
+    public void sendEmail(String NAPICKUPBY, String originLocation, String destinationLocation, final int nuxrpd) {
+        String naemployeeTo = "";
+        String msgBody = "";
         byte[] attachment = null;
         Properties properties = new Properties();
         InputStream in = this.getClass().getClassLoader().getResourceAsStream("config.properties");
@@ -433,6 +371,30 @@ public class Pickup extends HttpServlet {
 
         return returnBytes;
     }
+    
+    public DbConnect checkHttpSession(HttpServletRequest request, PrintWriter out) {
+        HttpSession httpSession = request.getSession(false);
+        DbConnect db;
+        String userFallback = "";
+        if (httpSession == null) {
+            System.out.println("****SESSION NOT FOUND");
+            db = new DbConnect();
+            Logger.getLogger(Pickup.class.getName()).info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");
+            userFallback = request.getParameter("userFallback");
+            out.println("Session timed out");
+        }
+        else {
+            long lastAccess = (System.currentTimeMillis() - httpSession.getLastAccessedTime());
+            System.out.println("SESSION FOUND!!!! LAST ACCESSED:" + this.convertTime(lastAccess));
+            String user = (String) httpSession.getAttribute("user");
+            String pwd = (String) httpSession.getAttribute("pwd");
+            System.out.println("--------USER:" + user);
+            db = new DbConnect(user, pwd);
+
+        }
+        return db;
+    }
+
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

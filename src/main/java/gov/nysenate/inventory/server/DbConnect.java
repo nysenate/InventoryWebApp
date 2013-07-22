@@ -1,5 +1,7 @@
 package gov.nysenate.inventory.server;
 
+import gov.nysenate.inventory.model.Transaction;
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -341,10 +343,18 @@ public class DbConnect {
         return result;
     }
 
+    // Temporary.
+    public int invTransit(Transaction trans, String userFallback) {
+        int nuxrpd = invTransit(trans.getOrigin().getCdLoc(), trans.getOrigin().getCdLocType(), trans.getDestination().getCdLoc(),
+                trans.getDestination().getCdLocType(), trans.getItemsToDeliver(), trans.getNaPickupBy(), trans.getNaReleaseBy(),
+                trans.getNuxrRelSign(), trans.getNaDeliverBy(), trans.getNaAcceptBy(), trans.getNuxrAccptSign(), trans.getPickupComments(),
+                userFallback);
+        return nuxrpd;
+    }
+
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to start a new pickup-delivery
      *----------------------------------------------------------------------------------------------------*/
-
     public int invTransit(String CDLOCATFROM, String cdloctypefrm, String CDLOCATTO, String cdloctypeto, String[] barcode,
             String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN,
             String DEPUCOMMENTS, String userFallback) {
@@ -665,6 +675,12 @@ public class DbConnect {
         return employeeList;
     }
 
+    public int confirmDelivery(Transaction trans, String userFallback) {
+        int dbReturn = confirmDelivery(String.valueOf(trans.getNuxrpd()), trans.getNuxrAccptSign(), trans.getNaDeliverBy(), trans.getNaAcceptBy(),
+                trans.getCheckedItems(), trans.getDeliveryComments(), userFallback);
+        return dbReturn;
+    }
+
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to confirm delivery i.e. updates the FD12Issue table and changes location-----
      *------------------------------------------------------------------------------------------------------*/
@@ -754,6 +770,11 @@ public class DbConnect {
     public void setUsernamePwd (String user, String pwd) {
         userName = user;
         password = pwd;
+    }
+
+    public int createNewDelivery(Transaction trans, String userFallback) {
+        int dbReturn = createNewDelivery(String.valueOf(trans.getNuxrpd()), trans.getNotCheckedItems(), userFallback);
+        return dbReturn;
     }
 
     /*-------------------------------------------------------------------------------------------------------
