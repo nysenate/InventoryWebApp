@@ -42,7 +42,7 @@ import org.apache.commons.io.IOUtils;
  * @author Patil
  */
 @WebServlet(name = "Pickup", urlPatterns = {"/Pickup"})
-public class Pickup extends HttpServlet {
+public class PickupServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP
@@ -59,30 +59,30 @@ public class Pickup extends HttpServlet {
 
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        Logger log = Logger.getLogger(Pickup.class.getName());
-        Transaction transaction = new Transaction();
+        Logger log = Logger.getLogger(PickupServlet.class.getName());
+        Transaction trans = new Transaction();
+
         DbConnect db = checkHttpSession(request, out);
         db.ipAddr = request.getRemoteAddr();
-        
         log.info(db.ipAddr + "|" + "Servlet Pickup : start");
+        
+        trans.getOrigin().setCdLoc(request.getParameter("originLocation"));
+        trans.getOrigin().setCdLocType(request.getParameter("cdloctypefrm"));
+        trans.getDestination().setCdLoc(request.getParameter("destinationLocation"));
+        trans.getDestination().setCdLocType(request.getParameter("cdloctypeto"));
+        trans.getPickup().setPickupItems(request.getParameterValues("barcode[]"));
+        trans.getPickup().setNaPickupBy(request.getParameter("NAPICKUPBY"));
+        trans.getPickup().setNuxrRelSign(request.getParameter("NUXRRELSIGN"));
+        trans.getPickup().setNaReleaseBy(request.getParameter("NARELEASEBY").replaceAll("'", "''"));
+        trans.getPickup().setComments(request.getParameter("DECOMMENTS").replaceAll("'", "''"));
+        trans.getDelivery().setNaDeliverBy(request.getParameter("NADELIVERBY"));
+        trans.getDelivery().setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
 
-        transaction.setItemsToDeliver(request.getParameterValues("barcode[]"));
-        transaction.getOrigin().setCdLoc(request.getParameter("originLocation"));
-        transaction.getOrigin().setCdLocType(request.getParameter("cdloctypefrm"));
-        transaction.getDestination().setCdLoc(request.getParameter("destinationLocation"));
-        transaction.getDestination().setCdLocType(request.getParameter("cdloctypeto"));
-        transaction.setNaPickupBy(request.getParameter("NAPICKUPBY"));
-        transaction.setNuxrRelSign(request.getParameter("NUXRRELSIGN"));
-        transaction.setNaReleaseBy(request.getParameter("NARELEASEBY").replaceAll("'", "''"));
-        transaction.setNaDeliverBy(request.getParameter("NADELIVERBY"));
-        transaction.setPickupComments(request.getParameter("DECOMMENTS").replaceAll("'", "''"));
-        transaction.setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
+        int dbResponse = db.invTransit(trans, request.getParameter("userFallback"));
+        trans.setNuxrpd(Integer.toString(dbResponse));
 
-        int dbResponse = db.invTransit(transaction, request.getParameter("userFallback"));
-        transaction.setNuxrpd(dbResponse);
-
-        if (transaction.getNuxrpd() > -1) {
-            sendEmail(transaction);
+        if (dbResponse > -1) {
+            sendEmail(trans);
             System.out.println("INV TRANSIT UPDATED CORRECTLY");
             out.println("Database updated sucessfully");
         }
@@ -96,7 +96,7 @@ public class Pickup extends HttpServlet {
 
 
     public void sendEmail(Transaction trans) {
-        sendEmail(trans.getNaPickupBy(), trans.getOrigin().getCdLoc(), trans.getDestination().getCdLoc(), trans.getNuxrpd());
+        sendEmail(trans.getPickup().getNaPickupBy(), trans.getOrigin().getCdLoc(), trans.getDestination().getCdLoc(), Integer.valueOf(trans.getNuxrpd()));
     }
 
     @SuppressWarnings("empty-statement")
@@ -109,7 +109,7 @@ public class Pickup extends HttpServlet {
         try {
             properties.load(in);
         } catch (IOException ex) {
-            Logger.getLogger(Pickup.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         String smtpServer = properties.getProperty("smtpServer");
@@ -133,9 +133,9 @@ public class Pickup extends HttpServlet {
             //saveFileFromUrlWithJavaIO(this.nuxrpd+".pdf", );
             System.out.println("ATTACHMENT SIZE:" + attachment.length + " " + ((attachment.length) / 1024.0) + "KB");
         } catch (MalformedURLException ex) {
-            Logger.getLogger(Pickup.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(Pickup.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         if (attachment == null) {
@@ -167,7 +167,7 @@ public class Pickup extends HttpServlet {
                 }
             }));
         } catch (MessagingException ex) {
-            Logger.getLogger(Pickup.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         try {
@@ -379,7 +379,7 @@ public class Pickup extends HttpServlet {
         if (httpSession == null) {
             System.out.println("****SESSION NOT FOUND");
             db = new DbConnect();
-            Logger.getLogger(Pickup.class.getName()).info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");
+            Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");
             userFallback = request.getParameter("userFallback");
             out.println("Session timed out");
         }

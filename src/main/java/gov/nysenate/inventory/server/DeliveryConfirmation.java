@@ -71,31 +71,31 @@ public class DeliveryConfirmation extends HttpServlet {
                 System.out.println ("--------USER:"+user);
                 db = new DbConnect(user, pwd);
             }
-            
+
             db.ipAddr = request.getRemoteAddr();
             log.info(db.ipAddr + "|" + "Servlet DeliveryConfirmation : Start");
 
-            trans.setNuxrpd(Integer.parseInt((request.getParameter("NUXRPD"))));
-            trans.setItemsToDeliver(request.getParameterValues("deliveryItemsStr[]"));
-            trans.setCheckedItems(request.getParameterValues("checkedStr[]"));
-            trans.setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
-            trans.setNaDeliverBy(request.getParameter("NADELIVERBY"));
-            trans.setNaAcceptBy(request.getParameter("NAACCEPTBY"));
-            trans.setDeliveryComments(request.getParameter("DECOMMENTS"));
-            trans.generateNotCheckedItems();
+            trans.setNuxrpd((request.getParameter("NUXRPD")));
+            trans.getPickup().setPickupItems(request.getParameterValues("deliveryItemsStr[]"));
+            trans.getDelivery().setCheckedItems(request.getParameterValues("checkedStr[]"));
+            trans.getDelivery().setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
+            trans.getDelivery().setNaDeliverBy(request.getParameter("NADELIVERBY"));
+            trans.getDelivery().setNaAcceptBy(request.getParameter("NAACCEPTBY"));
+            trans.getDelivery().setComments(request.getParameter("DECOMMENTS"));
+            trans.generateDeliveryNotCheckedItems();
 
             orgDeliveryResult = db.confirmDelivery(trans, userFallback);
-            log.info(db.ipAddr + "|" + "Delivered Items: " + Arrays.toString(trans.getCheckedItems()));
+            log.info(db.ipAddr + "|" + "Delivered Items: " + Arrays.toString(trans.getDelivery().getCheckedItems()));
 
-            if (trans.getNotCheckedItems().length > 0) {
+            if (trans.getDelivery().getNotCheckedItems().length > 0) {
                 // Make new row in FM12INVINTRANS for items not delivered.
                 newDeliveryResult = db.createNewDelivery(trans, userFallback);
-                log.info(db.ipAddr + "|" + "Not Delivered Items: " + Arrays.toString(trans.getNotCheckedItems()));
+                log.info(db.ipAddr + "|" + "Not Delivered Items: " + Arrays.toString(trans.getDelivery().getNotCheckedItems()));
             }
             else {
                 log.info(db.ipAddr + "|" + "All items delivered.");
             }
-            
+
             if (orgDeliveryResult == 0 && newDeliveryResult == 0) {
                 out.println("Database updated sucessfully");
                 log.info(db.ipAddr + "|" + "Database updated sucessfully");

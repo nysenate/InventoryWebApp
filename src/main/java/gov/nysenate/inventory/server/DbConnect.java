@@ -346,9 +346,9 @@ public class DbConnect {
     // Temporary.
     public int invTransit(Transaction trans, String userFallback) {
         int nuxrpd = invTransit(trans.getOrigin().getCdLoc(), trans.getOrigin().getCdLocType(), trans.getDestination().getCdLoc(),
-                trans.getDestination().getCdLocType(), trans.getItemsToDeliver(), trans.getNaPickupBy(), trans.getNaReleaseBy(),
-                trans.getNuxrRelSign(), trans.getNaDeliverBy(), trans.getNaAcceptBy(), trans.getNuxrAccptSign(), trans.getPickupComments(),
-                userFallback);
+                trans.getDestination().getCdLocType(), trans.getPickup().getPickupItems(), trans.getPickup().getNaPickupBy(), trans.getPickup().getNaReleaseBy(),
+                trans.getPickup().getNuxrRelSign(), trans.getDelivery().getNaDeliverBy(), trans.getDelivery().getNaAcceptBy(), trans.getDelivery().getNuxrAccptSign(),
+                trans.getPickup().getComments(), userFallback);
         return nuxrpd;
     }
 
@@ -676,8 +676,8 @@ public class DbConnect {
     }
 
     public int confirmDelivery(Transaction trans, String userFallback) {
-        int dbReturn = confirmDelivery(String.valueOf(trans.getNuxrpd()), trans.getNuxrAccptSign(), trans.getNaDeliverBy(), trans.getNaAcceptBy(),
-                trans.getCheckedItems(), trans.getDeliveryComments(), userFallback);
+        int dbReturn = confirmDelivery(String.valueOf(trans.getNuxrpd()), trans.getDelivery().getNuxrAccptSign(), trans.getDelivery().getNaDeliverBy(),
+                trans.getDelivery().getNaAcceptBy(), trans.getDelivery().getCheckedItems(), trans.getDelivery().getComments(), userFallback);
         return dbReturn;
     }
 
@@ -773,7 +773,7 @@ public class DbConnect {
     }
 
     public int createNewDelivery(Transaction trans, String userFallback) {
-        int dbReturn = createNewDelivery(String.valueOf(trans.getNuxrpd()), trans.getNotCheckedItems(), userFallback);
+        int dbReturn = createNewDelivery(String.valueOf(trans.getNuxrpd()), trans.getDelivery().getNotCheckedItems(), userFallback);
         return dbReturn;
     }
 
