@@ -65,7 +65,7 @@ public class PickupServlet extends HttpServlet {
         DbConnect db = checkHttpSession(request, out);
         db.ipAddr = request.getRemoteAddr();
         log.info(db.ipAddr + "|" + "Servlet Pickup : start");
-        
+
         trans.getOrigin().setCdLoc(request.getParameter("originLocation"));
         trans.getOrigin().setCdLocType(request.getParameter("cdloctypefrm"));
         trans.getDestination().setCdLoc(request.getParameter("destinationLocation"));
@@ -75,11 +75,11 @@ public class PickupServlet extends HttpServlet {
         trans.getPickup().setNuxrRelSign(request.getParameter("NUXRRELSIGN"));
         trans.getPickup().setNaReleaseBy(request.getParameter("NARELEASEBY").replaceAll("'", "''"));
         trans.getPickup().setComments(request.getParameter("DECOMMENTS").replaceAll("'", "''"));
-        trans.getDelivery().setNaDeliverBy(request.getParameter("NADELIVERBY"));
-        trans.getDelivery().setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
+        // //trans.getDelivery().setNaDeliverBy(request.getParameter("NADELIVERBY"));
+        // trans.getDelivery().setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
 
         int dbResponse = db.invTransit(trans, request.getParameter("userFallback"));
-        trans.setNuxrpd(Integer.toString(dbResponse));
+        trans.setNuxrpd(dbResponse);
 
         if (dbResponse > -1) {
             sendEmail(trans);
@@ -96,7 +96,7 @@ public class PickupServlet extends HttpServlet {
 
 
     public void sendEmail(Transaction trans) {
-        sendEmail(trans.getPickup().getNaPickupBy(), trans.getOrigin().getCdLoc(), trans.getDestination().getCdLoc(), Integer.valueOf(trans.getNuxrpd()));
+        sendEmail(trans.getPickup().getNaPickupBy(), trans.getOrigin().getCdLoc(), trans.getDestination().getCdLoc(), trans.getNuxrpd());
     }
 
     @SuppressWarnings("empty-statement")

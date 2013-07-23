@@ -4,8 +4,8 @@
  */
 package gov.nysenate.inventory.server;
 
-import com.google.gson.JsonObject;
 import static gov.nysenate.inventory.server.DbConnect.log;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -17,11 +17,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.google.gson.JsonObject;
 
 /**
  *
@@ -54,7 +57,7 @@ public class CheckAppVersion extends HttpServlet {
             try {            
                  properties.load(in);
              } catch (IOException ex) {
-                 Logger.getLogger(Pickup.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
             }
             
             localFilePath = properties.getProperty("localFilePath");

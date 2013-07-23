@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 public class Transaction {
 
-    private String nuxrpd;
+    private int nuxrpd;
     private Location origin;
     private Location destination;
     private Pickup pickup;
@@ -29,11 +29,11 @@ public class Transaction {
         this.delivery.setNotCheckedItems(notChecked.toArray(new String[notChecked.size()]));
     }
 
-    public String getNuxrpd() {
+    public int getNuxrpd() {
         return nuxrpd;
     }
 
-    public void setNuxrpd(String nuxrpd) {
+    public void setNuxrpd(int nuxrpd) {
         this.nuxrpd = nuxrpd;
     }
 

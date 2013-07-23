@@ -46,7 +46,7 @@ public class Delivery {
     }
 
     public void setNaDeliverBy(String naDeliverBy) {
-        this.naDeliverBy = naDeliverBy;
+        this.naDeliverBy = naDeliverBy.toUpperCase();
     }
 
     public String getNaAcceptBy() {
@@ -54,7 +54,7 @@ public class Delivery {
     }
 
     public void setNaAcceptBy(String naAcceptBy) {
-        this.naAcceptBy = naAcceptBy;
+        this.naAcceptBy = naAcceptBy.toUpperCase();
     }
 
     public String getNuxrAccptSign() {

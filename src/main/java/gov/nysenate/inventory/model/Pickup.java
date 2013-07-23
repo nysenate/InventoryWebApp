@@ -36,7 +36,7 @@ public class Pickup {
     }
 
     public void setNaPickupBy(String naPickupBy) {
-        this.naPickupBy = naPickupBy;
+        this.naPickupBy = naPickupBy.toUpperCase();
     }
 
     public String getNaReleaseBy() {
@@ -44,7 +44,7 @@ public class Pickup {
     }
 
     public void setNaReleaseBy(String naReleaseBy) {
-        this.naReleaseBy = naReleaseBy;
+        this.naReleaseBy = naReleaseBy.toUpperCase();
     }
 
     public String getNuxrRelSign() {

@@ -75,7 +75,7 @@ public class DeliveryConfirmation extends HttpServlet {
             db.ipAddr = request.getRemoteAddr();
             log.info(db.ipAddr + "|" + "Servlet DeliveryConfirmation : Start");
 
-            trans.setNuxrpd((request.getParameter("NUXRPD")));
+            trans.setNuxrpd(Integer.parseInt(request.getParameter("NUXRPD")));
             trans.getPickup().setPickupItems(request.getParameterValues("deliveryItemsStr[]"));
             trans.getDelivery().setCheckedItems(request.getParameterValues("checkedStr[]"));
             trans.getDelivery().setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
@@ -88,7 +88,7 @@ public class DeliveryConfirmation extends HttpServlet {
             log.info(db.ipAddr + "|" + "Delivered Items: " + Arrays.toString(trans.getDelivery().getCheckedItems()));
 
             if (trans.getDelivery().getNotCheckedItems().length > 0) {
-                // Make new row in FM12INVINTRANS for items not delivered.
+                trans.getPickup().setPickupItems(trans.getDelivery().getNotCheckedItems());
                 newDeliveryResult = db.createNewDelivery(trans, userFallback);
                 log.info(db.ipAddr + "|" + "Not Delivered Items: " + Arrays.toString(trans.getDelivery().getNotCheckedItems()));
             }
