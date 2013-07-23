@@ -354,7 +354,7 @@ public class DbConnect {
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
                 trans.setNuxrpd(result.getInt(1));
-            } 
+            }
             String updQry = "INSERT INTO FM12INVINTRANS (NUXRPD,CDLOCATTO, cdloctypeto, CDLOCATFROM, cdloctypefrm, CDINTRANSIT,"
                     + "NAPICKUPBY, NARELEASEBY,NUXRRELSIGN,NADELIVERBY,NAACCEPTBY,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,"
                     + "NATXNUPDUSER,DEPUCOMMENTS, DTPICKUP) "
@@ -366,7 +366,7 @@ public class DbConnect {
                     + trans.getPickup().getComments() + "',SYSDATE)";
             stmt.executeQuery(updQry);
             log.info("** updQry *** : " + updQry);
-
+            log.info("****PICKUPITEMS: " + trans.getPickup().getPickupItems());
 
             for (String nusenate : trans.getPickup().getPickupItems()) {
                 String insertQry = "INSERT INTO FD12INVINTRANS (NUXRPD,NUSENATE,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,NATXNUPDUSER) "
@@ -686,13 +686,12 @@ public class DbConnect {
             }
 
             // Delete items in this transaction that were not delivered, they will be put in a new transaction.
-            if (trans.getDelivery().getNotCheckedItems().length > 0) {
+            if (trans.getDelivery().getNotCheckedItems().size() > 0) {
                 for (String nusenate : trans.getDelivery().getNotCheckedItems()) {
                     String del = "DELETE FROM FD12INVINTRANS WHERE nuxrpd=" + trans.getNuxrpd() + "AND nusenate = '" + nusenate + "'";
                     stmt.executeUpdate(del);
                 }
             }
-
             conn.close();
         }
         catch (SQLException ex) {

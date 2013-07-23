@@ -70,14 +70,16 @@ public class PickupServlet extends HttpServlet {
         trans.getOrigin().setCdLocType(request.getParameter("cdloctypefrm"));
         trans.getDestination().setCdLoc(request.getParameter("destinationLocation"));
         trans.getDestination().setCdLocType(request.getParameter("cdloctypeto"));
-        trans.getPickup().setPickupItems(request.getParameterValues("barcode[]"));
+        if (request.getParameterValues("barcode[]") != null) {
+            trans.getPickup().setPickupItems(request.getParameterValues("barcode[]"));
+        }
         trans.getPickup().setNaPickupBy(request.getParameter("NAPICKUPBY"));
         trans.getPickup().setNuxrRelSign(request.getParameter("NUXRRELSIGN"));
         trans.getPickup().setNaReleaseBy(request.getParameter("NARELEASEBY").replaceAll("'", "''"));
         trans.getPickup().setComments(request.getParameter("DECOMMENTS").replaceAll("'", "''"));
         // //trans.getDelivery().setNaDeliverBy(request.getParameter("NADELIVERBY"));
         // trans.getDelivery().setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
-
+        log.info("PickupItems = " + trans.getPickup().getPickupItems()); // TODO: for testing.
         int dbResponse = db.invTransit(trans, request.getParameter("userFallback"));
         trans.setNuxrpd(dbResponse);
 

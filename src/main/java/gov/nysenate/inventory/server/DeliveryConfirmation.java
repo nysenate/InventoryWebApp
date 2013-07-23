@@ -8,7 +8,6 @@ import gov.nysenate.inventory.model.Transaction;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -76,8 +75,12 @@ public class DeliveryConfirmation extends HttpServlet {
             log.info(db.ipAddr + "|" + "Servlet DeliveryConfirmation : Start");
 
             trans.setNuxrpd(Integer.parseInt(request.getParameter("NUXRPD")));
-            trans.getPickup().setPickupItems(request.getParameterValues("deliveryItemsStr[]"));
-            trans.getDelivery().setCheckedItems(request.getParameterValues("checkedStr[]"));
+            if (request.getParameterValues("deliveryItemsStr[]") != null) {
+                trans.getPickup().setPickupItems(request.getParameterValues("deliveryItemsStr[]"));
+            }
+            if (request.getParameterValues("checkedStr[]") != null) {
+                trans.getDelivery().setCheckedItems(request.getParameterValues("checkedStr[]"));
+            }
             trans.getDelivery().setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
             trans.getDelivery().setNaDeliverBy(request.getParameter("NADELIVERBY"));
             trans.getDelivery().setNaAcceptBy(request.getParameter("NAACCEPTBY"));
@@ -85,12 +88,12 @@ public class DeliveryConfirmation extends HttpServlet {
             trans.generateDeliveryNotCheckedItems();
 
             orgDeliveryResult = db.confirmDelivery(trans, userFallback);
-            log.info(db.ipAddr + "|" + "Delivered Items: " + Arrays.toString(trans.getDelivery().getCheckedItems()));
+            log.info(db.ipAddr + "|" + "Delivered Items: " + trans.getDelivery().getCheckedItems());
 
-            if (trans.getDelivery().getNotCheckedItems().length > 0) {
+            if (trans.getDelivery().getNotCheckedItems().size() > 0) {
                 trans.getPickup().setPickupItems(trans.getDelivery().getNotCheckedItems());
                 newDeliveryResult = db.createNewDelivery(trans, userFallback);
-                log.info(db.ipAddr + "|" + "Not Delivered Items: " + Arrays.toString(trans.getDelivery().getNotCheckedItems()));
+                log.info(db.ipAddr + "|" + "Not Delivered Items: " + trans.getDelivery().getNotCheckedItems());
             }
             else {
                 log.info(db.ipAddr + "|" + "All items delivered.");

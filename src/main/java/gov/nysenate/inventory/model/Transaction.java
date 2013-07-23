@@ -1,7 +1,6 @@
 package gov.nysenate.inventory.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Transaction {
 
@@ -22,11 +21,11 @@ public class Transaction {
     }
 
     public void generateDeliveryNotCheckedItems() {
-        ArrayList<String> notChecked = new ArrayList<String>(Arrays.asList(this.pickup.getPickupItems()));
+        ArrayList<String> notChecked = this.pickup.getPickupItems();
         for (String chkItem : this.delivery.getCheckedItems()) {
             notChecked.remove(chkItem);
         }
-        this.delivery.setNotCheckedItems(notChecked.toArray(new String[notChecked.size()]));
+        this.delivery.setNotCheckedItems(notChecked);
     }
 
     public int getNuxrpd() {

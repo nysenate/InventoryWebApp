@@ -1,8 +1,11 @@
 package gov.nysenate.inventory.model;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class Pickup {
 
-    private String[] pickupItems;
+    private ArrayList<String> pickupItems;
     private String comments;
     private String naPickupBy;
     private String naReleaseBy;
@@ -13,13 +16,18 @@ public class Pickup {
         naPickupBy = "";
         naReleaseBy = "";
         nuxrRelSign = "";
+        pickupItems = new ArrayList<String>();
     }
 
-    public String[] getPickupItems() {
+    public ArrayList<String> getPickupItems() {
         return pickupItems;
     }
 
     public void setPickupItems(String[] pickupItems) {
+        this.pickupItems = new ArrayList<String>(Arrays.asList(pickupItems));
+    }
+
+    public void setPickupItems(ArrayList<String> pickupItems) {
         this.pickupItems = pickupItems;
     }
 
