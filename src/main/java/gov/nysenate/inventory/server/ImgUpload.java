@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 
 import org.apache.log4j.Logger;
 
@@ -96,7 +97,8 @@ public class ImgUpload extends HttpServlet {
                 if (nuxrefemIsNumber) {
                     //Create an input stream from our request.
                     //This input stream contains the image itself.
-                    DataInputStream din = new DataInputStream(request.getInputStream());
+                    Part signature = request.getPart("Signature");
+                    DataInputStream din = new DataInputStream(signature.getInputStream());
                     byte[] data = new byte[0];
                     byte[] buffer = new byte[512];
                     int bytesRead;
