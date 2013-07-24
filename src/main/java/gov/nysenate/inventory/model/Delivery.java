@@ -3,8 +3,9 @@ package gov.nysenate.inventory.model;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Delivery {
+public class Delivery extends Transaction {
 
+    private ArrayList<String> allItems;
     private ArrayList<String> checkedItems;
     private ArrayList<String> notCheckedItems;
     private String comments;
@@ -17,10 +18,31 @@ public class Delivery {
         naDeliverBy = "";
         naAcceptBy = "";
         nuxrAccptSign = "";
+        origin = new Location();
+        destination = new Location();
+        allItems = new ArrayList<String>();
         checkedItems = new ArrayList<String>();
         notCheckedItems = new ArrayList<String>();
     }
 
+    public void generateNotCheckedItems() {
+        notCheckedItems = (ArrayList<String>) allItems.clone();
+        for (String item : checkedItems) {
+            notCheckedItems.remove(item);
+        }
+    }
+
+    public ArrayList<String> getAllItems() {
+        return allItems;
+    }
+
+    public void setAllItems(ArrayList<String> allItems) {
+        this.allItems = allItems;
+    }
+
+    public void setAllItems(String[] allItems) {
+        this.allItems = new ArrayList<String>(Arrays.asList(allItems));
+    }
 
     public ArrayList<String> getCheckedItems() {
         return checkedItems;

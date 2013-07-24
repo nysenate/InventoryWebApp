@@ -3,7 +3,7 @@ package gov.nysenate.inventory.model;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Pickup {
+public class Pickup extends Transaction {
 
     private ArrayList<String> pickupItems;
     private String comments;
@@ -16,6 +16,8 @@ public class Pickup {
         naPickupBy = "";
         naReleaseBy = "";
         nuxrRelSign = "";
+        origin = new Location();
+        destination = new Location();
         pickupItems = new ArrayList<String>();
     }
 

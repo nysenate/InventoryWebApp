@@ -1,6 +1,7 @@
 package gov.nysenate.inventory.server;
 
-import gov.nysenate.inventory.model.Transaction;
+import gov.nysenate.inventory.model.Delivery;
+import gov.nysenate.inventory.model.Pickup;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -345,7 +346,7 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to start a new pickup-delivery
      *----------------------------------------------------------------------------------------------------*/
-    public int invTransit(Transaction trans, String userFallback) {
+    public int invTransit(Pickup pickup, String userFallback) {
         Connection conn = getDbConnection();
         Statement stmt;
         try {
@@ -353,25 +354,24 @@ public class DbConnect {
             String qry = "SELECT FM12INVINTRANS_SEQN.nextval FROM  dual ";
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
-                trans.setNuxrpd(result.getInt(1));
+                pickup.setNuxrpd(result.getInt(1));
             }
             String updQry = "INSERT INTO FM12INVINTRANS (NUXRPD,CDLOCATTO, cdloctypeto, CDLOCATFROM, cdloctypefrm, CDINTRANSIT,"
                     + "NAPICKUPBY, NARELEASEBY,NUXRRELSIGN,NADELIVERBY,NAACCEPTBY,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,"
                     + "NATXNUPDUSER,DEPUCOMMENTS, DTPICKUP) "
-                    + "VALUES(" + trans.getNuxrpd() + ",'" + trans.getDestination().getCdLoc() + "','" + trans.getDestination().getCdLocType()
-                    + "','" + trans.getOrigin().getCdLoc() + "','" + trans.getOrigin().getCdLocType() + "','" + "Y" + "','"
-                    + trans.getPickup().getNaPickupBy() + "','" + trans.getPickup().getNaReleaseBy() + "'," + trans.getPickup().getNuxrRelSign()
-                    + ",'" + trans.getDelivery().getNaDeliverBy() + "','" + trans.getDelivery().getNaAcceptBy() + "','" + "A"
-                    + "',SYSDATE,SYSDATE,'" + trans.getPickup().getNaPickupBy() + "','" + trans.getPickup().getNaPickupBy() + "','"
-                    + trans.getPickup().getComments() + "',SYSDATE)";
+                    + "VALUES(" + pickup.getNuxrpd() + ",'" + pickup.getDestination().getCdLoc() + "','" + pickup.getDestination().getCdLocType()
+                    + "','" + pickup.getOrigin().getCdLoc() + "','" + pickup.getOrigin().getCdLocType() + "','" + "Y" + "','"
+                    + pickup.getNaPickupBy() + "','" + pickup.getNaReleaseBy() + "'," + pickup.getNuxrRelSign() + ",'" + "" + "','" + ""
+                    + "','" + "A" + "',SYSDATE,SYSDATE,'" + pickup.getNaPickupBy() + "','" + pickup.getNaPickupBy() + "','"
+                    + pickup.getComments() + "',SYSDATE)";
             stmt.executeQuery(updQry);
             log.info("** updQry *** : " + updQry);
-            log.info("****PICKUPITEMS: " + trans.getPickup().getPickupItems());
+            log.info("****PICKUPITEMS: " + pickup.getPickupItems());
 
-            for (String nusenate : trans.getPickup().getPickupItems()) {
+            for (String nusenate : pickup.getPickupItems()) {
                 String insertQry = "INSERT INTO FD12INVINTRANS (NUXRPD,NUSENATE,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,NATXNUPDUSER) "
-                        + "VALUES(" + trans.getNuxrpd() + ",'" + nusenate + "','" + "A" + "',SYSDATE,SYSDATE,'" + trans.getPickup().getNaPickupBy()
-                        + "','" + trans.getPickup().getNaPickupBy() + "')";
+                        + "VALUES(" + pickup.getNuxrpd() + ",'" + nusenate + "','" + "A" + "',SYSDATE,SYSDATE,'" + pickup.getNaPickupBy()
+                        + "','" + pickup.getNaPickupBy() + "')";
                 stmt.executeQuery(insertQry);
             }
             conn.close();
@@ -380,7 +380,7 @@ public class DbConnect {
             log.fatal("SQL error in invTransit ", ex);
             return -1;
         }
-        return trans.getNuxrpd();
+        return pickup.getNuxrpd();
     }
 
     /*-------------------------------------------------------------------------------------------------------
@@ -636,7 +636,7 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to confirm delivery i.e. updates the FD12Issue table and changes location-----
      *------------------------------------------------------------------------------------------------------*/
-    public int confirmDelivery(Transaction trans, String userFallback) {
+    public int confirmDelivery(Delivery delivery, String userFallback) {
         log.info(this.ipAddr + "|" + "confirmDelivery() begin.");
 
         Connection conn = getDbConnection();
@@ -647,14 +647,14 @@ public class DbConnect {
             String qry1 = "SELECT CDLOCATTO,CDLOCTYPETO,CDLOCATFROM,CDLOCTYPEFRM "
                     + " FROM fm12invintrans  "
                     + " WHERE CDSTATUS='A' "
-                    + " AND nuxrpd=" + trans.getNuxrpd();
+                    + " AND nuxrpd=" + delivery.getNuxrpd();
 
             ResultSet res1 = stmt.executeQuery(qry1);
             while (res1.next()) {
-                trans.getDestination().setCdLoc(res1.getString(1));
-                trans.getDestination().setCdLocType(res1.getString(2));
-                trans.getOrigin().setCdLoc(res1.getString(3));
-                trans.getOrigin().setCdLocType(res1.getString(4));
+                delivery.getDestination().setCdLoc(res1.getString(1));
+                delivery.getDestination().setCdLocType(res1.getString(2));
+                delivery.getOrigin().setCdLoc(res1.getString(3));
+                delivery.getOrigin().setCdLocType(res1.getString(4));
             }
 
             // Update its entry in FM12InvInTrans to show it is delivered.
@@ -662,33 +662,33 @@ public class DbConnect {
                     + "SET CDINTRANSIT='N' "
                     + " ,DTTXNUPDATE=SYSDATE "
                     + " ,NATXNUPDUSER=USER "
-                    + " ,NUXRACCPTSIGN=" + trans.getDelivery().getNuxrAccptSign()
-                    + " ,NADELIVERBY='" + trans.getDelivery().getNaDeliverBy()
-                    + "' ,NAACCEPTBY='" + trans.getDelivery().getNaAcceptBy()
+                    + " ,NUXRACCPTSIGN=" + delivery.getNuxrAccptSign()
+                    + " ,NADELIVERBY='" + delivery.getNaDeliverBy()
+                    + "' ,NAACCEPTBY='" + delivery.getNaAcceptBy()
                     + "' ,DTDELIVERY=SYSDATE "
-                    + "  ,DEDELCOMMENTS='" + trans.getDelivery().getComments()
-                    + "' WHERE NUXRPD=" + trans.getNuxrpd();
+                    + "  ,DEDELCOMMENTS='" + delivery.getComments()
+                    + "' WHERE NUXRPD=" + delivery.getNuxrpd();
             stmt.executeUpdate(query);
             conn.commit();
 
             // Move delivered Items to their new location.
-            for (String item : trans.getDelivery().getCheckedItems()) {
+            for (String item : delivery.getCheckedItems()) {
                 String nusenate = item;
                 CallableStatement cs = conn.prepareCall("{?=call move_inventory_item(?,?,?,?,?,?)}");
                 cs.registerOutParameter(1, Types.VARCHAR);
                 cs.setString(2, nusenate);
-                cs.setString(3, trans.getOrigin().getCdLoc());
-                cs.setString(4, trans.getOrigin().getCdLocType());
-                cs.setString(5, trans.getDestination().getCdLoc());
-                cs.setString(6, trans.getDestination().getCdLocType());
-                cs.setString(7, String.valueOf(trans.getNuxrpd()));
+                cs.setString(3, delivery.getOrigin().getCdLoc());
+                cs.setString(4, delivery.getOrigin().getCdLocType());
+                cs.setString(5, delivery.getDestination().getCdLoc());
+                cs.setString(6, delivery.getDestination().getCdLocType());
+                cs.setString(7, String.valueOf(delivery.getNuxrpd()));
                 cs.executeUpdate();
             }
 
             // Delete items in this transaction that were not delivered, they will be put in a new transaction.
-            if (trans.getDelivery().getNotCheckedItems().size() > 0) {
-                for (String nusenate : trans.getDelivery().getNotCheckedItems()) {
-                    String del = "DELETE FROM FD12INVINTRANS WHERE nuxrpd=" + trans.getNuxrpd() + "AND nusenate = '" + nusenate + "'";
+            if (delivery.getNotCheckedItems().size() > 0) {
+                for (String nusenate : delivery.getNotCheckedItems()) {
+                    String del = "DELETE FROM FD12INVINTRANS WHERE nuxrpd=" + delivery.getNuxrpd() + "AND nusenate = '" + nusenate + "'";
                     stmt.executeUpdate(del);
                 }
             }
@@ -703,8 +703,12 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to create new delivery i.e. inserts new records into FM12InvInTrans-----
      *----------------------------------------------------------------------------------------------------*/
-    public int createNewDelivery(Transaction trans, String userFallback) {
+    public int createNewPickup(Delivery delivery, String userFallback) {
         log.info(this.ipAddr + "|" + "createNewDelivery() begin :");
+
+        Pickup pickup = new Pickup();
+        pickup.setPickupItems(delivery.getNotCheckedItems());
+
         Connection conn = getDbConnection();
         Statement stmt;
         try {
@@ -712,18 +716,18 @@ public class DbConnect {
             String qry = "SELECT NUXRPD,CDLOCATFROM, CDLOCTYPEFRM, CDLOCATTO,CDLOCTYPETO, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN FROM   "
                     + "  FM12INVINTRANS"
                     + " WHERE CDSTATUS='A'"
-                    + " and nuxrpd=" + trans.getNuxrpd();
+                    + " and nuxrpd=" + delivery.getNuxrpd();
 
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
                 String nuxrpd = result.getString(1);
-                trans.getOrigin().setCdLoc(result.getString(2));
-                trans.getOrigin().setCdLocType(result.getString(3));
-                trans.getDestination().setCdLoc(result.getString(4));
-                trans.getDestination().setCdLocType(result.getString(5));
-                trans.getPickup().setNaPickupBy(result.getString(6));
-                trans.getPickup().setNaReleaseBy(result.getString(7));
-                trans.getPickup().setNuxrRelSign(result.getString(8));
+                pickup.getOrigin().setCdLoc(result.getString(2));
+                pickup.getOrigin().setCdLocType(result.getString(3));
+                pickup.getDestination().setCdLoc(result.getString(4));
+                pickup.getDestination().setCdLocType(result.getString(5));
+                pickup.setNaPickupBy(result.getString(6));
+                pickup.setNaReleaseBy(result.getString(7));
+                pickup.setNuxrRelSign(result.getString(8));
             }
             conn.close();
         }
@@ -732,7 +736,7 @@ public class DbConnect {
         }
 
         DbConnect db = new DbConnect();
-        db.invTransit(trans, userFallback);
+        db.invTransit(pickup, userFallback);
         log.info(this.ipAddr + "|" + "createNewDelivery() end ");
         return 0;
     }
