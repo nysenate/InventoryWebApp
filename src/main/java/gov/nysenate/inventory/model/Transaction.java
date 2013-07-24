@@ -1,32 +1,13 @@
 package gov.nysenate.inventory.model;
 
-import java.util.ArrayList;
 
-public class Transaction {
+public abstract class Transaction {
 
-    private int nuxrpd;
-    private Location origin;
-    private Location destination;
-    private Pickup pickup;
-    private Delivery delivery;
-
+    protected int nuxrpd;
+    protected Location origin;
+    protected Location destination;
     // SignatureView signature;
     // byte[] sigBytes;
-
-    public Transaction() {
-        this.origin = new Location();
-        this.destination = new Location();
-        this.pickup = new Pickup();
-        this.delivery = new Delivery();
-    }
-
-    public void generateDeliveryNotCheckedItems() {
-        ArrayList<String> notChecked = this.pickup.getPickupItems();
-        for (String chkItem : this.delivery.getCheckedItems()) {
-            notChecked.remove(chkItem);
-        }
-        this.delivery.setNotCheckedItems(notChecked);
-    }
 
     public int getNuxrpd() {
         return nuxrpd;
@@ -50,21 +31,5 @@ public class Transaction {
 
     public void setDestination(Location destination) {
         this.destination = destination;
-    }
-
-    public Pickup getPickup() {
-        return pickup;
-    }
-
-    public void setPickup(Pickup pickup) {
-        this.pickup = pickup;
-    }
-
-    public Delivery getDelivery() {
-        return delivery;
-    }
-
-    public void setDelivery(Delivery delivery) {
-        this.delivery = delivery;
     }
 }

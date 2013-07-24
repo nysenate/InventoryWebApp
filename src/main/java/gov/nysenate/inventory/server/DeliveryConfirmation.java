@@ -4,7 +4,7 @@ package gov.nysenate.inventory.server;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-import gov.nysenate.inventory.model.Transaction;
+import gov.nysenate.inventory.model.Delivery;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -43,7 +43,6 @@ public class DeliveryConfirmation extends HttpServlet {
         PrintWriter out = response.getWriter();
         int newDeliveryResult = 0;
         int orgDeliveryResult = 0;
-        Transaction trans = new Transaction();
 
         try {
             HttpSession httpSession = request.getSession(false);
@@ -74,26 +73,26 @@ public class DeliveryConfirmation extends HttpServlet {
             db.ipAddr = request.getRemoteAddr();
             log.info(db.ipAddr + "|" + "Servlet DeliveryConfirmation : Start");
 
-            trans.setNuxrpd(Integer.parseInt(request.getParameter("NUXRPD")));
+            Delivery delivery = new Delivery();
+            delivery.setNuxrpd(Integer.parseInt(request.getParameter("NUXRPD")));
             if (request.getParameterValues("deliveryItemsStr[]") != null) {
-                trans.getPickup().setPickupItems(request.getParameterValues("deliveryItemsStr[]"));
+                delivery.setAllItems(request.getParameterValues("deliveryItemsStr[]"));
             }
             if (request.getParameterValues("checkedStr[]") != null) {
-                trans.getDelivery().setCheckedItems(request.getParameterValues("checkedStr[]"));
+                delivery.setCheckedItems(request.getParameterValues("checkedStr[]"));
             }
-            trans.getDelivery().setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
-            trans.getDelivery().setNaDeliverBy(request.getParameter("NADELIVERBY"));
-            trans.getDelivery().setNaAcceptBy(request.getParameter("NAACCEPTBY"));
-            trans.getDelivery().setComments(request.getParameter("DECOMMENTS"));
-            trans.generateDeliveryNotCheckedItems();
+            delivery.setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
+            delivery.setNaDeliverBy(request.getParameter("NADELIVERBY"));
+            delivery.setNaAcceptBy(request.getParameter("NAACCEPTBY"));
+            delivery.setComments(request.getParameter("DECOMMENTS"));
+            delivery.generateNotCheckedItems();
 
-            orgDeliveryResult = db.confirmDelivery(trans, userFallback);
-            log.info(db.ipAddr + "|" + "Delivered Items: " + trans.getDelivery().getCheckedItems());
+            orgDeliveryResult = db.confirmDelivery(delivery, userFallback);
+            log.info(db.ipAddr + "|" + "Delivered Items: " + delivery.getCheckedItems());
 
-            if (trans.getDelivery().getNotCheckedItems().size() > 0) {
-                trans.getPickup().setPickupItems(trans.getDelivery().getNotCheckedItems());
-                newDeliveryResult = db.createNewDelivery(trans, userFallback);
-                log.info(db.ipAddr + "|" + "Not Delivered Items: " + trans.getDelivery().getNotCheckedItems());
+            if (delivery.getNotCheckedItems().size() > 0) {
+                newDeliveryResult = db.createNewPickup(delivery, userFallback);
+                log.info(db.ipAddr + "|" + "Not Delivered Items: " + delivery.getNotCheckedItems());
             }
             else {
                 log.info(db.ipAddr + "|" + "All items delivered.");

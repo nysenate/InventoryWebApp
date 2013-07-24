@@ -1,6 +1,6 @@
 package gov.nysenate.inventory.server;
 
-import gov.nysenate.inventory.model.Transaction;
+import gov.nysenate.inventory.model.Pickup;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -56,35 +56,32 @@ public class PickupServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         Logger log = Logger.getLogger(PickupServlet.class.getName());
-        Transaction trans = new Transaction();
-
         DbConnect db = checkHttpSession(request, out);
         db.ipAddr = request.getRemoteAddr();
         log.info(db.ipAddr + "|" + "Servlet Pickup : start");
 
-        trans.getOrigin().setCdLoc(request.getParameter("originLocation"));
-        trans.getOrigin().setCdLocType(request.getParameter("cdloctypefrm"));
-        trans.getDestination().setCdLoc(request.getParameter("destinationLocation"));
-        trans.getDestination().setCdLocType(request.getParameter("cdloctypeto"));
+        Pickup pickup = new Pickup();
+        pickup.getOrigin().setCdLoc(request.getParameter("originLocation"));
+        pickup.getOrigin().setCdLocType(request.getParameter("cdloctypefrm"));
+        pickup.getDestination().setCdLoc(request.getParameter("destinationLocation"));
+        pickup.getDestination().setCdLocType(request.getParameter("cdloctypeto"));
         if (request.getParameterValues("barcode[]") != null) {
-            trans.getPickup().setPickupItems(request.getParameterValues("barcode[]"));
+            pickup.setPickupItems(request.getParameterValues("barcode[]"));
         }
-        trans.getPickup().setNaPickupBy(request.getParameter("NAPICKUPBY"));
-        trans.getPickup().setNuxrRelSign(request.getParameter("NUXRRELSIGN"));
-        trans.getPickup().setNaReleaseBy(request.getParameter("NARELEASEBY").replaceAll("'", "''"));
-        trans.getPickup().setComments(request.getParameter("DECOMMENTS").replaceAll("'", "''"));
-        // //trans.getDelivery().setNaDeliverBy(request.getParameter("NADELIVERBY"));
-        // trans.getDelivery().setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
-        log.info("PickupItems = " + trans.getPickup().getPickupItems()); // TODO: for testing.
-        int dbResponse = db.invTransit(trans, request.getParameter("userFallback"));
-        trans.setNuxrpd(dbResponse);
+        pickup.setNaPickupBy(request.getParameter("NAPICKUPBY"));
+        pickup.setNuxrRelSign(request.getParameter("NUXRRELSIGN"));
+        pickup.setNaReleaseBy(request.getParameter("NARELEASEBY").replaceAll("'", "''"));
+        pickup.setComments(request.getParameter("DECOMMENTS").replaceAll("'", "''"));
+
+        log.info("PickupItems = " + pickup.getPickupItems()); // TODO: for testing.
+        int dbResponse = db.invTransit(pickup, request.getParameter("userFallback"));
+        pickup.setNuxrpd(dbResponse);
 
         if (dbResponse > -1) {
-            sendEmail(trans);
+            sendEmail(pickup);
             System.out.println("INV TRANSIT UPDATED CORRECTLY");
             out.println("Database updated sucessfully");
         }
@@ -97,8 +94,8 @@ public class PickupServlet extends HttpServlet {
     }
 
 
-    public void sendEmail(Transaction trans) {
-        sendEmail(trans.getPickup().getNaPickupBy(), trans.getOrigin().getCdLoc(), trans.getDestination().getCdLoc(), trans.getNuxrpd());
+    public void sendEmail(Pickup pickup) {
+        sendEmail(pickup.getNaPickupBy(), pickup.getOrigin().getCdLoc(), pickup.getDestination().getCdLoc(), pickup.getNuxrpd());
     }
 
     @SuppressWarnings("empty-statement")
