@@ -93,7 +93,6 @@ public class PickupServlet extends HttpServlet {
         out.close();
     }
 
-
     public void sendEmail(Pickup pickup) {
         sendEmail(pickup.getNaPickupBy(), pickup.getOrigin().getCdLoc(), pickup.getDestination().getCdLoc(), pickup.getNuxrpd());
     }
