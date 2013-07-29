@@ -32,6 +32,8 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.google.gson.reflect.TypeToken;
+import java.awt.Graphics2D;
+import java.util.Arrays;
 
 /**
  *
@@ -44,6 +46,7 @@ public class DbConnect {
     static Properties properties = new Properties();
     static InputStream in;
     static private String userName,  password;
+    final int RELEASESIGNATURE = 3001, ACCEPTBYSIGNATURE = 3002;
    
     DbConnect() {
         properties = new Properties();
@@ -505,13 +508,21 @@ public class DbConnect {
 
         Blob blobValue;
         int nuxrsign = -1;
-
+        
+        //System.out.println("Not converting the Image on the Server Side for testing");
 
         // If the Image was a PNG with a  transparent Background, below will convert it to a white background
         // jpg.
+        // Commented ou 7/26/13 BH for testing purponses
         try {
+            log.info(this.ipAddr + "|IMAGE FORMATS AVAILABLE:"+Arrays.toString(ImageIO.getReaderFormatNames()));
+            System.out.println("IMAGE FORMATS AVAILABLE:"+Arrays.toString(ImageIO.getReaderFormatNames()));
             BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageInArray));
-            bufferedImage.createGraphics().drawImage(bufferedImage, 0, 0, Color.WHITE, null);
+            Graphics2D newGraphic = bufferedImage.createGraphics();
+            if (newGraphic==null) {
+               log.warn(this.ipAddr + "|" + "***WARNING: An attempt to create a new Graphic for a Signature Image has failed!!! Resulting in a NULL Result. (DBCONNECT.insertSignature)");
+            }
+            newGraphic.drawImage(bufferedImage, 0, 0, Color.WHITE, null);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(bufferedImage, "jpg", baos);
             baos.flush();
@@ -699,6 +710,80 @@ public class DbConnect {
         }
         return 0;
     }
+
+   public Employee getEmployeeWhoSigned(String nuxrsign, String userFallback) {
+     return getEmployeeWhoSigned(nuxrsign, true, userFallback);
+   }
+    
+   public Employee getEmployeeWhoSigned(String nuxrsign, boolean upperCase, String userFallback) {
+     String nuxrefem = "";
+     Connection conn = getDbConnection();
+     Statement stmt;
+     try {
+          stmt = conn.createStatement();
+          // Get location info for this transaction.
+          String qry1 = "SELECT nuxrefem "
+                    + " FROM fd12invsigns  "
+                    + " WHERE cdstatus = 'A' "
+                    + " AND nuxrsign = " + nuxrsign;
+
+          ResultSet res1 = stmt.executeQuery(qry1);
+           while (res1.next()) {
+              nuxrefem = res1.getString(1);
+            }
+           stmt.close();
+           conn.close();
+        }
+     catch (SQLException ex) {
+        log.fatal("SQL error in getEmployeeWhoSigned(). ", ex);
+        }            
+     return getEmployee(nuxrefem, upperCase, userFallback);
+   }
+    
+   public Employee getEmployee(String nuxrefem,  String userFallback) {
+     return getEmployee(nuxrefem, true, userFallback);
+   }
+
+    public Employee getEmployee(String nuxrefem, boolean upperCase, String userFallback) {
+        log.info(this.ipAddr + "|" + "getEmployee() begin : nuxrefem= " + nuxrefem);
+        if (nuxrefem.isEmpty() || nuxrefem == null) {
+            throw new IllegalArgumentException("Invalid nuxrefem");
+        }
+
+        Employee currentEmployee = new Employee();
+        
+        try {
+            Connection conn = getDbConnection();
+            Statement stmt = conn.createStatement();
+            //  String loc_code;
+            String qry = null;
+            if (upperCase) {
+              qry = "SELECT a.nafirst, a.namidinit, a.nalast, a.nasuffix, a.naemail"
+                    + " FROM pm21personn a"
+                    + " WHERE a.nuxrefem = "+nuxrefem;
+            }
+            else {
+              qry = "SELECT a.ffnafirst, a.ffnamidinit, a.ffnalast, a.ffnasuffix, a.naemail"
+                    + " FROM pm21personn a"
+                    + " WHERE a.nuxrefem = "+nuxrefem;
+            }
+                    
+            ResultSet result = stmt.executeQuery(qry);
+            while (result.next()) {
+              currentEmployee.setNafirst(result.getString(1), false);
+              currentEmployee.setNamidinit(result.getString(2), false);
+              currentEmployee.setNalast(result.getString(3), false);
+              currentEmployee.setNasuffix(result.getString(4), false);
+              currentEmployee.setNaemail(result.getString(5));
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            log.fatal(this.ipAddr + "|" + "SQLException in getEmployee() : " + e.getMessage());
+        }
+        log.info(this.ipAddr + "|" + "getEmployee() end");
+        return currentEmployee;
+    }    
+    
 
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to create new delivery i.e. inserts new records into FM12InvInTrans-----

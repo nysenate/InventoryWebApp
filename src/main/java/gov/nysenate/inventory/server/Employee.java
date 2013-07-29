@@ -20,6 +20,7 @@ public class Employee {
   private transient String nalast = null;
   private transient String namidinit = null;
   private transient String nasuffix = null;
+  private transient String naemail = null;
  @SerializedName("naemployee")
   private String naemployee = null;
   public final int LAST_SUFFIX_FIRST_MI = -1000;
@@ -84,7 +85,76 @@ public class Employee {
        this.nasuffix = nasuffix;
        formatEmployeeName(employeeNameOrder);
   }
-   
+
+  public void setNafirst(String nafirst) {
+      setNafirst(nafirst, true);
+  }
+  
+  public void setNafirst(String nafirst, boolean formatName) {
+       this.nafirst = nafirst;
+       if (formatName) {
+          formatEmployeeName(employeeNameOrder);
+       }
+  }    
+  
+  public void setNalast(String nalast) {
+      setNalast(nalast, true);
+  }
+  
+  public void setNalast(String nalast, boolean formatName) {
+       this.nalast = nalast;
+       if (formatName) {
+          formatEmployeeName(employeeNameOrder);
+       }
+  }    
+
+  public void setNamidinit(String namidinit) {
+      setNamidinit(namidinit, true);
+  }
+  
+  public void setNamidinit(String namidinit, boolean formatName) {
+       this.nalast = nalast;
+       if (formatName) {
+          formatEmployeeName(employeeNameOrder);
+       }
+  }  
+  
+  public void setNasuffix(String nasuffix) {
+      setNasuffix(nasuffix, true);
+  }
+  
+  public void setNasuffix(String nasuffix, boolean formatName) {
+       this.nasuffix = nasuffix;
+       if (formatName) {
+          formatEmployeeName(employeeNameOrder);
+       }
+  }  
+  
+  public void setNaemail(String naemail) {
+      this.naemail = naemail;
+  }
+
+  public String getNalast() {
+    return this.nalast;
+  }
+  
+  public String getNafirst() {
+    return this.nalast;
+  }
+  
+  public String getNamidinit() {
+    return this.namidinit;
+  }
+  
+  public String getNasuffix() {
+    return this.nasuffix;
+  }
+  
+  public String getNaemail() {
+    return this.naemail;
+  }
+
+  
   private void formatEmployeeName(int employeeNameOrder) {
       StringBuilder s = new StringBuilder();     
       switch (employeeNameOrder) {
