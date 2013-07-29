@@ -518,6 +518,9 @@ public class DbConnect {
             log.info(this.ipAddr + "|IMAGE FORMATS AVAILABLE:"+Arrays.toString(ImageIO.getReaderFormatNames()));
             System.out.println("IMAGE FORMATS AVAILABLE:"+Arrays.toString(ImageIO.getReaderFormatNames()));
             BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageInArray));
+            if (bufferedImage==null) {
+               log.warn(this.ipAddr + "|" + "***WARNING: bufferedImage for a Signature Image was null!! (DBCONNECT.insertSignature)");
+            }
             Graphics2D newGraphic = bufferedImage.createGraphics();
             if (newGraphic==null) {
                log.warn(this.ipAddr + "|" + "***WARNING: An attempt to create a new Graphic for a Signature Image has failed!!! Resulting in a NULL Result. (DBCONNECT.insertSignature)");
