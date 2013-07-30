@@ -141,9 +141,9 @@ public class PickupServlet extends HttpServlet
     String naemailNameTo2 = null; 
     properties.getProperty("pickupEmailTo2");
     String naemailFrom = null; 
-    properties.getProperty("pickupEmailFrom");
+    naemailFrom = properties.getProperty("pickupEmailFrom");
     String naemailNameFrom = null; 
-    properties.getProperty("pickupEmailNameFrom");
+    naemailNameFrom = properties.getProperty("pickupEmailNameFrom");
     
     try {
         naemailTo1 = properties.getProperty("pickupEmailTo1");   

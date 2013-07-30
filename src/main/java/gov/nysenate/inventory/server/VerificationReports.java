@@ -79,9 +79,9 @@ public class VerificationReports extends HttpServlet {
              a.print(barcodes);  */
 
             String barcodes[] = jsonString.split(",");
-
-           
+            
             int result = db.setBarcodesInDatabase(cdlocat, barcodes, userFallback);
+            
             if (result == 0) {
                 out.println("Database updated sucessfully");
                 Logger.getLogger(VerificationReports.class.getName()).info(db.ipAddr+"|"+"Servlet VerificationReports : Database updated sucessfully");
