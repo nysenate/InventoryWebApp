@@ -198,10 +198,45 @@ public class DbConnect {
         log.info(this.ipAddr + "|" + "getDetails() end ");
         return details;
     }
+
+
+    public String getItemCommodityCode(String barcode, String userFallback) {
+        log.info(this.ipAddr + "|" + "getItemCommodityCode() begin : barcodeNum= " + barcode);
+
+        String commodityCode = ""; //TODO
+        String query = "SELECT fm12comxref.cdcommodity "
+                + "FROM fm12comxref, fd12issue, fm12senxref "
+                + "WHERE fm12comxref.nuxrefco = fd12issue.nuxrefco "
+                + "AND fd12issue.nuxrefsn = fm12senxref.nuxrefsn "
+                + "AND fm12senxref.nusenate like ? ";
+        Connection conn = getDbConnection();
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = conn.prepareStatement(query);
+            pstmt.setString(1, barcode);
+            ResultSet result = pstmt.executeQuery();
+
+            while (result.next()) {
+                commodityCode = result.getString(1);
+            }
+        }
+        catch (SQLException e) {
+            log.error("SQL Exception in getItemCommodityCode(): ", e);
+        }
+        finally {
+            try {
+                pstmt.close();
+            }
+            catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return commodityCode;
+    }
+
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to return details related to given location code( Address, type etc) 
      *----------------------------------------------------------------------------------------------------*/
-
     public String getInvLocDetails(String locCode, String userFallback) {
         log.info(this.ipAddr + "|" + "getInvLocDetails() begin : locCode= " + locCode);
         if (locCode.isEmpty() || locCode == null) {

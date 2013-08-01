@@ -62,19 +62,16 @@ public class Search extends HttpServlet
             db.ipAddr=request.getRemoteAddr();
             Logger.getLogger(Search.class.getName()).info(db.ipAddr+"|"+"Servlet Search : start");
             String barcode_num = request.getParameter("barcode_num");
-            System.out.println("Search Servlet  barcode_num "+barcode_num);
-            //  out.println("Barcode # "+barcode_num);
-            
-            //int barcode=Integer.valueOf(barcode_num);
-            System.out.println("Search Servlet  barcode "+barcode_num);
+            System.out.println("Search Servlet  barcode_num " + barcode_num);
             
             String details = db.getDetails(barcode_num, userFallback);
-            
+            String commodityCode = db.getItemCommodityCode(barcode_num, userFallback);
+
             if (details.equals("no")) {
-              
                 out.println("Does not exist in system");
             }
             else {
+                details += "|" + commodityCode;
                 String model[] = details.split("\\|");
                 String deadjust = "";
                 if (model.length>11) {
@@ -88,10 +85,11 @@ public class Search extends HttpServlet
 
                 //Psuedo JSON for now               
 
-                out.println("{\"nusenate\":\""+model[0]+"\",\"nuxrefsn\":\""+model[1]+"\",\"dtissue\":\""+model[3]+"\",\"cdlocatto\":\""+model[4]+"\",\"cdloctypeto\":\""+model[5]+"\",\"cdcategory\":\""+model[6]+"\",\"adstreet1to\":\""+model[7].replaceAll("\"", "&#34;") +"\",\"decommodityf\":\""+model[8].replaceAll("\"", "&#34;")+"\",\"cdstatus\":\""+model[10]+"\",\"deadjust\":\""+deadjust+"\",\"dtlstinvntry\":\""+model[13]+"\"}");
-             
+                out.println("{\"nusenate\":\"" + model[0] + "\",\"nuxrefsn\":\"" + model[1] + "\",\"dtissue\":\"" + model[3] + "\",\"cdlocatto\":\"" + model[4] + "\",\"cdloctypeto\":\"" + model[5]
+                        + "\",\"cdcategory\":\"" + model[6] + "\",\"adstreet1to\":\"" + model[7].replaceAll("\"", "&#34;") + "\",\"decommodityf\":\"" + model[8].replaceAll("\"", "&#34;")
+                        + "\",\"cdstatus\":\"" + model[10] + "\",\"deadjust\":\"" + deadjust + "\",\"dtlstinvntry\":\"" + model[13] + "\",\"commodityCd\":\"" + model[14] + "\"}");
+                System.out.println("**Details** " + details);
              }
-
 
 
             Logger.getLogger(Search.class.getName()).info(db.ipAddr+"|"+"Servlet Search : end");
