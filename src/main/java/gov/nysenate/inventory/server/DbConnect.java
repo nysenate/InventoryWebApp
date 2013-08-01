@@ -176,7 +176,7 @@ public class DbConnect {
 
     public String getDetails(String barcodeNum, String userFallback) {
         log.info(this.ipAddr + "|" + "getDetails() begin : barcodeNum= " + barcodeNum);
-        if ((Integer.parseInt(barcodeNum) <= 0)) {
+        if ((Integer.parseInt(barcodeNum) < 0)) {
             System.out.println("Error in DbConnect.getDetails() - Barcode Number Not Valid");
             log.error(this.ipAddr + "|" + "Error in DbConnect.getDetails() - Barcode Number Not Valid");
             throw new IllegalArgumentException("Invalid Barcode Number");
