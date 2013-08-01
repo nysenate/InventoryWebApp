@@ -1,6 +1,7 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.model.Pickup;
+import gov.nysenate.inventory.model.ReportNotGeneratedException;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -50,6 +52,14 @@ public class PickupServlet extends HttpServlet
   Employee currentEmployee = null;
   String testingModeParam =  null;
   String testingModeProperty = null;
+  static String error = null;
+  String naemailTo1 = null;
+  String naemailNameTo1 = null;
+  String naemailTo2 = null; 
+  String naemailNameTo2 = null; 
+  String naemailFrom = null; 
+  String naemailNameFrom = null; 
+  Properties properties = new Properties();
   
   /**
    * Processes requests for both HTTP
@@ -99,9 +109,14 @@ public class PickupServlet extends HttpServlet
     pickup.setNuxrpd(dbResponse);
 
     if (dbResponse > -1) {
-      sendEmail(pickup);
+      try {
+        sendEmail(pickup);
+        out.println("Database updated successfully but could not generate receipt.");
+      }
+      catch (Exception e) {
+        out.println("Database updated successfully");
+      }
       System.out.println("INV TRANSIT UPDATED CORRECTLY");
-      out.println("Database updated successfully");
     } else {
       System.out.println("INV TRANSIT FAILED TO UPDATE");
       out.println("Database not updated");
@@ -110,6 +125,44 @@ public class PickupServlet extends HttpServlet
     out.close();
   }
 
+  public void emailError() {
+      Properties props = new Properties();
+      String smtpServer = properties.getProperty("smtpServer");
+      props.setProperty("mail.smtp.host", smtpServer);
+      Session session = Session.getDefaultInstance(props, null);
+      try{
+         // Create a default MimeMessage object.
+         MimeMessage message = new MimeMessage(session);
+
+         // Set From: header field of the header.
+         message.setFrom(new InternetAddress(this.naemailFrom, this.naemailNameFrom));
+
+         // Set To: header field of the header.
+        if (naemailTo1!=null && naemailTo1.trim().length()>0){
+          message.addRecipient(Message.RecipientType.TO,
+            new InternetAddress(naemailTo1, naemailNameTo1));  //naemailTo, naemployeeTo
+        }
+        if (naemailTo2!=null && naemailTo2.trim().length()>0){
+          message.addRecipient(Message.RecipientType.TO,
+            new InternetAddress(naemailTo2, naemailNameTo2));  //naemailTo, naemployeeTo
+          }
+
+         // Set Subject: header field
+         message.setSubject("Oracle Report Server Unable to Generate Pickup Receipt. Contact STS/BAC.");
+
+         // Now set the actual message
+         message.setText(error, "utf-8", "html");
+
+         // Send message
+         Transport.send(message);
+         System.out.println("Sent error message successfully....");
+      }catch (MessagingException mex) {
+         mex.printStackTrace();
+      } catch (UnsupportedEncodingException ex1) {
+        Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, null, ex1);
+      }    
+  }
+  
   public void sendEmail(Pickup pickup)
   {
     sendEmail(pickup.getNaPickupBy(), pickup.getOrigin().getCdLoc(), pickup.getDestination().getCdLoc(), pickup.getNuxrpd());
@@ -121,7 +174,7 @@ public class PickupServlet extends HttpServlet
     String naemployeeTo = "";
     String msgBody = "";
     byte[] attachment = null;
-    Properties properties = new Properties();
+    
     InputStream in = this.getClass().getClassLoader().getResourceAsStream("config.properties");
     try {
       properties.load(in);
@@ -136,14 +189,10 @@ public class PickupServlet extends HttpServlet
     props.setProperty("mail.smtp.host", smtpServer);
     Session session = Session.getDefaultInstance(props, null);
     StringBuilder sb = new StringBuilder();
-    String naemailTo1 = null;
-    String naemailNameTo1 = null;
-    String naemailTo2 = null; 
-    String naemailNameTo2 = null; 
     properties.getProperty("pickupEmailTo2");
-    String naemailFrom = null; 
+    naemailFrom = null; 
     naemailFrom = properties.getProperty("pickupEmailFrom");
-    String naemailNameFrom = null; 
+    naemailNameFrom = null; 
     naemailNameFrom = properties.getProperty("pickupEmailNameFrom");
     
     try {
@@ -231,6 +280,7 @@ public class PickupServlet extends HttpServlet
       sb.append("<br /><br />");
     }
     
+    String error = null;
     sb.append("Dear ");
     sb.append(currentEmployee.getEmployeeName());
     sb.append(",");
@@ -250,13 +300,17 @@ public class PickupServlet extends HttpServlet
       Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
     } catch (IOException ex) {
       Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
-    }
-
+    } catch (ReportNotGeneratedException ex) {
+      Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, "There was an issue with Oracle Reports Server. Please contact STS/BAC.", ex);    
+      emailError();
+     }
     if (attachment == null) {
       Logger.getLogger(PickupServlet.class.getName()).warning(db.ipAddr + "|" + "****ATTACHMENT was null Pickup.processRequest ");
+      emailError();
     }
     else if (attachment.length==0) {
       Logger.getLogger(PickupServlet.class.getName()).warning(db.ipAddr + "|" + "****ATTACHMENT was a ZERO LENGTH Pickup.processRequest ");
+      emailError();
     }
     
     MimeMultipart mimeMultipart = new MimeMultipart();
@@ -275,7 +329,13 @@ public class PickupServlet extends HttpServlet
         @Override
         public InputStream getInputStream() throws IOException
         {
+          try {
           return new ByteArrayInputStream(bytesFromUrlWithJavaIO(pickupReceiptURL + nuxrpd));
+          }
+          catch (ReportNotGeneratedException e) {
+            Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, "Oracle Reports Server failed to generate a PDF Report for the Pickup Receipt. Please contact STS/BAC.", e);
+            return new ByteArrayInputStream(new byte[0]);
+          }
         }
 
         @Override
@@ -329,7 +389,17 @@ public class PickupServlet extends HttpServlet
       mimeMultipart.addBodyPart(mbp1);
       mimeMultipart.addBodyPart(attachmentPart);
       msg.setContent(mimeMultipart);
-      Transport.send(msg);
+      if (attachmentPart==null||attachmentPart.getSize()==0) {
+          System.out.println("***E-mail NOT sent because attachment was malformed.");
+      }
+      else {
+          if (attachmentPart.getContent()==null) {
+              System.out.println("***E-mail NOT sent because attachment was malformed(2).");
+          }
+          else {
+              Transport.send(msg);
+          }
+      }
       System.out.println("E-mail sent with no errors.");
 
     } catch (AddressException e) {
@@ -460,10 +530,11 @@ public class PickupServlet extends HttpServlet
 
 // Using Java IO
   public static byte[] bytesFromUrlWithJavaIO(String fileUrl)
-          throws MalformedURLException, IOException
+          throws MalformedURLException, IOException, ReportNotGeneratedException
   {
     BufferedInputStream in = null;
     ByteArrayOutputStream bout;
+    error = null;
     byte[] returnBytes = null;
     bout = new ByteArrayOutputStream();
     try {
@@ -490,8 +561,16 @@ public class PickupServlet extends HttpServlet
     fos.write(returnBytes);
     fos.flush();
     fos.close();
-
-
+    
+    String decoded = new String(returnBytes, "UTF-8");
+    System.out.println("****URL:"+fileUrl);
+    if (!decoded.toUpperCase().startsWith("%PDF-")) {
+      System.out.println("****REPORT DOES NOT CONTAIN %PDF- STARTS WITH: "+decoded.substring(0,100));
+       error = decoded;
+       throw new ReportNotGeneratedException("Reports Server was unable to generate a receipt.");
+    }
+    System.out.println(decoded);
+    
     return returnBytes;
   }
 
