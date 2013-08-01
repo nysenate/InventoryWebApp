@@ -308,10 +308,16 @@ public class DbConnect {
         return locCodes;
     }
 
+
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to insert items found at given location(barcodes) for verification
      *----------------------------------------------------------------------------------------------------*/
     public int setBarcodesInDatabase(String cdlocat, String barcodes[], String userFallback) {
+      return setBarcodesInDatabase(cdlocat, null, barcodes, userFallback);
+    }
+
+    
+    public int setBarcodesInDatabase(String cdlocat, String cdloctype, String barcodes[], String userFallback) {
         log.info(this.ipAddr + "|" + "setBarcodesInDatabase() begin : cdlocat= " + cdlocat + " &barcodes= " + barcodes);
         if (cdlocat.isEmpty() || barcodes == null) {
             throw new IllegalArgumentException("Invalid location Code");
@@ -330,19 +336,34 @@ public class DbConnect {
             for (int i = 0; i < barcodes.length; i++) {
                 // left padding 0 to string 
                 String barcodeStr = String.format("%6s", barcodes[i]).replace(' ', '0');
-                CallableStatement cs = conn.prepareCall("{?=call INV_APP.copy_data(?,?)}");
+                CallableStatement cs = conn.prepareCall("{?=call INV_APP.copy_data(?,?, ?)}");
                 cs.registerOutParameter(1, Types.VARCHAR);
                 cs.setString(2, cdlocat);
                 cs.setString(3, barcodeStr);
+                cs.setString(4, cdloctype);
                 cs.executeUpdate();
                 r = cs.getString(1);
+                
+                /*
+                 * Result was not being set properly
+                 */
+                 
+                if (r.trim().equalsIgnoreCase("SUCCESS")) {
+                  result = 0;
+                }
+                else {
+                  result = 1;
+                }
                 System.out.println(r);
             }
         }
         catch (SQLException ex) {
+            result = 2;
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, this.ipAddr + "|" + ex.getMessage());
         }
         log.info(this.ipAddr + "|" + "setBarcodesInDatabase() end");
+        
+        
         return result;
     }
 

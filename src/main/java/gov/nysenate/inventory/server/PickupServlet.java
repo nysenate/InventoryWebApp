@@ -49,6 +49,7 @@ public class PickupServlet extends HttpServlet
   Pickup pickup = new Pickup();
   Employee currentEmployee = null;
   String testingModeParam =  null;
+  String testingModeProperty = null;
   
   /**
    * Processes requests for both HTTP
@@ -100,7 +101,7 @@ public class PickupServlet extends HttpServlet
     if (dbResponse > -1) {
       sendEmail(pickup);
       System.out.println("INV TRANSIT UPDATED CORRECTLY");
-      out.println("Database updated sucessfully");
+      out.println("Database updated successfully");
     } else {
       System.out.println("INV TRANSIT FAILED TO UPDATE");
       out.println("Database not updated");
@@ -154,7 +155,7 @@ public class PickupServlet extends HttpServlet
     catch (Exception e) {
       Logger.getLogger(PickupServlet.class.getName()).warning(db.ipAddr + "|" + "****PARAMETER pickupEmailTo1 COULD NOT BE PROCESSED Pickup.processRequest ");
     }
-    
+       
     try {
         naemailNameTo1 = properties.getProperty("pickupEmailNameTo1");   
     }
@@ -185,6 +186,20 @@ public class PickupServlet extends HttpServlet
       Logger.getLogger(PickupServlet.class.getName()).warning(db.ipAddr + "|" + "****PARAMETER pickupEmailNameTo2 COULD NOT BE PROCESSED Pickup.processRequest ");
     }
     
+    try {
+      testingModeProperty =  properties.getProperty("testingMode").toUpperCase();
+     }
+    catch (NullPointerException e) {
+      // Could not find the Testing Mode Property so assume that we are in testing mode, this will
+      // at least alert someone if no one is getting receipts..
+      testingModeProperty = "TRUE";
+      Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****PARAMETER testingMode was NOT FOUND  TESTING MODE WILL BE DEFAULTED TO TRUE Pickup.processRequest ");
+    }
+    catch (Exception e) {
+      testingModeProperty = "TRUE";
+      Logger.getLogger(PickupServlet.class.getName()).warning(db.ipAddr + "|" + "***WARNING: Exception occured when trying to find testingMode Property ("+e.getMessage()+") TESTING MODE WILL BE DEFAULTED TO TRUE Pickup.processRequest ");
+    }
+    
     // Get the employee who signed the Release 
     currentEmployee = db.getEmployeeWhoSigned(pickup.getNuxrRelSign(), false, userFallback);
     currentEmployee.setEmployeeNameOrder(currentEmployee.FIRST_MI_LAST_SUFFIX);
@@ -205,9 +220,9 @@ public class PickupServlet extends HttpServlet
         testingMode = false;
       }
     }
-    else if ((naemailTo1 != null && naemailTo1.trim().length()>0) || (naemailTo2 != null && naemailTo2.trim().length()>0)) {
+    else if (testingModeProperty==null || testingModeProperty.toUpperCase().contains("T")) {
       testingMode = true;
-      Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****At least one of the E-mail To Parameters in Server Properties was set, so Testing Mode is set to TRUE Pickup.processRequest ");
+      Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "***Testing Mode is set to TRUE Pickup.processRequest ");
     }
     
     if (testingMode) {
@@ -224,6 +239,11 @@ public class PickupServlet extends HttpServlet
   
     try {
       attachment = bytesFromUrlWithJavaIO(pickupReceiptURL + nuxrpd); // +"&destype=CACHE&desformat=PDF
+
+      // Attachment needs to be checked to ensure that there were no issues with the Reports Server
+      // and the PDF was generated properly. Otherwise the PDF sent is garbage.  We need to e-mail
+      // STSBAC and possibly others that an issue occured and/or try to generate the PDF again
+      
       //saveFileFromUrlWithJavaIO(this.nuxrpd+".pdf", );
       System.out.println("ATTACHMENT SIZE:" + attachment.length + " " + ((attachment.length) / 1024.0) + "KB");
     } catch (MalformedURLException ex) {

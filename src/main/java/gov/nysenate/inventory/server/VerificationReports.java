@@ -65,7 +65,30 @@ public class VerificationReports extends HttpServlet {
             Logger.getLogger(VerificationReports.class.getName()).info(db.ipAddr+"|"+"Servlet VerificationReports : start");
             String jsonString = request.getParameter("barcodes");
             String cdlocat = request.getParameter("loc_code");
-
+            String cdloctype = null;
+            
+            try {
+              cdloctype = request.getParameter("cdloctype");
+              /*
+               * If the cdloctype that was passess is larger than one character, the value must
+               * be wrong, so clear it out so the database procedure will simply look at location code
+               * which is one to one in most cases..  Future enhancement might be to pass back an informational 
+               * message to the client.
+               */
+              if (cdloctype!=null && cdloctype.trim().length()>1) {
+                log.warn(db.ipAddr + "|" + "****Parameter cdloctype was passed by the Client with a value of "+cdloctype+" which is larger than 1 character. IGNORING. to VerificationReports.processRequest ");                
+                cdloctype = null;
+              }              
+            }
+            catch (Exception e) {
+              /*
+               * If Parameter cdloctype was not passed by the client, then simply pass null for the
+               * value, the database procedure which is eventually called will handle nulls.
+              */
+              log.info(db.ipAddr + "|" + "****Parameter cdloctype was not passed by the Client to VerificationReports.processRequest ");                
+              cdloctype = null;
+            }
+            
             System.out.println("json string from server = " + jsonString);
             // ArrayList<Integer> a= new ArrayList<Integer>();
             //         a= new Gson().fromJson(jsonString,ArrayList<Integer>);
@@ -80,11 +103,11 @@ public class VerificationReports extends HttpServlet {
 
             String barcodes[] = jsonString.split(",");
             
-            int result = db.setBarcodesInDatabase(cdlocat, barcodes, userFallback);
+            int result = db.setBarcodesInDatabase(cdlocat, cdloctype, barcodes, userFallback);
             
             if (result == 0) {
-                out.println("Database updated sucessfully");
-                Logger.getLogger(VerificationReports.class.getName()).info(db.ipAddr+"|"+"Servlet VerificationReports : Database updated sucessfully");
+                out.println("Database updated successfully");
+                Logger.getLogger(VerificationReports.class.getName()).info(db.ipAddr+"|"+"Servlet VerificationReports : Database updated successfully");
             } else {
                 out.println("Database not updated");
                 Logger.getLogger(VerificationReports.class.getName()).info(db.ipAddr+"|"+"Servlet VerificationReports : Database not updated");

@@ -99,8 +99,8 @@ public class DeliveryConfirmation extends HttpServlet {
             }
 
             if (orgDeliveryResult == 0 && newDeliveryResult == 0) {
-                out.println("Database updated sucessfully");
-                log.info(db.ipAddr + "|" + "Database updated sucessfully");
+                out.println("Database updated successfully");
+                log.info(db.ipAddr + "|" + "Database updated successfully");
             } else if (orgDeliveryResult != 0 && newDeliveryResult != 0) {
                 out.println("Database not updated");
                 log.info(db.ipAddr + "|" + "Database not updated");
