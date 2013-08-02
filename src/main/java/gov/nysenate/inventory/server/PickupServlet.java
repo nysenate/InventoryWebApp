@@ -4,32 +4,17 @@ import gov.nysenate.inventory.model.Pickup;
 import gov.nysenate.inventory.model.ReportNotGeneratedException;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Properties;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -101,7 +86,6 @@ public class PickupServlet extends HttpServlet
       }
     }
     catch (Exception e) {
-
     }
 
     log.info("PickupItems = " + pickup.getPickupItems()); // TODO: for testing.
@@ -109,308 +93,29 @@ public class PickupServlet extends HttpServlet
     pickup.setNuxrpd(dbResponse);
 
     if (dbResponse > -1) {
+      int emailReceiptStatus  = 0;
       try {
-        sendEmail(pickup);
-        out.println("Database updated successfully but could not generate receipt.");
+        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt();
+        
+        emailReceiptStatus = emailMoveReceipt.sendPickupEmail(this, pickup);
+        if (emailReceiptStatus==0) {
+          
+        }
+        else {
+          out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+").");
+          
+        }
       }
       catch (Exception e) {
-        out.println("Database updated successfully");
+        out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+"-2).");
       }
-      System.out.println("INV TRANSIT UPDATED CORRECTLY");
     } else {
-      System.out.println("INV TRANSIT FAILED TO UPDATE");
       out.println("Database not updated");
     }
     log.info(db.ipAddr + "|" + "Servlet Pickup : end");
     out.close();
   }
-
-  public void emailError() {
-      Properties props = new Properties();
-      String smtpServer = properties.getProperty("smtpServer");
-      props.setProperty("mail.smtp.host", smtpServer);
-      Session session = Session.getDefaultInstance(props, null);
-      try{
-         // Create a default MimeMessage object.
-         MimeMessage message = new MimeMessage(session);
-
-         // Set From: header field of the header.
-         message.setFrom(new InternetAddress(this.naemailFrom, this.naemailNameFrom));
-
-         // Set To: header field of the header.
-        if (naemailTo1!=null && naemailTo1.trim().length()>0){
-          message.addRecipient(Message.RecipientType.TO,
-            new InternetAddress(naemailTo1, naemailNameTo1));  //naemailTo, naemployeeTo
-        }
-        if (naemailTo2!=null && naemailTo2.trim().length()>0){
-          message.addRecipient(Message.RecipientType.TO,
-            new InternetAddress(naemailTo2, naemailNameTo2));  //naemailTo, naemployeeTo
-          }
-
-         // Set Subject: header field
-         message.setSubject("Oracle Report Server Unable to Generate Pickup Receipt. Contact STS/BAC.");
-
-         // Now set the actual message
-         message.setText(error, "utf-8", "html");
-
-         // Send message
-         Transport.send(message);
-         System.out.println("Sent error message successfully....");
-      }catch (MessagingException mex) {
-         mex.printStackTrace();
-      } catch (UnsupportedEncodingException ex1) {
-        Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, null, ex1);
-      }    
-  }
   
-  public void sendEmail(Pickup pickup)
-  {
-    sendEmail(pickup.getNaPickupBy(), pickup.getOrigin().getCdLoc(), pickup.getDestination().getCdLoc(), pickup.getNuxrpd());
-  }
-
-  @SuppressWarnings("empty-statement")
-  public void sendEmail(String NAPICKUPBY, String originLocation, String destinationLocation, final int nuxrpd)
-  {
-    String naemployeeTo = "";
-    String msgBody = "";
-    byte[] attachment = null;
-    
-    InputStream in = this.getClass().getClassLoader().getResourceAsStream("config.properties");
-    try {
-      properties.load(in);
-    } catch (IOException ex) {
-      Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
-    }
-
-    String smtpServer = properties.getProperty("smtpServer");
-    final String pickupReceiptURL = properties.getProperty("pickupReceiptURL");
-
-    Properties props = new Properties();
-    props.setProperty("mail.smtp.host", smtpServer);
-    Session session = Session.getDefaultInstance(props, null);
-    StringBuilder sb = new StringBuilder();
-    properties.getProperty("pickupEmailTo2");
-    naemailFrom = null; 
-    naemailFrom = properties.getProperty("pickupEmailFrom");
-    naemailNameFrom = null; 
-    naemailNameFrom = properties.getProperty("pickupEmailNameFrom");
-    
-    try {
-        naemailTo1 = properties.getProperty("pickupEmailTo1");   
-    }
-    catch (NullPointerException e) {
-      Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****PARAMETER pickupEmailTo1 NOT FOUND Pickup.processRequest ");
-    }
-    catch (Exception e) {
-      Logger.getLogger(PickupServlet.class.getName()).warning(db.ipAddr + "|" + "****PARAMETER pickupEmailTo1 COULD NOT BE PROCESSED Pickup.processRequest ");
-    }
-       
-    try {
-        naemailNameTo1 = properties.getProperty("pickupEmailNameTo1");   
-    }
-    catch (NullPointerException e) {
-      Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****PARAMETER pickupEmailNameTo1 NOT FOUND Pickup.processRequest ");
-    }
-    catch (Exception e) {
-      Logger.getLogger(PickupServlet.class.getName()).warning(db.ipAddr + "|" + "****PARAMETER pickupEmailNameTo1 COULD NOT BE PROCESSED Pickup.processRequest ");
-    }
-
-    try {
-        naemailTo2 = properties.getProperty("pickupEmailTo2");   
-    }
-    catch (NullPointerException e) {
-      Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****PARAMETER pickupEmailTo2 NOT FOUND Pickup.processRequest ");
-    }
-    catch (Exception e) {
-      Logger.getLogger(PickupServlet.class.getName()).warning(db.ipAddr + "|" + "****PARAMETER pickupEmailTo2 COULD NOT BE PROCESSED Pickup.processRequest ");
-    }
-    
-    try {
-        naemailNameTo1 = properties.getProperty("pickupEmailNameTo2");   
-    }
-    catch (NullPointerException e) {
-      Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****PARAMETER pickupEmailNameTo2 NOT FOUND Pickup.processRequest ");
-    }
-    catch (Exception e) {
-      Logger.getLogger(PickupServlet.class.getName()).warning(db.ipAddr + "|" + "****PARAMETER pickupEmailNameTo2 COULD NOT BE PROCESSED Pickup.processRequest ");
-    }
-    
-    try {
-      testingModeProperty =  properties.getProperty("testingMode").toUpperCase();
-     }
-    catch (NullPointerException e) {
-      // Could not find the Testing Mode Property so assume that we are in testing mode, this will
-      // at least alert someone if no one is getting receipts..
-      testingModeProperty = "TRUE";
-      Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****PARAMETER testingMode was NOT FOUND  TESTING MODE WILL BE DEFAULTED TO TRUE Pickup.processRequest ");
-    }
-    catch (Exception e) {
-      testingModeProperty = "TRUE";
-      Logger.getLogger(PickupServlet.class.getName()).warning(db.ipAddr + "|" + "***WARNING: Exception occured when trying to find testingMode Property ("+e.getMessage()+") TESTING MODE WILL BE DEFAULTED TO TRUE Pickup.processRequest ");
-    }
-    
-    // Get the employee who signed the Release 
-    currentEmployee = db.getEmployeeWhoSigned(pickup.getNuxrRelSign(), false, userFallback);
-    currentEmployee.setEmployeeNameOrder(currentEmployee.FIRST_MI_LAST_SUFFIX);
-    
-    boolean testingMode = false;
-    
-    /*
-     *  If either E-mail to field is filled, then the server is meant to e-mail that specific user
-     * instead of the user that should be e-mailed. This would mean that the server is in testing mode.
-     */
-    
-    if (testingModeParam!=null && testingModeParam.trim().length()>0) {
-      if (testingModeParam.toUpperCase().indexOf("T")>-1) {
-        testingMode = true;
-        Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****testingModeParam has a T, so Testing Mode is set to TRUE Pickup.processRequest ");
-      }
-      else {
-        testingMode = false;
-      }
-    }
-    else if (testingModeProperty==null || testingModeProperty.toUpperCase().contains("T")) {
-      testingMode = true;
-      Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "***Testing Mode is set to TRUE Pickup.processRequest ");
-    }
-    
-    if (testingMode) {
-      sb.append("<b>TESTINGMODE</b>: E-mail under normal circumstances would have been sent to:");
-      sb.append(currentEmployee.getNaemail());
-      sb.append("<br /><br />");
-    }
-    
-    String error = null;
-    sb.append("Dear ");
-    sb.append(currentEmployee.getEmployeeName());
-    sb.append(",");
-    sb.append("<br/><br/> Equipment was picked up by <b>" + NAPICKUPBY + "</b> from <b>" + originLocation + "</b> with the destination of <b>" + destinationLocation + "</b>");
-    sb.append("<br /><br />To view Equipment Pickup Receipt, please open the PDF attachment included in this e-mail.");
-  
-    try {
-      attachment = bytesFromUrlWithJavaIO(pickupReceiptURL + nuxrpd); // +"&destype=CACHE&desformat=PDF
-
-      // Attachment needs to be checked to ensure that there were no issues with the Reports Server
-      // and the PDF was generated properly. Otherwise the PDF sent is garbage.  We need to e-mail
-      // STSBAC and possibly others that an issue occured and/or try to generate the PDF again
-      
-      //saveFileFromUrlWithJavaIO(this.nuxrpd+".pdf", );
-      System.out.println("ATTACHMENT SIZE:" + attachment.length + " " + ((attachment.length) / 1024.0) + "KB");
-    } catch (MalformedURLException ex) {
-      Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
-    } catch (IOException ex) {
-      Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
-    } catch (ReportNotGeneratedException ex) {
-      Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, "There was an issue with Oracle Reports Server. Please contact STS/BAC.", ex);    
-      emailError();
-     }
-    if (attachment == null) {
-      Logger.getLogger(PickupServlet.class.getName()).warning(db.ipAddr + "|" + "****ATTACHMENT was null Pickup.processRequest ");
-      emailError();
-    }
-    else if (attachment.length==0) {
-      Logger.getLogger(PickupServlet.class.getName()).warning(db.ipAddr + "|" + "****ATTACHMENT was a ZERO LENGTH Pickup.processRequest ");
-      emailError();
-    }
-    
-    MimeMultipart mimeMultipart = new MimeMultipart();
-    MimeBodyPart attachmentPart = new MimeBodyPart();
-    try {
-      attachmentPart.setDataHandler(
-              new DataHandler(
-              new DataSource()
-      {
-        @Override
-        public String getContentType()
-        {
-          return "application/pdf";
-        }
-
-        @Override
-        public InputStream getInputStream() throws IOException
-        {
-          try {
-          return new ByteArrayInputStream(bytesFromUrlWithJavaIO(pickupReceiptURL + nuxrpd));
-          }
-          catch (ReportNotGeneratedException e) {
-            Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, "Oracle Reports Server failed to generate a PDF Report for the Pickup Receipt. Please contact STS/BAC.", e);
-            return new ByteArrayInputStream(new byte[0]);
-          }
-        }
-
-        @Override
-        public String getName()
-        {
-          return "pickup_receipt.pdf";
-        }
-
-        @Override
-        public OutputStream getOutputStream() throws IOException
-        {
-          return null;
-        }
-      }));
-    } catch (MessagingException ex) {
-      Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
-    }
-
-    try {
-      in = this.getClass().getClassLoader().getResourceAsStream("config.properties");
-      properties.load(in);
- 
-      msgBody = sb.toString();
-      MimeMessage msg = new MimeMessage(session);
-      System.out.println("EMAILING FROM:" + naemailFrom + ":" + naemailNameFrom);
-      msg.setFrom(new InternetAddress(naemailFrom, naemailNameFrom));
-      if (testingMode) {
-          System.out.println("TESTINGMODE Would have sent (BUT DID NOT) TO:" + currentEmployee.getNaemail() + " (" + currentEmployee.getEmployeeName()+")");
-        if (naemailTo1!=null && naemailTo1.trim().length()>0){
-          System.out.println("TESTINGMODE EMAILING TO:" + naemailTo1 + ":" + naemailNameTo1);
-          msg.addRecipient(Message.RecipientType.TO,
-            new InternetAddress(naemailTo1, naemailNameTo1));  //naemailTo, naemployeeTo
-        }
-        if (naemailTo2!=null && naemailTo2.trim().length()>0){
-          System.out.println("TESTINGMODE EMAILING TO:" + naemailTo2 + ":" + naemailNameTo2);
-          msg.addRecipient(Message.RecipientType.TO,
-            new InternetAddress(naemailTo2, naemailNameTo2));  //naemailTo, naemployeeTo
-        }
-      }
-      else {
-          msg.addRecipient(Message.RecipientType.TO,
-            new InternetAddress(currentEmployee.getNaemail(), currentEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
-        
-      }
-      
-      msg.setSubject("Equipment Pickup Receipt");
-      //msg.setText(msgBody, "utf-8", "html");
-      MimeBodyPart mbp1 = new MimeBodyPart();
-      mbp1.setText(msgBody);
-      mbp1.setContent(msgBody, "text/html");
-      mimeMultipart.addBodyPart(mbp1);
-      mimeMultipart.addBodyPart(attachmentPart);
-      msg.setContent(mimeMultipart);
-      if (attachmentPart==null||attachmentPart.getSize()==0) {
-          System.out.println("***E-mail NOT sent because attachment was malformed.");
-      }
-      else {
-          if (attachmentPart.getContent()==null) {
-              System.out.println("***E-mail NOT sent because attachment was malformed(2).");
-          }
-          else {
-              Transport.send(msg);
-          }
-      }
-      System.out.println("E-mail sent with no errors.");
-
-    } catch (AddressException e) {
-      e.printStackTrace();
-    } catch (MessagingException e) {
-      e.printStackTrace();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
   public byte[] getAsByteArray(URL url) throws IOException
   {
     URLConnection connection = url.openConnection();
@@ -539,23 +244,12 @@ public class PickupServlet extends HttpServlet
     bout = new ByteArrayOutputStream();
     try {
       in = new BufferedInputStream(new URL(fileUrl).openStream());
-      /* byte data[] = new byte[1024*200];
-       int count;
-       System.out.println("Get byte array");
-       while ((count = in.read(data, 0, 1024*200)) != -1) {
-       bout.write(data, 0, count);
-       }
-       System.out.println("Perform flush");
-       bout.flush(); */
       returnBytes = IOUtils.toByteArray(in);
     } finally {
 
       if (in != null) {
         in.close();
       }
-      /* if (bout != null) {
-       returnBytes = bout.toByteArray();
-       bout.close(); }*/
     }
     FileOutputStream fos = new FileOutputStream("C:\\abc.pdf");
     fos.write(returnBytes);
@@ -567,6 +261,7 @@ public class PickupServlet extends HttpServlet
     if (!decoded.toUpperCase().startsWith("%PDF-")) {
       System.out.println("****REPORT DOES NOT CONTAIN %PDF- STARTS WITH: "+decoded.substring(0,100));
        error = decoded;
+       
        throw new ReportNotGeneratedException("Reports Server was unable to generate a receipt.");
     }
     System.out.println(decoded);
