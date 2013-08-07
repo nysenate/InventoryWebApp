@@ -72,12 +72,9 @@ public class LocationDetails extends HttpServlet {
 
             } else {
                 String model[] = details.split("\\|");
-
-                //P_LOC_CODE||','||V_DELOCAT||','||V_ADSTREET1||','||V_ADSTREET2||','||V_ADCITY||','||V_ADSTATE||','||V_ADZIPCODE;
-                //out.println(" Location Code   :  " + model[0] + "\n V_DELOCAT :  " + model[1] + "\n V_ADSTREET1 : " + model[2] + "\n V_ADSTREET2  :    " + model[3] + "\n V_ADCITY  :    " + model[4] + "\n V_ADSTATE :    " + model[5] + "\n V_ADZIPCODE  :    " + model[6]);
+                
                 //Psuedo JSON for now
                 out.println("{\"cdlocat\":\"" + model[0] + "\",\"delocat\":\"" + model[1].replaceAll("\"", "&34;") + "\",\"adstreet1\":\"" + model[2].replaceAll("\"", "&34;") + "\",\"adstreet2\":\"" + model[3].replaceAll("\"", "&34;") + "\",\"adcity\":\"" + model[4].replaceAll("\"", "&34;") + "\",\"adstate\":\"" + model[5] + "\",\"adzipcode\":\"" + model[6].replaceAll("\"", "&#34;") + "\",\"nucount\":\"" + model[7] + "\",\"cdrespctrhd\":\"" + model[8] + "\"}");
-
             }
 
             Logger.getLogger(LocationDetails.class.getName()).info(db.ipAddr+"|"+"Servlet LocationDetails : end");

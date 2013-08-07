@@ -2,46 +2,44 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package gov.nysenate.inventory.server;
+package gov.nysenate.inventory.model;
 
 import com.google.gson.annotations.Expose;
 
-
-public class InvItem
+/**
+ *
+ * @author Brian Heitner
+ */
+public class Commodity
 {
    @Expose  String decommodityf = "blah blah blah";
-   @Expose  String type = "blah";
+   @Expose  String cdtype = "blah";
    @Expose  String nusenate = "blah";
    @Expose  String cdcategory = "blah";
    @Expose  String cdlocat = "";
    @Expose  String cdlocatto = "";
-   @Expose  String cdintransit = "";
    @Expose  String decomments = "";
    @Expose  String nuxrefco = "";
-   
+   @Expose  String cdissunit = "";
+   @Expose  String cdcommodity = "";
+   @Expose  String nucnt = "";
+     
     boolean selected = false;
     
     final int DECOMMODITYF = -101;
-    final int TYPE = -102;
+    final int CDTYPE = -102;
     final int NUSENATE = -103;
     final int CDCATEGORY = -104;
     final int SELECTED = -105;   
     final int CDLOCAT = -106;   
     final int CDLOCATTO = -107;   
-    final int CDINTRANSIT = -108;  // Note: Does not match the Andriod CDINTRANSIT value 
     final int DECOMMENTS = -109; 
     final int NUXREFCO = -110; 
+    final int CDISSUNIT = -111;
+    final int CDCOMMODITY = -112;
+    final int NUCNT = -113;
     
-    public InvItem(String nusenate, String cdcategory, String type,
-            String decommodityf) {
-        this.nusenate = nusenate;
-        this.cdcategory = cdcategory;
-        this.type = type;
-        this.decommodityf = decommodityf;
-    }
-
-    public InvItem() {
-
+    public Commodity() {
     }
 
     public String getDecommodityf() {
@@ -52,14 +50,6 @@ public class InvItem
         this.decommodityf = decommodityf;
     }
 
-    public String getNusenate() {
-        return nusenate;
-    }
-
-    public void setNusenate(String nusenate) {
-        this.nusenate = nusenate;
-    }
-
     public String getCdcategory() {
         return cdcategory;
     }
@@ -68,39 +58,46 @@ public class InvItem
         this.cdcategory = cdcategory;
     }
 
-    public String getType() {
-        return type;
+    public String getCdtype() {
+        return cdtype;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setCdtype(String cdtype) {
+        this.cdtype = cdtype;
     }
 
-    public String getCdlocat() {
-        return cdlocat;
+    public String getCDissunit() {
+        return cdissunit;
     }
 
-    public void setCdlocat(String cdlocat) {
-        this.cdlocat = cdlocat;
-    }
-
-    public String getCdlocatto() {
-        return cdlocatto;
-    }
-
-    public void setCdlocatto(String cdlocatto) {
-        this.cdlocatto = cdlocatto;
-    }
-
-    
-   public String getCdintransit() {
-        return cdintransit;
+    public void setCDissunit(String cdissunit) {
+        this.cdissunit = cdissunit;
     }
     
-    public void setCdintransit(String cdlocat) {
-        this.cdintransit = cdintransit;
+    public String getNuxrefco() {
+        return nuxrefco;
     }
 
+    public void setNuxrefco(String nuxrefco) {
+        this.nuxrefco = nuxrefco;
+    }    
+
+    public String getCdcommodty() {
+        return cdcommodity;
+    }
+
+    public void setCdcommodity(String cdcommodity) {
+        this.cdcommodity = cdcommodity;
+    }
+    
+    public String getNucnt() {
+        return nucnt;
+    }
+
+    public void setNucnt(String nucnt) {
+        this.nucnt = nucnt;
+    }        
+    
    public String getDecomments() {
         return decomments;
     }

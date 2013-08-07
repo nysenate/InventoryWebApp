@@ -3,6 +3,8 @@ package gov.nysenate.inventory.server;
 import gov.nysenate.inventory.model.Delivery;
 import gov.nysenate.inventory.model.Pickup;
 
+import gov.nysenate.inventory.model.Commodity;
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -261,7 +263,7 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to return arraylist of all the items at a given location codes 
      *----------------------------------------------------------------------------------------------------*/
-
+   
     public ArrayList getLocationItemList(String locCode, String userFallback) {
         log.info(this.ipAddr + "|" + "getLocationItemList() begin : locCode= " + locCode);
         if (locCode.isEmpty() || locCode == null) {
@@ -300,10 +302,53 @@ public class DbConnect {
         log.info(this.ipAddr + "|" + "getLocationItemList() end");
         return itemList;
     }
+                
     /*-------------------------------------------------------------------------------------------------------
-     * ---------------Function to return arraylist of all the location codes 
-     *----------------------------------------------------------------------------------------------------*/
+     * ---------------Function to return arraylist of all the commodity codes based on the keywords
+     *----------------------------------------------------------------------------------------------------*/  
+   
+    public ArrayList getCommodityList(String keywords, String userFallback) {
+        log.info(this.ipAddr + "|" + "getLocationItemList() begin : locCode= " + keywords);
+        if (keywords.isEmpty() || keywords == null) {
+            throw new IllegalArgumentException("No Keywords Found");
+        }
 
+        ArrayList<Commodity> commodityList = new ArrayList<Commodity>();
+        try {
+            Connection conn = getDbConnection();
+            Statement stmt = conn.createStatement();
+            //  String loc_code;
+            String qry =  " WITH results AS " +
+                          " (SELECT a.nuxrefco, a.cdcommodity, b.cdissunit, b.cdcategory, b.cdtype, b.decommodityf, c.keyword" +
+                          " FROM fm12comxref a, fm12commodty b, (select column_value keyword" +
+                          " FROM TABLE(split(UPPER('"+keywords+"')))) c  " +
+                          " WHERE a.nuxrefco = b.nuxrefco " +
+                          " AND a.cdstatus = 'A'" +
+                          " AND b.cdstatus = 'A'" +
+                          " AND b.decommodityf LIKE '%'||c.keyword||'%')" +
+                          " SELECT count(*) nucnt, a.decommodityf, a.nuxrefco, a.cdcommodity, a.cdissunit, a.cdcategory, a.cdissunit, a.cdtype " +
+                          " FROM results a" +
+                          " GROUP BY  a.nuxrefco, a.cdcommodity, a.cdissunit, a.cdcategory, a.cdissunit, a.cdtype, a.decommodityf " +
+                          " ORDER BY 1 DESC, 2";
+            ResultSet result = stmt.executeQuery(qry);
+            while (result.next()) {
+                Commodity commodity = new Commodity();
+                commodity.setNucnt(result.getString(1));
+                commodity.setDecommodityf(result.getString(2));
+                commodity.setNuxrefco(result.getString(3));
+                commodity.setCdcommodity(result.getString(4));
+                commodity.setCdcategory(result.getString(6));
+                commodity.setCdtype(result.getString(8));
+                commodityList.add(commodity);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            log.fatal(this.ipAddr + "|" + "SQLException in getCommodityList() : " + e.getMessage());
+        }
+        log.info(this.ipAddr + "|" + "getCommodityList() end");
+        return commodityList;
+    }    
+    
     public ArrayList getLocCodes(String userFallback) {
         log.info("getLocCodes() begin  ");
         return getLocCodes("ALL", userFallback);

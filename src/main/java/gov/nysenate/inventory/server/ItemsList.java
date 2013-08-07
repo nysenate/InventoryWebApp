@@ -69,8 +69,7 @@ public class ItemsList extends HttpServlet {
             ArrayList<VerList> itemList = new ArrayList<VerList>();
             
             itemList = db.getLocationItemList(loc_code, userFallback);
-
-
+            
             String json = new Gson().toJson(itemList);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
