@@ -4,9 +4,15 @@ package gov.nysenate.inventory.server;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -63,9 +69,31 @@ public class VerificationReports extends HttpServlet {
             }
             db.ipAddr=request.getRemoteAddr();
             Logger.getLogger(VerificationReports.class.getName()).info(db.ipAddr+"|"+"Servlet VerificationReports : start");
-            String jsonString = request.getParameter("barcodes");
-            String cdlocat = request.getParameter("loc_code");
+            //String jsonString = request.getParameter("barcodes");
+            //String cdlocat = request.getParameter("loc_code");
+            String cdlocat = request.getParameter("cdlocat");
+            String scannedItems = request.getParameter("scannedItems");
+            JsonParser parser = new JsonParser();
+            JsonArray jsonArray = (JsonArray)parser.parse(scannedItems);
+            
+            ArrayList<InvItem> invItems = new ArrayList<InvItem>();
+            
+            for (int x=0;x<jsonArray.size();x++) {
+              //JsonObject o = (JsonObject) jsonArray.get(x);
+
+              JsonElement json2 = jsonArray.get(x);
+              Gson gson = new Gson();
+              InvItem invItem = gson.fromJson(json2, InvItem.class); 
+              invItems.add(invItem);
+            }
+            
+/*            for (int x=0;x<invItems.size();x++) {
+              InvItem invItem = invItems.get(x);
+              System.out.println(x+": CDLOCAT:"+invItem.getCdlocat()+", NUSENATE:"+invItem.getNusenate()+", CDCOMMODITY:"+invItem.getCdcommodity());
+            }*/
+            
             String cdloctype = null;
+            
             
             try {
               cdloctype = request.getParameter("cdloctype");
@@ -88,22 +116,18 @@ public class VerificationReports extends HttpServlet {
               log.info(db.ipAddr + "|" + "****Parameter cdloctype was not passed by the Client to VerificationReports.processRequest ");                
               cdloctype = null;
             }
-            
-            System.out.println("json string from server = " + jsonString);
+/*            System.out.println ("cdlocat:"+cdlocat);
+            System.out.println ("cdloctype:"+cdloctype);
+            System.out.println ("scannedItems:"+scannedItems);*/
+                        
+//            System.out.println("json string from server = " + jsonString);
             // ArrayList<Integer> a= new ArrayList<Integer>();
             //         a= new Gson().fromJson(jsonString,ArrayList<Integer>);
             //   g.toJson(jsonString);
             //new Gson.
-     /*        jstest a = new jstest();
-             a.print(jsonString);
-             JsonParser jsonParser = new JsonParser();
-             JsonObject jo = (JsonObject)jsonParser.parse(jsonString);
-             String barcodes=jo.getAsString();     
-             a.print(barcodes);  */
-
-            String barcodes[] = jsonString.split(",");
+ //           String barcodes[] = jsonString.split(",");
             
-            int result = db.setBarcodesInDatabase(cdlocat, cdloctype, barcodes, userFallback);
+            int result = db.setBarcodesInDatabase(cdlocat, cdloctype, invItems, userFallback);
             
             if (result == 0) {
                 out.println("Database updated successfully");

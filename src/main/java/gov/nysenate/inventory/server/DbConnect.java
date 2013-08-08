@@ -392,14 +392,14 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to insert items found at given location(barcodes) for verification
      *----------------------------------------------------------------------------------------------------*/
-    public int setBarcodesInDatabase(String cdlocat, String barcodes[], String userFallback) {
-      return setBarcodesInDatabase(cdlocat, null, barcodes, userFallback);
+    public int setBarcodesInDatabase(String cdlocat, ArrayList<InvItem> invItems, String userFallback) {
+      return setBarcodesInDatabase(cdlocat, null, invItems, userFallback);
     }
 
     
-    public int setBarcodesInDatabase(String cdlocat, String cdloctype, String barcodes[], String userFallback) {
-        log.info(this.ipAddr + "|" + "setBarcodesInDatabase() begin : cdlocat= " + cdlocat + " &barcodes= " + barcodes);
-        if (cdlocat.isEmpty() || barcodes == null) {
+    public int setBarcodesInDatabase(String cdlocat, String cdloctype, ArrayList<InvItem> invItems, String userFallback) {
+        log.info(this.ipAddr + "|" + "setBarcodesInDatabase() begin : cdlocat= " + cdlocat + " Number of Inf Items= " + invItems.size());
+        if (cdlocat.isEmpty() || invItems == null) {
             throw new IllegalArgumentException("Invalid location Code");
         }
         int result = 0;
@@ -413,24 +413,40 @@ public class DbConnect {
 
             ResultSet result2 = stmt.executeQuery(qry);
 
-            for (int i = 0; i < barcodes.length; i++) {
-                // left padding 0 to string 
-                String barcodeStr = String.format("%6s", barcodes[i]).replace(' ', '0');
-                CallableStatement cs = conn.prepareCall("{?=call INV_APP.copy_data(?,?, ?)}");
-                cs.registerOutParameter(1, Types.VARCHAR);
-                cs.setString(2, cdlocat);
-                cs.setString(3, barcodeStr);
-                cs.setString(4, cdloctype);
-                cs.executeUpdate();
-                r = cs.getString(1);
+            for (int i = 0; i < invItems.size(); i++) {
+               InvItem curInvItem =  invItems.get(i);
+               
+               // left padding 0 to string 
+               String barcodeStr = String.format("%6s", curInvItem.getNusenate()).replace(' ', '0');
+               if (curInvItem.getType().equalsIgnoreCase("NEW")) {
+                  CallableStatement cs = conn.prepareCall("{?=call inv_app.store_new_inv_item(?,?, ?, ?, ?, ?)}");                  
+                  cs.registerOutParameter(1, Types.VARCHAR);
+                  cs.setString(2, cdlocat);
+                  cs.setString(3, curInvItem.getNusenate());
+                  cs.setString(4, cdloctype);
+                  cs.setString(5, curInvItem.getCdcommodity());
+                  cs.setString(6, curInvItem.getDecomments());
+                  cs.setString(7, "VERIFICATION");
+                  cs.executeUpdate();
+                  r = cs.getString(1);
+               }
+               else {
+                  CallableStatement cs = conn.prepareCall("{?=call INV_APP.copy_data(?,?, ?)}");
+                  cs.registerOutParameter(1, Types.VARCHAR);
+                  cs.setString(2, cdlocat);
+                  cs.setString(3, barcodeStr);
+                  cs.setString(4, cdloctype);
+                  cs.executeUpdate();
+                  r = cs.getString(1);
+               }
                 
                 /*
                  * Result was not being set properly
                  */
-                 
+                
                 if (r.trim().equalsIgnoreCase("SUCCESS")) {
-                  result = 0;
-                }
+                    result = 0;
+                  }
                 else {
                   result = 1;
                 }

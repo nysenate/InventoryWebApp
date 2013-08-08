@@ -9,15 +9,16 @@ import com.google.gson.annotations.Expose;
 
 public class InvItem
 {
-   @Expose  String decommodityf = "blah blah blah";
-   @Expose  String type = "blah";
-   @Expose  String nusenate = "blah";
-   @Expose  String cdcategory = "blah";
+   @Expose  String decommodityf = "";
+   @Expose  String type = "";
+   @Expose  String nusenate = "";
+   @Expose  String cdcategory = "";
    @Expose  String cdlocat = "";
    @Expose  String cdlocatto = "";
    @Expose  String cdintransit = "";
    @Expose  String decomments = "";
    @Expose  String nuxrefco = "";
+   @Expose  String cdcommodity = "";
    
     boolean selected = false;
     
@@ -31,6 +32,7 @@ public class InvItem
     final int CDINTRANSIT = -108;  // Note: Does not match the Andriod CDINTRANSIT value 
     final int DECOMMENTS = -109; 
     final int NUXREFCO = -110; 
+    final int CDCOMMODITY = -111; 
     
     public InvItem(String nusenate, String cdcategory, String type,
             String decommodityf) {
@@ -101,13 +103,21 @@ public class InvItem
         this.cdintransit = cdintransit;
     }
 
-   public String getDecomments() {
+    public String getDecomments() {
         return decomments;
     }
     
     public void setDecomments(String decomments) {
         this.decomments = decomments;
     }
+    
+    public void setCdcommodity(String cdcommodity) {
+        this.cdcommodity = cdcommodity;
+    }
+
+    public String getCdcommodity() {
+        return cdcommodity;
+    }    
     
     public void setSelected(boolean selected) {
         this.selected = selected;
