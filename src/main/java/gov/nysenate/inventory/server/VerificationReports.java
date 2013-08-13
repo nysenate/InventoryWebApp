@@ -116,19 +116,9 @@ public class VerificationReports extends HttpServlet {
               log.info(db.ipAddr + "|" + "****Parameter cdloctype was not passed by the Client to VerificationReports.processRequest ");                
               cdloctype = null;
             }
-/*            System.out.println ("cdlocat:"+cdlocat);
-            System.out.println ("cdloctype:"+cdloctype);
-            System.out.println ("scannedItems:"+scannedItems);*/
-                        
-//            System.out.println("json string from server = " + jsonString);
-            // ArrayList<Integer> a= new ArrayList<Integer>();
-            //         a= new Gson().fromJson(jsonString,ArrayList<Integer>);
-            //   g.toJson(jsonString);
-            //new Gson.
- //           String barcodes[] = jsonString.split(",");
             
             int result = db.setBarcodesInDatabase(cdlocat, cdloctype, invItems, userFallback);
-            
+  
             if (result == 0) {
                 out.println("Database updated successfully");
                 Logger.getLogger(VerificationReports.class.getName()).info(db.ipAddr+"|"+"Servlet VerificationReports : Database updated successfully");
