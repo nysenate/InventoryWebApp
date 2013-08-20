@@ -90,6 +90,7 @@ public class PickupServlet extends HttpServlet
 
     log.info("PickupItems = " + pickup.getPickupItems()); // TODO: for testing.
     int dbResponse = db.invTransit(pickup,userFallback);
+    log.info("PickupItems TESTING dbResponse=" + dbResponse); // TODO: for testing.
     pickup.setNuxrpd(dbResponse);
 
     if (dbResponse > -1) {
@@ -99,11 +100,10 @@ public class PickupServlet extends HttpServlet
         
         emailReceiptStatus = emailMoveReceipt.sendPickupEmail(this, pickup);
         if (emailReceiptStatus==0) {
-          
+          out.println("Database updated successfully");         
         }
         else {
           out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+").");
-          
         }
       }
       catch (Exception e) {

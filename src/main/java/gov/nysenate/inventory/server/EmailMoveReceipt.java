@@ -186,7 +186,6 @@ public int sendPickupEmail(PickupServlet pickupServlet, Pickup pickup)
       Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, "There was an issue with Oracle Reports Server. Please contact STS/BAC.", ex);    
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ERROR ReportNotGeneratedException1");
       emailError(pickupServlet);
-      
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE AFTER E-MAIL ERROR ReportNotGeneratedException1");
      }
     if (attachment == null) {
@@ -280,7 +279,6 @@ public int sendPickupEmail(PickupServlet pickupServlet, Pickup pickup)
       else {
           msg.addRecipient(Message.RecipientType.TO,
             new InternetAddress(pickupServlet.currentEmployee.getNaemail(), pickupServlet.currentEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
-        
       }
       
       msg.setSubject("Equipment Pickup Receipt");
