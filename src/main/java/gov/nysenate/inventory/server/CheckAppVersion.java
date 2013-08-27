@@ -34,7 +34,7 @@ import com.google.gson.JsonObject;
 public class CheckAppVersion extends HttpServlet {
     
     String APKManifest;
-    String localFilePath;
+    String downloadPath;
     String webFilePath;
     /**
      * Processes requests for both HTTP
@@ -60,7 +60,7 @@ public class CheckAppVersion extends HttpServlet {
                 Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-            localFilePath = properties.getProperty("localFilePath");
+            downloadPath = properties.getProperty("downloadPath");
             webFilePath = properties.getProperty("webFilePath");
             
             String appName = request.getParameter("appName");
@@ -69,7 +69,7 @@ public class CheckAppVersion extends HttpServlet {
                   appName = appName+".apk";
             }
             StringBuffer localFile = new StringBuffer();
-            localFile.append(localFilePath);
+            localFile.append(downloadPath);
             localFile.append(appName);
 
             StringBuffer webFile = new StringBuffer();

@@ -8,6 +8,7 @@ import gov.nysenate.inventory.model.Delivery;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,8 +25,22 @@ import org.apache.log4j.Logger;
  */
 @WebServlet(name = "DeliveryConfirmation", urlPatterns = {"/DeliveryConfirmation"})
 public class DeliveryConfirmation extends HttpServlet {
-
-    /**
+  Delivery delivery = new Delivery();
+  DbConnect db  = null;
+  String userFallback = null;
+  Employee currentEmployee = null;
+  String testingModeParam =  null;
+  String testingModeProperty = null;
+  static String error = null;
+  String naemailTo1 = null;
+  String naemailNameTo1 = null;
+  String naemailTo2 = null; 
+  String naemailNameTo2 = null; 
+  String naemailFrom = null; 
+  String naemailNameFrom = null; 
+  Properties properties = new Properties();
+ 
+ /**
      * Processes requests for both HTTP
      * <code>GET</code> and
      * <code>POST</code> methods.
@@ -46,8 +61,8 @@ public class DeliveryConfirmation extends HttpServlet {
 
         try {
             HttpSession httpSession = request.getSession(false);
-            DbConnect db;            
-            String userFallback = null;
+      
+            userFallback = null;
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
@@ -72,8 +87,7 @@ public class DeliveryConfirmation extends HttpServlet {
 
             db.ipAddr = request.getRemoteAddr();
             log.info(db.ipAddr + "|" + "Servlet DeliveryConfirmation : Start");
-
-            Delivery delivery = new Delivery();
+           
             delivery.setNuxrpd(Integer.parseInt(request.getParameter("NUXRPD")));
             if (request.getParameterValues("deliveryItemsStr[]") != null) {
                 delivery.setAllItems(request.getParameterValues("deliveryItemsStr[]"));
@@ -99,8 +113,9 @@ public class DeliveryConfirmation extends HttpServlet {
             }
 
             if (orgDeliveryResult == 0 && newDeliveryResult == 0) {
-                out.println("Database updated successfully");
-                log.info(db.ipAddr + "|" + "Database updated successfully");
+              emailDeliveryReceipt(out,"Database updated successfully");
+              //out.println("Database updated successfully");
+              log.info(db.ipAddr + "|" + "Database updated successfully");
             } else if (orgDeliveryResult != 0 && newDeliveryResult != 0) {
                 out.println("Database not updated");
                 log.info(db.ipAddr + "|" + "Database not updated");
@@ -117,7 +132,24 @@ public class DeliveryConfirmation extends HttpServlet {
             out.close();
         }
     }
-
+    
+    public void emailDeliveryReceipt (PrintWriter out, String msg) {
+      int emailReceiptStatus  = 0;
+      try {
+        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt();
+        
+        emailReceiptStatus = emailMoveReceipt.sendDeliveryEmail(this, delivery);
+        if (emailReceiptStatus==0) {
+          out.println("Database updated successfully");         
+        }
+        else {
+          out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+").");
+        }
+      }
+      catch (Exception e) {
+        out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+"-2).");
+      }
+    }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP

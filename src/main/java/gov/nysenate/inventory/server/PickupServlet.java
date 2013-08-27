@@ -31,21 +31,23 @@ import org.apache.commons.io.IOUtils;
 @WebServlet(name = "Pickup", urlPatterns = {"/Pickup"})
 public class PickupServlet extends HttpServlet
 {
-  DbConnect db  = null;
+
+  DbConnect db = null;
   String userFallback = null;
   Pickup pickup = new Pickup();
   Employee currentEmployee = null;
-  String testingModeParam =  null;
+  String testingModeParam = null;
   String testingModeProperty = null;
   static String error = null;
   String naemailTo1 = null;
   String naemailNameTo1 = null;
-  String naemailTo2 = null; 
-  String naemailNameTo2 = null; 
-  String naemailFrom = null; 
-  String naemailNameFrom = null; 
+  String naemailTo2 = null;
+  String naemailNameTo2 = null;
+  String naemailFrom = null;
+  String naemailNameFrom = null;
   Properties properties = new Properties();
-  
+  String nafileext = ".pdf";
+
   /**
    * Processes requests for both HTTP
    * <code>GET</code> and
@@ -77,46 +79,54 @@ public class PickupServlet extends HttpServlet
     pickup.setNuxrRelSign(request.getParameter("NUXRRELSIGN"));
     pickup.setNaReleaseBy(request.getParameter("NARELEASEBY").replaceAll("'", "''"));
     pickup.setComments(request.getParameter("DECOMMENTS").replaceAll("'", "''"));
-    userFallback =  request.getParameter("userFallback");
-    
+    userFallback = request.getParameter("userFallback");
+    System.out.println("After Parameters");
+
     try {
       testingModeParam = request.getParameter("testingMode");
-      if (testingModeParam!=null && testingModeParam.trim().length()>0) {
+      if (testingModeParam != null && testingModeParam.trim().length() > 0) {
         Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****PARAMETER testingMode was set from client. Pickup.processRequest ");
       }
+    } catch (Exception e) {
     }
-    catch (Exception e) {
-    }
+    System.out.println("A)PickupItems = " + pickup.getPickupItems());
 
     log.info("PickupItems = " + pickup.getPickupItems()); // TODO: for testing.
-    int dbResponse = db.invTransit(pickup,userFallback);
+    int dbResponse = db.invTransit(pickup, userFallback);
     log.info("PickupItems TESTING dbResponse=" + dbResponse); // TODO: for testing.
+    System.out.println("B)PickupItems TESTING dbResponse=" + dbResponse);
     pickup.setNuxrpd(dbResponse);
 
     if (dbResponse > -1) {
-      int emailReceiptStatus  = 0;
+      int emailReceiptStatus = 0;
       try {
+        System.out.println("Before E-mail Receipt");
         EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt();
-        
+
+        System.out.println("RIGHT Before E-mail Receipt");
         emailReceiptStatus = emailMoveReceipt.sendPickupEmail(this, pickup);
-        if (emailReceiptStatus==0) {
-          out.println("Database updated successfully");         
+        System.out.println("emailReceiptStatus:" + emailReceiptStatus);
+
+        if (emailReceiptStatus == 0) {
+          System.out.println("Database updated successfully");
+          out.println("Database updated successfully");
+        } else {
+          System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + ").");
+          out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + ").");
         }
-        else {
-          out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+").");
-        }
-      }
-      catch (Exception e) {
-        out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+"-2).");
+      } catch (Exception e) {
+        System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).");
+        out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).");
       }
     } else {
       out.println("Database not updated");
     }
+    System.out.println("(C) Servlet Pickup : end");
     log.info(db.ipAddr + "|" + "Servlet Pickup : end");
     out.close();
   }
-  
-  public byte[] getAsByteArray(URL url) throws IOException
+
+  public byte[] getAsByteArray(URL url, String filename) throws IOException
   {
     URLConnection connection = url.openConnection();
     // Since you get a URLConnection, use it to get the InputStream
@@ -150,7 +160,7 @@ public class PickupServlet extends HttpServlet
     byte[] array = tmpOut.toByteArray();
 
     //Lines below used to test if file is corrupt
-    FileOutputStream fos = new FileOutputStream("C:\\abc.pdf");
+    FileOutputStream fos = new FileOutputStream("C:\\" + filename);
     fos.write(array);
     fos.close();
 
@@ -233,40 +243,100 @@ public class PickupServlet extends HttpServlet
     return bytes;
   }
 
+  public static byte[] bytesFromUrlWithJavaIO(String fileUrl) throws MalformedURLException, IOException, ReportNotGeneratedException
+  {
+    return bytesFromUrlWithJavaIO(fileUrl, null);
+  }
+
 // Using Java IO
-  public static byte[] bytesFromUrlWithJavaIO(String fileUrl)
+  public static byte[] bytesFromUrlWithJavaIO(String fileUrl, String nafile)
           throws MalformedURLException, IOException, ReportNotGeneratedException
   {
+    //System.out.println("bytesFromUrlWithJavaIO " + fileUrl);
+    String nafileext = ".pdf";
     BufferedInputStream in = null;
     ByteArrayOutputStream bout;
     error = null;
     byte[] returnBytes = null;
     bout = new ByteArrayOutputStream();
     try {
+      //System.out.println("bytesFromUrlWithJavaIO READ " + fileUrl);
       in = new BufferedInputStream(new URL(fileUrl).openStream());
+      //System.out.println("bytesFromUrlWithJavaIO READ DONE " + fileUrl);
       returnBytes = IOUtils.toByteArray(in);
+      //System.out.println("bytesFromUrlWithJavaIO returnBytes:" + returnBytes.length);
     } finally {
 
       if (in != null) {
         in.close();
       }
     }
-    FileOutputStream fos = new FileOutputStream("C:\\abc.pdf");
-    fos.write(returnBytes);
-    fos.flush();
-    fos.close();
-    
+
     String decoded = new String(returnBytes, "UTF-8");
-    System.out.println("****URL:"+fileUrl);
-    if (!decoded.toUpperCase().startsWith("%PDF-")) {
-      System.out.println("****REPORT DOES NOT CONTAIN %PDF- STARTS WITH: "+decoded.substring(0,100));
-       error = decoded;
-       
-       throw new ReportNotGeneratedException("Reports Server was unable to generate a receipt.");
+    //System.out.println("****URL:" + fileUrl);
+    if (decoded.toUpperCase().startsWith("%PDF-")) {
+        try {
+          if (nafile!=null && nafile.trim().length()>0) {
+            //System.out.println("PickupServlet.bytesFromUrlWithJavaIO writing file:" + nafile + nafileext);
+            FileOutputStream fos = new FileOutputStream(nafile + nafileext);
+            fos.write(returnBytes);
+            fos.flush();
+            fos.close();
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+    } else {
+      if (decoded.toUpperCase().contains("<HTML>") || decoded.toUpperCase().contains("<BODY>")) {
+        nafileext = ".html";
+        //decoded = insertTextInto(decoded, "src=\"^", );
+        try {
+          if (nafile!=null && nafile.trim().length()>0) {
+            //System.out.println("PickupServlet.bytesFromUrlWithJavaIO writing file:" + nafile + nafileext);
+            FileOutputStream fos = new FileOutputStream(nafile + nafileext);
+            fos.write(returnBytes);
+            fos.flush();
+            fos.close();
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      } else {
+        nafileext = ".???";
+      }
+      //System.out.println("PickupServlet.bytesFromUrlWithJavaIO writing file:" + nafile + nafileext);
+      try {
+        FileOutputStream fos = new FileOutputStream(nafile + nafileext);
+        fos.write(returnBytes);
+        fos.flush();
+        fos.close();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+
+
+      //System.out.println("****REPORT DOES NOT CONTAIN %PDF- STARTS WITH: " + decoded.substring(0, 100));
+      error = decoded;
+
+      throw new ReportNotGeneratedException("Reports Server was unable to generate a receipt.");
     }
-    System.out.println(decoded);
-    
+    //System.out.println(decoded);
+
     return returnBytes;
+  }
+
+  public String insertTextInto(String allText, String whereText, String insertText)
+  {
+    if (allText == null || allText.length() == 0) {
+      return allText;
+    }
+
+    String searchText = whereText.replaceAll("^", "");
+    String replaceText = whereText.replaceAll("^", insertText);
+
+    allText = allText.replaceAll(searchText, replaceText);
+
+    return allText;
   }
 
   public DbConnect checkHttpSession(HttpServletRequest request, PrintWriter out)
@@ -285,9 +355,8 @@ public class PickupServlet extends HttpServlet
       System.out.println("SESSION FOUND!!!! LAST ACCESSED:" + this.convertTime(lastAccess));
       String user = (String) httpSession.getAttribute("user");
       String pwd = (String) httpSession.getAttribute("pwd");
-      System.out.println("--------USER:" + user);
+      //System.out.println("--------USER:" + user);
       db = new DbConnect(user, pwd);
-
     }
     return db;
   }
