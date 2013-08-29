@@ -4,14 +4,12 @@
  */
 package gov.nysenate.inventory.server;
 
-import static gov.nysenate.inventory.server.DbConnect.properties;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.Properties;
@@ -82,7 +80,6 @@ public class DownloadServlet extends HttpServlet
           throws ServletException, IOException
   {
         serverOS = System.getProperty("os.name");
-        System.out.println("serverOS:"+serverOS);
         if (serverOS.toUpperCase().indexOf("WINDOWS")==-1) {
             pathDelimeter = "/";
         }

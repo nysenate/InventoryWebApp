@@ -203,7 +203,7 @@ public class PickupServlet extends HttpServlet
     int minutesConverted = (int) (minutes / minDiv);
     int secondsConverted = (int) (seconds / secDiv);
 
-    StringBuffer returnTime = new StringBuffer();
+    StringBuilder returnTime = new StringBuilder();
     if (hoursConverted > 0) {
       returnTime.append("Hours:");
       returnTime.append(hoursConverted);

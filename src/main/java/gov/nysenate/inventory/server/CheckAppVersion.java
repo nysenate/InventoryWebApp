@@ -35,7 +35,10 @@ public class CheckAppVersion extends HttpServlet {
     
     String APKManifest;
     String downloadPath;
-    String webFilePath;
+    String webFileUrl;
+    String serverOS = "Windows"; // Default to Windows OS
+    String pathDelimeter = "\\"; 
+    
     /**
      * Processes requests for both HTTP
      * <code>GET</code> and
@@ -48,6 +51,10 @@ public class CheckAppVersion extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        serverOS = System.getProperty("os.name");
+        if (serverOS.toUpperCase().indexOf("WINDOWS")==-1) {
+            pathDelimeter = "/";
+        }
  
         PrintWriter out = response.getWriter();
         response.setContentType("text/html");
@@ -60,22 +67,37 @@ public class CheckAppVersion extends HttpServlet {
                 Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-            downloadPath = properties.getProperty("downloadPath");
-            webFilePath = properties.getProperty("webFilePath");
+            try {
+               downloadPath = properties.getProperty("downloadPath").trim();           
+            }
+            catch (Exception e) {
+              downloadPath = "";           
+              e.printStackTrace();
+            }
+            
+            try {
+               webFileUrl = properties.getProperty("webFileUrl");
+            }
+            catch (Exception e) {
+              webFileUrl = "";
+              e.printStackTrace();
+            }
             
             String appName = request.getParameter("appName");
             if (!appName.toLowerCase().endsWith(".zip") && !appName.toLowerCase().endsWith(".apk")) {
                 // Strings are immutable but won't cause any major performance issues (at the moment)
                   appName = appName+".apk";
             }
-            StringBuffer localFile = new StringBuffer();
+            StringBuilder localFile = new StringBuilder();
             localFile.append(downloadPath);
+            if (!downloadPath.trim().endsWith(pathDelimeter)) {
+              localFile.append(pathDelimeter);
+            }
             localFile.append(appName);
 
-            StringBuffer webFile = new StringBuffer();
-            webFile.append(webFilePath);
+            StringBuilder webFile = new StringBuilder();
+            webFile.append(webFileUrl);
             webFile.append(appName);
-            
             
             APKManifest = parseAPK(localFile.toString(), "AndroidManifest.xml");
                

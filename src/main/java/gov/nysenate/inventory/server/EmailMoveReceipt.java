@@ -41,16 +41,25 @@ public class EmailMoveReceipt
   Properties properties = new Properties();
   InputStream in;
   String receiptPath = "C:\\";
-  String dbaHtmlServer = "";
+  String dbaUrl = "";
+  String serverOS = "Windows"; // Default to Windows OS
+  String pathDelimeter = "\\";   
   
   public EmailMoveReceipt() {
         properties = new Properties();
         in = getClass().getClassLoader().getResourceAsStream("config.properties");
+        serverOS = System.getProperty("os.name");
+        if (serverOS.toUpperCase().indexOf("WINDOWS")==-1) {
+            pathDelimeter = "/";
+        }        
         try {
             properties.load(in);
             receiptPath = properties.getProperty("receiptPath");
+            if (!receiptPath.trim().endsWith(pathDelimeter)) {
+                receiptPath = receiptPath.trim() + pathDelimeter;
+            }
             //System.out.println ("EmailMoveReceipt Receipt Location:"+receiptPath);
-            dbaHtmlServer = properties.getProperty("dbaHtmlServer");
+            dbaUrl = properties.getProperty("dbaUrl");
         } catch (IOException ex) {
             java.util.logging.Logger.getLogger(EmailMoveReceipt.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }        
