@@ -12,10 +12,10 @@ import com.google.gson.annotations.Expose;
  */
 public class Commodity
 {
-   @Expose  String decommodityf = "blah blah blah";
-   @Expose  String cdtype = "blah";
-   @Expose  String nusenate = "blah";
-   @Expose  String cdcategory = "blah";
+   @Expose  String decommodityf = "";
+   @Expose  String cdtype = "";
+   @Expose  String nusenate = "";
+   @Expose  String cdcategory = "";
    @Expose  String cdlocat = "";
    @Expose  String cdlocatto = "";
    @Expose  String decomments = "";
