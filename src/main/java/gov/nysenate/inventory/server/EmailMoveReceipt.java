@@ -130,7 +130,7 @@ public int sendPickupEmail(PickupServlet pickupServlet, Pickup pickup)
     }
     
     try {
-        pickupServlet.naemailNameTo1 = properties.getProperty("pickupEmailNameTo2");   
+        pickupServlet.naemailNameTo2 = properties.getProperty("pickupEmailNameTo2");   
     }
     catch (NullPointerException e) {
       Logger.getLogger(PickupServlet.class.getName()).info(pickupServlet.db.ipAddr + "|" + "****PARAMETER pickupEmailNameTo2 NOT FOUND Pickup.processRequest ");
