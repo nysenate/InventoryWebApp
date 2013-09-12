@@ -434,7 +434,7 @@ public int sendPickupEmail(PickupServlet pickupServlet, Pickup pickup)
           }
 
          // Set Subject: header field
-         message.setSubject("Oracle Report Server Unable to Generate Pickup Receipt. Contact STS/BAC.");
+         message.setSubject("Oracle Report Server Unable to Generate Delivery Receipt. Contact STS/BAC.");
 
          // Now set the actual message
          message.setText(error, "utf-8", "html");
@@ -514,7 +514,7 @@ public int sendPickupEmail(PickupServlet pickupServlet, Pickup pickup)
     }
     
     try {
-        deliveryConfirmation.naemailNameTo1 = properties.getProperty("pickupEmailNameTo2");   
+        deliveryConfirmation.naemailNameTo2 = properties.getProperty("pickupEmailNameTo2");   
     }
     catch (NullPointerException e) {
       Logger.getLogger(PickupServlet.class.getName()).info(deliveryConfirmation.db.ipAddr + "|" + "****PARAMETER pickupEmailNameTo2 NOT FOUND Pickup.processRequest ");
@@ -645,7 +645,7 @@ public int sendPickupEmail(PickupServlet pickupServlet, Pickup pickup)
           }
           catch (ReportNotGeneratedException e) {
             //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT getInputStream() ReportNotGeneratedException");
-            Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, "Oracle Reports Server failed to generate a PDF Report for the Pickup Receipt. Please contact STS/BAC.", e);                  
+            Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, "Oracle Reports Server failed to generate a PDF Report for the Delivery Receipt. Please contact STS/BAC.", e);                  
             return new ByteArrayInputStream(new byte[0]);
           }
         }
@@ -692,7 +692,7 @@ public int sendPickupEmail(PickupServlet pickupServlet, Pickup pickup)
             new InternetAddress(deliveryConfirmation.currentEmployee.getNaemail(), deliveryConfirmation.currentEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
       }
       
-      msg.setSubject("Equipment Pickup Receipt");
+      msg.setSubject("Equipment Delivery Receipt");
       //msg.setText(msgBody, "utf-8", "html");
       MimeBodyPart mbp1 = new MimeBodyPart();
       mbp1.setText(msgBody);
