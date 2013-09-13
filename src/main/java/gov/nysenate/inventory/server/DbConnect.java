@@ -180,11 +180,18 @@ public class DbConnect {
     public String securityAccess(String user, String defrmint) {
         log.info(this.ipAddr + "|" + "securityAccess() begin : user= " + user + " & defrmint= " + defrmint);
         String loginStatus = "!!ERROR: No security clearance has been given to "+user+" for this process. Please contact STSBAC.";
+        if (user==null||user.trim().length()==0) {
+          return "!!ERROR: Sever needs username parameter to be passed correctly.("+user+") is not a valid value. Please contact STSBAC.";
+        }
+        if (defrmint==null||defrmint.trim().length()==0) {
+          return "!!ERROR: Sever needs screen name parameter to be passed correctly.("+defrmint+") is not a valid value. Please contact STSBAC.";
+        }
         String commodityCode = ""; //TODO
         String query = " SELECT 1"
                 + " FROM im86modmenu "
                 + " WHERE nauser = ?"
                 + "   AND defrmint = ?";
+        
      /*   String query = "SELECT 1 "
                 + "FROM im86modmenu "
                 + "WHERE nauser = '"+user.trim().toUpperCase()+"' "

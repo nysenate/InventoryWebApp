@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import gov.nysenate.inventory.model.Commodity;
+import gov.nysenate.inventory.model.SimpleListItem;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,9 +29,10 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-/**
- *
+
+import gov.nysenate.inventory.model.SimpleListItem;
+
+/*
  * @author senateuser
  */
 public class TestGson {
@@ -40,6 +42,25 @@ public class TestGson {
         System.out.println (convertTime((long)((3*60*60*1000)+(32*60*1000)+(18*1000)+383)));
         System.out.println (convertTime((long)1533));
         System.out.println (convertTime((long)434));
+        
+        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        List<SimpleListItem> list = Collections.synchronizedList(new ArrayList<SimpleListItem>() );
+        SimpleListItem simpleListItem = new SimpleListItem();
+        simpleListItem.setNavalue("MY FIRST REC");
+        simpleListItem.setNatype("FIRST");
+        list.add(simpleListItem);
+        simpleListItem = new SimpleListItem();
+        simpleListItem.setNatype("SECOND");
+        simpleListItem.setNavalue("MY SECOND REC");
+        list.add(simpleListItem);
+       System.out.println (gson.toJson(list));       
+        //Make Serial 
+        List<InvItem> list2 = Collections.synchronizedList(new ArrayList<InvItem>() );
+        list2.add(new InvItem("088998", "sdfsdfsd", "NEW",
+            "THIS IS THE FIRST ITEM"));
+        list2.add(new InvItem("392343", "fgdsgfgs", "EXISTS",
+            "THIS IS THE SECOND ITEM"));
+       System.out.println (gson.toJson(list2));       
         
         //Make Serial 
        

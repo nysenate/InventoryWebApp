@@ -12,15 +12,19 @@ import com.google.gson.annotations.Expose;
  */
 public class SimpleListItem
 {
-  @Expose String natype;
-  @Expose String navalue;
+  @Expose String natype = "";
+  @Expose String navalue = "";
+  
+  public SimpleListItem() {
+    
+  }    
 
   public void setNatype (String natype){
     this.natype = natype;
   }
  
   public void setNavalue(String navalue) {
-    this.natype = natype;
+    this.navalue = navalue;
   }
   
   public String getNatype() {
