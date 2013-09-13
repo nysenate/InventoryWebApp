@@ -44,6 +44,16 @@ public class Login extends HttpServlet {
             String name = request.getMethod().toString();
             String user = request.getParameter("user");
             String pwd = request.getParameter("pwd");
+            
+            String defrmint = "";
+            
+            try {
+               defrmint = request.getParameter("defrmint");
+            }
+            catch (Exception e) {
+                // Do nothing if we fail to get defrmint;
+            }
+                    
             HttpSession httpSession = request.getSession(true);
             String status = "N";
 
@@ -57,6 +67,7 @@ public class Login extends HttpServlet {
             if (status.equalsIgnoreCase("VALID")) {
                 httpSession.setAttribute("user", user);
                 httpSession.setAttribute("pwd", pwd);
+                status = db.securityAccess(user, defrmint);
             }
             else {
                 httpSession.setAttribute("user", null);

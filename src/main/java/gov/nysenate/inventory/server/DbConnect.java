@@ -4,6 +4,7 @@ import gov.nysenate.inventory.model.Delivery;
 import gov.nysenate.inventory.model.Pickup;
 
 import gov.nysenate.inventory.model.Commodity;
+import gov.nysenate.inventory.model.SimpleListItem;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -34,6 +35,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.google.gson.reflect.TypeToken;
+import gov.nysenate.inventory.model.SimpleListItem;
 import java.awt.Graphics2D;
 import java.util.Arrays;
 
@@ -120,7 +122,6 @@ public class DbConnect {
 
             Class.forName("oracle.jdbc.driver.OracleDriver");
             conn = DriverManager.getConnection(connectionString, userName, password);
-            
 
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
@@ -159,7 +160,6 @@ public class DbConnect {
             log.info(this.ipAddr + "|" + "validateUser() end ");
             int sqlErr = ex.getErrorCode();
             if (sqlErr == 1017) {  // Invalid Username/Password
-
                 return loginStatus;
             } else {
                 return "!!ERROR: " + ex.getMessage() + ". PLEASE CONTACT STS/BAC.";
@@ -172,6 +172,60 @@ public class DbConnect {
         log.info(this.ipAddr + "|" + "validateUser() end ");
         return loginStatus;
     }
+    
+    /*-------------------------------------------------------------------------------------------------------
+     * ---------------Function to check user access
+     *----------------------------------------------------------------------------------------------------*/
+
+    public String securityAccess(String user, String defrmint) {
+        log.info(this.ipAddr + "|" + "securityAccess() begin : user= " + user + " & defrmint= " + defrmint);
+        String loginStatus = "!!ERROR: No security clearance has been given to "+user+" for this process. Please contact STSBAC.";
+        String commodityCode = ""; //TODO
+        String query = " SELECT 1"
+                + " FROM im86modmenu "
+                + " WHERE nauser = ?"
+                + "   AND defrmint = ?";
+     /*   String query = "SELECT 1 "
+                + "FROM im86modmenu "
+                + "WHERE nauser = '"+user.trim().toUpperCase()+"' "
+                + "  AND defrmint = '"+defrmint.trim().toUpperCase()+"'";*/
+        Connection conn = getDbConnection();
+//        Statement pstmt = null;
+/*      try {
+        pstmt = conn.createStatement();
+      } catch (SQLException ex) {
+        java.util.logging.Logger.getLogger(DbConnect.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      }*/
+        
+        PreparedStatement pstmt = null;
+       try {
+             pstmt = conn.prepareStatement(query);
+            pstmt.setString(1, user.trim().toUpperCase());
+            pstmt.setString(2, defrmint.trim().toUpperCase());
+            ResultSet result = pstmt.executeQuery();
+         /*   System.out.println("SECURTY QUERY: "+query);
+            ResultSet result = pstmt.executeQuery(query);*/
+
+            while (result.next()) {
+                System.out.println (user.trim().toUpperCase()+" HAS CLEARANCE");
+                loginStatus = "VALID";
+            }
+        }
+        catch (SQLException e) {
+            log.error("SQL Exception in securityAccess(): ", e);
+        }
+        finally {
+            try {
+                pstmt.close();
+            }
+            catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println ("SECURITY RETURNS "+loginStatus+" FOR DEFRMINT "+defrmint);
+        return loginStatus;
+    }    
+    
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to return details of given barcode (item details)
      *----------------------------------------------------------------------------------------------------*/
@@ -387,6 +441,44 @@ public class DbConnect {
         log.info(this.ipAddr + "|" + "getLocCodes() end");
         return locCodes;
     }
+
+    
+    /*-------------------------------------------------------------------------------------------------------
+     * ---------------Function to return arraylist of all the location codes 
+     *----------------------------------------------------------------------------------------------------*/
+
+    public ArrayList getPickupSearchByList(String userFallback) {
+        ArrayList<SimpleListItem> pickupList = new ArrayList<SimpleListItem>();
+        try {
+            Connection conn = getDbConnection();
+            Statement stmt = conn.createStatement();
+
+            String qry;
+            qry = "select distinct 'CDLOCATTO' natype ,cdlocat||'-'||adstreet1||': '||cdloctype navalue from sl16location a where a.cdstatus='A' AND cdlocat IN (SELECT a2.cdlocatto FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A'))"
+                + "UNION ALL "
+                + "select distinct 'CDLOCATFROM' natype ,cdlocat||'-'||adstreet1||': '||cdloctype navalue from sl16location a where a.cdstatus='A' AND cdlocat IN (SELECT a2.cdlocatfrom FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A'))"
+                + "UNION ALL "
+                + "select distinct 'DTTXNORIGIN' natype, TO_CHAR(dttxnorigin, 'MM/DD/RRRR') navalue  FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A')"
+                + "UNION ALL "
+                + "select distinct 'NAPICKUPBY' natype, napickupby navalue  FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A')"
+                + " ORDER BY  1, 2";
+
+            ResultSet result = stmt.executeQuery(qry);
+            while (result.next()) {
+
+                String natype = result.getString(1);
+                String navalue = result.getString(2);
+                SimpleListItem simpleListItem = new SimpleListItem();
+                simpleListItem.setNatype(natype);
+                simpleListItem.setNavalue(navalue);
+                pickupList.add(simpleListItem);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return pickupList;
+    }
+
 
 
     /*-------------------------------------------------------------------------------------------------------
