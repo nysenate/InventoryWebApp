@@ -190,7 +190,8 @@ public class DbConnect {
         String query = " SELECT 1"
                 + " FROM im86modmenu "
                 + " WHERE nauser = ?"
-                + "   AND defrmint = ?";
+                + "   AND defrmint = ?"
+                + "   AND cdstatus = 'A'";
         
      /*   String query = "SELECT 1 "
                 + "FROM im86modmenu "
@@ -465,7 +466,7 @@ public class DbConnect {
                 + "UNION ALL "
                 + "select distinct 'CDLOCATFROM' natype ,cdlocat||'-'||adstreet1||': '||cdloctype navalue from sl16location a where a.cdstatus='A' AND cdlocat IN (SELECT a2.cdlocatfrom FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A'))"
                 + "UNION ALL "
-                + "select distinct 'DTTXNORIGIN' natype, TO_CHAR(dttxnorigin, 'MM/DD/RRRR') navalue  FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A')"
+                + "select distinct 'DTTXNORIGIN' natype, TO_CHAR(dttxnorigin, 'MM/DD/RRRR-Day') navalue  FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A')"
                 + "UNION ALL "
                 + "select distinct 'NAPICKUPBY' natype, napickupby navalue  FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A')"
                 + " ORDER BY  1, 2";
@@ -601,8 +602,8 @@ public class DbConnect {
         }
         return pickup.getNuxrpd();
     }
-
-    /*-------------------------------------------------------------------------------------------------------
+    
+   /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to return all the in transit deliveries to the given location
      *----------------------------------------------------------------------------------------------------*/
 
@@ -623,6 +624,87 @@ public class DbConnect {
                     + " WHERE a.CDSTATUS='A'"
                     + " AND a.CDINTRANSIT='Y'"
                     + " AND a.CDLOCATTO='" + locCode + "'"
+                    + " AND b.nuxrpd = a.nuxrpd"
+                    + " AND b.cdstatus = 'A'"
+                    + " AND c.cdlocat = a.cdlocatfrom"
+                    + " GROUP BY a.nuxrpd, a.dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode"
+                    + " ORDER BY a.dtpickup NULLS LAST";
+            System.out.println(qry);
+            ResultSet result = stmt.executeQuery(qry);
+            while (result.next()) {
+                int nuxrpd = result.getInt(1);
+                String dtpickup = result.getString(2);
+                String cdlocatfrom = result.getString(3);
+                String napickupby = result.getString(4);
+                String nareleaseby = result.getString(5);
+                String adstreet1 = result.getString(6);
+                String adcity = result.getString(7);
+                String adstate = result.getString(8);
+                String adzipcode = result.getString(9);
+                int nucount = result.getInt(10);
+                //String pickupDetails = NUXRPD + " : From " + CDLOCATFROM + "\n To " + CDLOCATTO + "\n Pickup by : " + NAPICKUPBY;
+                pickupList.add(new PickupGroup(nuxrpd, dtpickup, napickupby, nareleaseby, cdlocatfrom, adstreet1, adcity, adstate, adzipcode, nucount));
+            }
+
+            // Close the connection
+            conn.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            log.fatal(this.ipAddr + "|" + "SQLException in getDeliveryList() : " + e.getMessage());
+        }
+        log.info(this.ipAddr + "|" + "getDeliveryList() end");
+        return pickupList;
+
+    }    
+
+    /*-------------------------------------------------------------------------------------------------------
+     * ---------------Function to return all the in transit pickups for the given values
+     *----------------------------------------------------------------------------------------------------*/
+
+    public List<PickupGroup> getPickupList(ArrayList<SimpleListItem> searchByList, String userFallback) {
+        //log.info(this.ipAddr + "|" + "getDeliveryList() begin : locCode= " + locCode);
+        if (searchByList==null||searchByList.size()==0) {
+            throw new IllegalArgumentException("No Search By Parameters for DbConnect.getPickupList");
+        }
+        StringBuilder supplementatWhereClause = new StringBuilder();
+        
+        for (int x=0;x<searchByList.size();x++) {
+          SimpleListItem simpleListItem = searchByList.get(x);
+          if (simpleListItem.getNatype()==null||simpleListItem.getNatype().trim().length()==0||simpleListItem.getNavalue()==null||simpleListItem.getNavalue().trim().length()==0) {
+            throw new IllegalArgumentException("Search By Parameter Name and Value cannot be null.  Parameter Name:("+simpleListItem.getNatype()+")  Parameter Value:("+simpleListItem.getNavalue()+") for DbConnect.getPickupList");
+          }
+          // Below just simply looking at the name of the column to see if it starts with dt
+          // if it does then assume it is a date column.  NOTE: This will not work with dt...year since
+          // that is a VARCHAR2 column. Just used for code simplicity instead of having to check the database
+          // column type. If it a date, we will assume that it came in as a MM/DD/YY format for simplicity.
+          if (simpleListItem.getNatype().toLowerCase().startsWith("dt")) {
+              supplementatWhereClause.append("  AND TRUNC(a.");
+              supplementatWhereClause.append(simpleListItem.getNatype());
+              supplementatWhereClause.append(")  = TO_DATE('");
+              supplementatWhereClause.append(simpleListItem.getNavalue());
+              supplementatWhereClause.append("' , 'mm/dd/rr')");
+              
+          }
+          else {
+              supplementatWhereClause.append("  AND a.");
+              supplementatWhereClause.append(simpleListItem.getNatype());
+              supplementatWhereClause.append(" = '");
+              supplementatWhereClause.append(simpleListItem.getNavalue());
+              supplementatWhereClause.append("'");
+          }
+        }
+        java.lang.reflect.Type listOfTestObject = new TypeToken<List<PickupGroup>>() {
+        }.getType();
+        List<PickupGroup> pickupList = Collections.synchronizedList(new ArrayList<PickupGroup>());
+        try {
+            Connection conn = getDbConnection();
+            Statement stmt = conn.createStatement();
+            //  String loc_code;
+            String qry = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM') dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode, COUNT(b.nuxrpd) nucount "
+                    + " FROM FM12INVINTRANS a, FD12INVINTRANS b, sl16location c"
+                    + " WHERE a.CDSTATUS='A'"
+                    + " AND a.CDINTRANSIT='Y'"
+                    + supplementatWhereClause.toString()
                     + " AND b.nuxrpd = a.nuxrpd"
                     + " AND b.cdstatus = 'A'"
                     + " AND c.cdlocat = a.cdlocatfrom"
