@@ -2,18 +2,19 @@ package gov.nysenate.inventory.model;
 
 public class Location {
 
-
     private String cdLocType;
     private String cdLoc;
-    private String locName;
-    /*
-     * private char cdLocTypeFrom;
-     * private char cdLocTypeTo;
-     * private String cdLocatFrom;
-     * private String cdLocatTo;
-     * private String originLocation;
-     * private String destinationLocation;
-     */
+    private String addressStreet1;
+    private String city;
+    private String zip;
+
+    public String getAddressStreet1() {
+        return addressStreet1;
+    }
+
+    public void setAddressStreet1(String addressStreet1) {
+        this.addressStreet1 = addressStreet1;
+    }
 
     public String getCdLocType() {
         return cdLocType;
@@ -31,11 +32,19 @@ public class Location {
         this.cdLoc = cdLoc;
     }
 
-    public String getLocName() {
-        return locName;
+    public String getCity() {
+        return city;
     }
 
-    public void setLocName(String locName) {
-        this.locName = locName;
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getZip() {
+        return zip;
+    }
+
+    public void setZip(String zip) {
+        this.zip = zip;
     }
 }

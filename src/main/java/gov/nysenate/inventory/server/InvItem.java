@@ -14,10 +14,10 @@ public class InvItem
    @Expose  String nusenate = "";
    @Expose  String cdcategory = "";
    @Expose  String cdlocat = "";
-   @Expose  String cdlocatto = "";
+    @Expose String cdlocatto = ""; // TODO: not part of an item
    @Expose  String cdintransit = "";
    @Expose  String decomments = "";
-   @Expose  String nuxrefco = "";
+    @Expose String nuxrefco = ""; // TODO: needed here?
    @Expose  String cdcommodity = "";
    
     boolean selected = false;

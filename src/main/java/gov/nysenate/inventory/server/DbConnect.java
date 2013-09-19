@@ -1,6 +1,7 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.model.Delivery;
+import gov.nysenate.inventory.model.Location;
 import gov.nysenate.inventory.model.Pickup;
 
 import gov.nysenate.inventory.model.Commodity;
@@ -34,6 +35,7 @@ import oracle.sql.BLOB;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import gov.nysenate.inventory.model.SimpleListItem;
 import java.awt.Graphics2D;
@@ -588,7 +590,7 @@ public class DbConnect {
             log.info("** updQry *** : " + updQry);
             log.info("****PICKUPITEMS: " + pickup.getPickupItems());
 
-            for (String nusenate : pickup.getPickupItems()) {
+            for (String nusenate : pickup.getPickupItemsNusenate()) {
                 String insertQry = "INSERT INTO FD12INVINTRANS (NUXRPD,NUSENATE,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,NATXNUPDUSER) "
                         + "VALUES(" + pickup.getNuxrpd() + ",'" + nusenate + "','" + "A" + "',SYSDATE,SYSDATE,'" + pickup.getNaPickupBy()
                         + "','" + pickup.getNaPickupBy() + "')";
@@ -927,7 +929,7 @@ public class DbConnect {
             String qry = "SELECT a.nuxrefem, a.nafirst, a.nalast, a.namidinit, a.nasuffix"
                     + " FROM pm21personn a "
                     + " WHERE a.cdempstatus LIKE '" + cdempstatus + "'"
-                    + "  AND a.nalast LIKE'" + nalast + "%'"
+                    + "  AND a.nalast LIKE'" + nalast + "%'" // TODO: nalast = null
                     + " ORDER BY  a.nalast||DECODE(a.nasuffix, NULL, NULL, ' '||a.nasuffix)||', '||a.nafirst||DECODE(a.namidinit, NULL, NULL, ' '||a.namidinit)";
 
 
@@ -1095,7 +1097,7 @@ public class DbConnect {
         log.info(this.ipAddr + "|" + "createNewDelivery() begin :");
 
         Pickup pickup = new Pickup();
-        pickup.setPickupItems(delivery.getNotCheckedItems());
+        pickup.setPickupItemsList(delivery.getNotCheckedItems());
 
         Connection conn = getDbConnection();
         Statement stmt;
@@ -1134,4 +1136,52 @@ public class DbConnect {
         password = pwd;
     }
 
+    public void cancelPickup(int nuxrpd) throws SQLException {
+        Connection conn = getDbConnection();
+        String query = "UPDATE FM12INVINTRANS "
+                + "SET CDINTRANSIT = 'C', "
+                + "DTTXNUPDATE = SYSDATE, "
+                + "NATXNUPDUSER = USER "
+                + "WHERE NUXRPD = ?";
+
+        PreparedStatement ps = conn.prepareStatement(query);
+        ps.setInt(1, nuxrpd);
+        ps.executeUpdate();
+        conn.close();
+    }
+
+    public Pickup getPickupInfo(int nuxrpd) throws SQLException {
+        Pickup pickup = new Pickup();
+        Location origin = new Location();
+        Location dest = new Location();
+        Connection conn = getDbConnection();
+        String query = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM') dtpickup, a.napickupby, a.depucomments,"
+                + " a.cdlocatfrom, b.adstreet1 fromstreet1, b.adcity fromcity, b.adzipcode fromzip,"
+                + " a.cdlocatto, c.adstreet1 tostreet1, c.adcity tocity, c.adzipcode tozip"
+                + " FROM fm12invintrans a, sl16location b, sl16location c"
+                + " WHERE a.cdlocatfrom = b.cdlocat"
+                + " AND a.cdlocatto = c.cdlocat"
+                + " AND nuxrpd = ?";
+        PreparedStatement ps = conn.prepareStatement(query);
+        ps.setInt(1, nuxrpd);
+        ResultSet result = ps.executeQuery();
+        while (result.next()) {
+            pickup.setNuxrpd(Integer.parseInt(result.getString(1)));
+            pickup.setDate(result.getString(2));
+            pickup.setNaPickupBy(result.getString(3));
+            pickup.setComments(result.getString(4));
+            origin.setCdLoc(result.getString(5));
+            origin.setAddressStreet1(result.getString(6));
+            origin.setCity(result.getString(7));
+            origin.setZip(result.getString(8));
+            dest.setCdLoc(result.getString(9));
+            dest.setAddressStreet1(result.getString(10));
+            dest.setCity(result.getString(11));
+            dest.setZip(result.getString(12));
+        }
+        conn.close();
+        pickup.setOrigin(origin);
+        pickup.setDestination(dest);
+        return pickup;
+    }
 }
