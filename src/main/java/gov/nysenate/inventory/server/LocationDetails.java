@@ -64,8 +64,10 @@ public class LocationDetails extends HttpServlet {
             db.ipAddr=request.getRemoteAddr();
             Logger.getLogger(LocationDetails.class.getName()).info(db.ipAddr+"|"+"Servlet LocationDetails : start");
             String barcode_num = request.getParameter("barcode_num");
+            System.out.println ("barcode_num:"+barcode_num);
           
             String details = db.getInvLocDetails(barcode_num, userFallback);
+            System.out.println ("After getInvLocDetails:"+details);
 
             if (details.equals("no")) {
                 out.println("{\"cdlocat\":\"" + "" + "\",\"delocat\":\"" + "Does not exist in system" + "\",\"adstreet1\":\"" + "" + "\",\"adstreet2\":\"" + "" + "\",\"adcity\":\"" + "" + "\",\"adstate\":\"" + "" + "\",\"adzipcode\":\"" + "" + "\",\"nucount\":\"" + "" + "\",\"cdrespctrhd\":\"" + "" + "\"}");
