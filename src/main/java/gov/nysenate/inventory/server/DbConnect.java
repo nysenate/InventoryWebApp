@@ -37,6 +37,7 @@ import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import gov.nysenate.inventory.model.InvSerialNumber;
 import gov.nysenate.inventory.model.SimpleListItem;
 import java.awt.Graphics2D;
 import java.util.Arrays;
@@ -454,7 +455,7 @@ public class DbConnect {
 
     
     /*-------------------------------------------------------------------------------------------------------
-     * ---------------Function to return arraylist of all the location codes 
+     * ---------------Function to return arraylist of all pickups
      *----------------------------------------------------------------------------------------------------*/
 
     public ArrayList getPickupSearchByList(String userFallback) {
@@ -489,7 +490,54 @@ public class DbConnect {
         return pickupList;
     }
 
+   /*-------------------------------------------------------------------------------------------------------
+     * ---------------Function to return arraylist of all Serial#s
+     *----------------------------------------------------------------------------------------------------*/
 
+    public ArrayList getNuSerialList(String userFallback) {
+        ArrayList<InvSerialNumber> invSerialList = new ArrayList<InvSerialNumber>();
+        try {
+            Connection conn = getDbConnection();
+            Statement stmt = conn.createStatement();
+
+            String qry;
+            
+            qry ="SELECT a.nuxrefsn, b.nuserial, a.nusenate, e.cdcommodity, c.decommodityf\n" +
+                "FROM fm12senxref a, fd12issue b, fm12commodty c, fm12comxref e\n" +
+                "WHERE a.nuxrefsn = b.nuxrefsn\n" +
+                "AND b.nuxrefco = c.nuxrefco\n" +
+                "AND e.nuxrefco = c.nuxrefco\n" +
+                "AND a.cdstatus = 'A' \n" +
+                "AND b.cdstatus = 'A' \n" +
+                "AND c.cdstatus = 'A'\n" +
+                "AND e.cdstatus = 'A'\n" +
+                "AND b.nuserial IN (SELECT a2.nuserial \n" +
+                "FROM fd12issue a2 \n" +
+                "WHERE a2.cdstatus = 'A' \n" +
+                "GROUP BY a2.nuserial HAVING COUNT(*)=1)\n" +
+                "ORDER BY b.nuserial";
+
+            ResultSet result = stmt.executeQuery(qry);
+            
+            while (result.next()) {
+                String nuxrefsn = result.getString(1);
+                String nuserial = result.getString(2);
+                String nusenate = result.getString(3);
+                String cdcommodity = result.getString(4);
+                String decommodityf = result.getString(5);
+                InvSerialNumber invSerialNumber = new InvSerialNumber();
+                invSerialNumber.setNuxrefsn(nuxrefsn);
+                invSerialNumber.setNuserial(nuserial);
+                invSerialNumber.setNusenate(nusenate);
+                invSerialNumber.setCdcommodity(cdcommodity);
+                invSerialNumber.setDecommodityf(decommodityf);
+                invSerialList.add(invSerialNumber);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return invSerialList;
+    }
 
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to insert items found at given location(barcodes) for verification

@@ -6,7 +6,7 @@ package gov.nysenate.inventory.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import gov.nysenate.inventory.model.SimpleListItem;
+import gov.nysenate.inventory.model.InvSerialNumber;
 import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -25,8 +25,8 @@ import org.apache.log4j.Logger;
  *
  * @author senateuser
  */
-@WebServlet(name = "PickupSearchByList", urlPatterns = {"/PickupSearchByList"})
-public class PickupSearchByList extends HttpServlet
+@WebServlet(name = "SerialList", urlPatterns = {"/SerialList"})
+public class SerialList extends HttpServlet
 {
 
   /**
@@ -51,12 +51,12 @@ public class PickupSearchByList extends HttpServlet
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND PickupSearchByList.processRequest ");                
+                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND SerialList.processRequest ");                
                 try {
                    userFallback  = request.getParameter("userFallback");
                 }
                 catch (Exception e) {
-                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND PickupSearchByList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND SerialList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
                 }    
                 out.println("Session timed out");
                 return;                
@@ -73,37 +73,23 @@ public class PickupSearchByList extends HttpServlet
             Gson gson = new GsonBuilder()
                   .excludeFieldsWithoutExposeAnnotation()
                   .create();                 
-            Logger.getLogger(PickupSearchByList.class.getName()).info(db.ipAddr+"|"+"Servlet PickupSearchByList : start");
-            String natype;
-            try {
-                natype = request.getParameter("NATYPE");
-            } catch (Exception e) {
-                natype = "ALL";
-                Logger.getLogger(PickupSearchByList.class.getName()).info(db.ipAddr+"|"+"Servlet PickupSearchByList : " + "NATYPE SET TO ALL DUE TO EXCEPTION");
-                System.out.println("NATYPE SET TO ALL DUE TO EXCEPTION");
-            }
-            if (natype == null) {
-                natype = "ALL";
-                System.out.println("NATYPE SET TO ALL DUE TO NULL");
-            } else {
-                System.out.println("NATYPE=" + natype);
-            }
+            //Logger.getLogger(SerialList.class.getName()).info(db.ipAddr+"|"+"Servlet SerialList : start");
 
-            List<SimpleListItem> PickupSearchByList = Collections.synchronizedList(new ArrayList<SimpleListItem>());
+            List<InvSerialNumber> serialList = Collections.synchronizedList(new ArrayList<InvSerialNumber>());
             
-            PickupSearchByList = db.getPickupSearchByList(userFallback);
+            serialList = db.getNuSerialList(userFallback);
 
-            if (PickupSearchByList.size() == 0) {
-                System.out.println("NO LOCATION CODES FOUND");
+            if (serialList.size() == 0) {
+                System.out.println("NO SERIAL#s FOUND");
             }
 
-            String json = gson.toJson(PickupSearchByList);
+            String json = gson.toJson(serialList);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(json);
 
             out.print(json);
-            Logger.getLogger(PickupSearchByList.class.getName()).info(db.ipAddr+"|"+"Servlet PickupSearchByList : end");
+            //Logger.getLogger(SerialList.class.getName()).info(db.ipAddr+"|"+"Servlet SerialList : end");
         } finally {
             out.close();
         }

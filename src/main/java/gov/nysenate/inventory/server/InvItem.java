@@ -6,7 +6,6 @@ package gov.nysenate.inventory.server;
 
 import com.google.gson.annotations.Expose;
 
-
 public class InvItem
 {
    @Expose  String decommodityf = "";
