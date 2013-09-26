@@ -1156,8 +1156,8 @@ public class DbConnect {
         Location dest = new Location();
         Connection conn = getDbConnection();
         String query = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM') dtpickup, a.napickupby, a.depucomments,"
-                + " a.cdlocatfrom, b.adstreet1 fromstreet1, b.adcity fromcity, b.adzipcode fromzip,"
-                + " a.cdlocatto, c.adstreet1 tostreet1, c.adcity tocity, c.adzipcode tozip"
+                + " a.cdlocatfrom, b.cdloctype, b.adstreet1 fromstreet1, b.adcity fromcity, b.adzipcode fromzip,"
+                + " a.cdlocatto, c.cdloctype, c.adstreet1 tostreet1, c.adcity tocity, c.adzipcode tozip"
                 + " FROM fm12invintrans a, sl16location b, sl16location c"
                 + " WHERE a.cdlocatfrom = b.cdlocat"
                 + " AND a.cdlocatto = c.cdlocat"
@@ -1171,17 +1171,47 @@ public class DbConnect {
             pickup.setNaPickupBy(result.getString(3));
             pickup.setComments(result.getString(4));
             origin.setCdLoc(result.getString(5));
-            origin.setAddressStreet1(result.getString(6));
-            origin.setCity(result.getString(7));
-            origin.setZip(result.getString(8));
-            dest.setCdLoc(result.getString(9));
-            dest.setAddressStreet1(result.getString(10));
-            dest.setCity(result.getString(11));
-            dest.setZip(result.getString(12));
+            origin.setCdLocType(result.getString(6));
+            origin.setAddressStreet1(result.getString(7));
+            origin.setCity(result.getString(8));
+            origin.setZip(result.getString(9));
+            dest.setCdLoc(result.getString(10));
+            dest.setCdLocType(result.getString(11));
+            dest.setAddressStreet1(result.getString(12));
+            dest.setCity(result.getString(13));
+            dest.setZip(result.getString(14));
         }
         conn.close();
         pickup.setOrigin(origin);
         pickup.setDestination(dest);
         return pickup;
+    }
+
+    public void changePickupLocation(int nuxrpd, String cdLoc) throws SQLException {
+        String query = "UPDATE FM12INVINTRANS "
+                + "SET CDLOCATFROM = ?, "
+                + "DTTXNUPDATE = SYSDATE, "
+                + "NATXNUPDUSER = USER "
+                + "WHERE NUXRPD = ?";
+        Connection conn = getDbConnection();
+        PreparedStatement ps = conn.prepareStatement(query);
+        ps.setString(1, cdLoc);
+        ps.setInt(2, nuxrpd);
+        ps.executeUpdate();
+        conn.close();
+    }
+
+    public void changeDeliveryLocation(int nuxrpd, String cdLoc) throws SQLException {
+        String query = "UPDATE FM12INVINTRANS "
+                + "SET CDLOCATTO = ?, "
+                + "DTTXNUPDATE = SYSDATE, "
+                + "NATXNUPDUSER = USER "
+                + "WHERE NUXRPD = ?";
+        Connection conn = getDbConnection();
+        PreparedStatement ps = conn.prepareStatement(query);
+        ps.setString(1, cdLoc);
+        ps.setInt(2, nuxrpd);
+        ps.executeUpdate();
+        conn.close();
     }
 }
