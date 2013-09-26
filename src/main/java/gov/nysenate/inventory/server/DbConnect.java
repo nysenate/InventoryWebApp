@@ -502,16 +502,20 @@ public class DbConnect {
 
             String qry;
             
-            qry ="SELECT a.nuxrefsn, b.nuserial, a.nusenate \n" +
-                 "FROM fm12senxref a, fd12issue b \n" +
-                 "WHERE a.nuxrefsn = b.nuxrefsn \n" +
-                 "AND a.cdstatus = 'A' \n" +
-                 " AND b.cdstatus = 'A' \n" +
-                 " AND b.nuserial IN (SELECT a2.nuserial \n" +
-                 " FROM fd12issue a2 \n" +
-                 " WHERE a2.cdstatus = 'A' \n" +
-                 "GROUP BY a2.nuserial HAVING COUNT(*)=1)\n" +
-                 "ORDER BY b.nuserial";
+            qry ="SELECT a.nuxrefsn, b.nuserial, a.nusenate, e.cdcommodity, c.decommodityf\n" +
+                "FROM fm12senxref a, fd12issue b, fm12commodty c, fm12comxref e\n" +
+                "WHERE a.nuxrefsn = b.nuxrefsn\n" +
+                "AND b.nuxrefco = c.nuxrefco\n" +
+                "AND e.nuxrefco = c.nuxrefco\n" +
+                "AND a.cdstatus = 'A' \n" +
+                "AND b.cdstatus = 'A' \n" +
+                "AND c.cdstatus = 'A'\n" +
+                "AND e.cdstatus = 'A'\n" +
+                "AND b.nuserial IN (SELECT a2.nuserial \n" +
+                "FROM fd12issue a2 \n" +
+                "WHERE a2.cdstatus = 'A' \n" +
+                "GROUP BY a2.nuserial HAVING COUNT(*)=1)\n" +
+                "ORDER BY b.nuserial";
 
             ResultSet result = stmt.executeQuery(qry);
             
@@ -519,10 +523,14 @@ public class DbConnect {
                 String nuxrefsn = result.getString(1);
                 String nuserial = result.getString(2);
                 String nusenate = result.getString(3);
+                String cdcommodity = result.getString(4);
+                String decommodityf = result.getString(5);
                 InvSerialNumber invSerialNumber = new InvSerialNumber();
                 invSerialNumber.setNuxrefsn(nuxrefsn);
                 invSerialNumber.setNuserial(nuserial);
                 invSerialNumber.setNusenate(nusenate);
+                invSerialNumber.setCdcommodity(cdcommodity);
+                invSerialNumber.setDecommodityf(decommodityf);
                 invSerialList.add(invSerialNumber);
             }
         } catch (SQLException e) {

@@ -87,7 +87,7 @@ public class Search extends HttpServlet
 
                 out.println("{\"nusenate\":\"" + model[0] + "\",\"nuxrefsn\":\"" + model[1] + "\",\"dtissue\":\"" + model[3] + "\",\"cdlocatto\":\"" + model[4] + "\",\"cdloctypeto\":\"" + model[5]
                         + "\",\"cdcategory\":\"" + model[6] + "\",\"adstreet1to\":\"" + model[7].replaceAll("\"", "&#34;") + "\",\"decommodityf\":\"" + model[8].replaceAll("\"", "&#34;")
-                        + "\",\"cdstatus\":\"" + model[10] + "\",\"deadjust\":\"" + deadjust + "\",\"dtlstinvntry\":\"" + model[13] + "\",\"commodityCd\":\"" + model[14] + "\"}");
+                        + "\",\"cdstatus\":\"" + model[10] + "\",\"deadjust\":\"" + deadjust + "\",\"dtlstinvntry\":\"" + model[13] + "\",\"commodityCd\":\"" + model[14] +  "\",\"nuserial\":\"" + model[2] + "\"}");
                 System.out.println("**Details** " + details);
              }
 
