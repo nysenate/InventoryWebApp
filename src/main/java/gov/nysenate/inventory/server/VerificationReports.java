@@ -7,7 +7,6 @@ package gov.nysenate.inventory.server;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;

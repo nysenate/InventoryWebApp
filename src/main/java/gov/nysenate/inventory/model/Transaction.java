@@ -18,6 +18,15 @@ public abstract class Transaction {
     }
 
     public Location getOrigin() {
+      /*
+       *   If origin is not set, then 
+       *   create a new origin. This is much 
+       *   better than having the Server Crash
+       * 
+       */
+        if (origin==null) {
+          origin = new Location();
+        }
         return origin;
     }
 
@@ -26,6 +35,15 @@ public abstract class Transaction {
     }
 
     public Location getDestination() {
+      /*
+       *   If destination is not set, then 
+       *   create a new destination. This is much 
+       *   better than having the Server Crash
+       * 
+       */
+        if (destination==null) {
+          destination = new Location();
+        }
         return destination;
     }
 

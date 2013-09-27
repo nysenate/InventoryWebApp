@@ -67,8 +67,8 @@ public class PickupServlet extends HttpServlet
     db = checkHttpSession(request, out);
     db.ipAddr = request.getRemoteAddr();
     log.info(db.ipAddr + "|" + "Servlet Pickup : start");
-
-    pickup.getOrigin().setCdLoc(request.getParameter("originLocation"));
+    String originLocation = request.getParameter("originLocation");
+    pickup.getOrigin().setCdLoc(originLocation);
     pickup.getOrigin().setCdLocType(request.getParameter("cdloctypefrm"));
     pickup.getDestination().setCdLoc(request.getParameter("destinationLocation"));
     pickup.getDestination().setCdLocType(request.getParameter("cdloctypeto"));
