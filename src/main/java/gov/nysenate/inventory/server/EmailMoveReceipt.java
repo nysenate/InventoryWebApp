@@ -38,7 +38,7 @@ import javax.mail.internet.MimeMultipart;
  *
  * @author senateuser
  */
-public class EmailMoveReceipt
+public class EmailMoveReceipt implements Runnable
 {
   Properties properties = new Properties();
   InputStream in;
@@ -70,8 +70,10 @@ public class EmailMoveReceipt
   private String deliverAddress = null;
   private Employee pickupEmployee;
   private Employee deliverEmployee;
+  private int emailType;
   
   public EmailMoveReceipt(String username, String password, Pickup pickup) {
+        this.emailType = PICKUP;
         this.username = username;
         this.password = password;
         this.pickup = pickup;
@@ -100,6 +102,7 @@ public class EmailMoveReceipt
 }
 
 public EmailMoveReceipt(String username, String password, Delivery delivery) {
+        this.emailType = DELIVERY;
         this.username = username;
         this.password = password;
         this.delivery = delivery;
@@ -135,7 +138,10 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
   
   public int sendEmailReceipt(Pickup pickup)
   {
-    int emailType = PICKUP;
+    if (emailType!=PICKUP) {
+       Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "***WARNING: Email Type was not set to PICKUP!!! Not emailing Pickup receipt.");
+       return 30;
+    }
     this.pickup = pickup;
 //    String napickupby = pickup.getNapickupby();
     String originLocation = pickup.getOrigin().getCdlocat();
@@ -185,7 +191,10 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
   
   public int sendEmailReceipt(Delivery delivery)
   {
-    int emailType = DELIVERY;
+    if (emailType!=DELIVERY) {
+       Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "***WARNING: Email Type was not set to DELIVERY!!! Not emailing Delivery receipt.");
+       return 31;
+    }
     this.delivery = delivery;
     
     try {
@@ -626,6 +635,35 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
         Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, null, ex1);
       }    
   }    
+
+  @Override
+  public void run()
+  {
+      switch (emailType) {
+        case PICKUP:
+          if (pickup==null) {
+              Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "**WARNING: E-mail Receipt type was set to PICKUP but pickup object was NULL. No e-mail will be generated!!!");
+          } 
+          else {
+              Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "Asynchronouly generating a Pickup E-mail Receipt ");
+          }
+          sendEmailReceipt(pickup);
+          break;
+        case DELIVERY:
+          if (delivery==null) {
+              Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "**WARNING: E-mail Receipt type was set to DELIVERY but delivery object was NULL. No e-mail will be generated!!!");
+          } 
+          else {
+              Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "Asynchronouly generating a Delivery E-mail Receipt ");
+          }
+          sendEmailReceipt(delivery);
+          break;
+        default: 
+          Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "**WARNING: E-mail Receipt type not set to PICKUP or DELIVERY. No e-mail will be generated!!!");
+          break;
+      }
+    
+  }
   
 
 }

@@ -120,16 +120,18 @@ public class PickupServlet extends HttpServlet
         pwd = null;
 
         System.out.println("RIGHT Before E-mail Receipt");
-        emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(pickup);
+        //emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(pickup);
+        Thread threadEmailMoveReceipt = new Thread(emailMoveReceipt);
+        threadEmailMoveReceipt.start();
         System.out.println("emailReceiptStatus:" + emailReceiptStatus);
 
-        if (emailReceiptStatus == 0) {
+//        if (emailReceiptStatus == 0) {
           System.out.println("Database updated successfully");
           out.println("Database updated successfully");
-        } else {
+/*        } else {
           System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + ").");
           out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + ").");
-        }
+        }*/
       } catch (Exception e) {
         System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).");
         out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).");

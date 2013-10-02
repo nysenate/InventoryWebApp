@@ -143,14 +143,16 @@ public class DeliveryConfirmation extends HttpServlet {
         String user = (String) httpSession.getAttribute("user");
         String pwd = (String) httpSession.getAttribute("pwd");        
         EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(user, pwd, delivery);        
+        Thread threadEmailMoveReceipt = new Thread(emailMoveReceipt);
+        threadEmailMoveReceipt.start();          
         
-        emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(delivery);
-        if (emailReceiptStatus==0) {
+        //emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(delivery);
+        //if (emailReceiptStatus==0) {
           out.println("Database updated successfully");         
-        }
+        /*}
         else {
           out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+").");
-        }
+        }*/
       }
       catch (Exception e) {
         out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+"-2).");
