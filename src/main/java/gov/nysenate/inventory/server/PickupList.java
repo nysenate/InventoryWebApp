@@ -39,12 +39,13 @@ public class PickupList extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     String[] searchByTypes = {"cdlocatfrom", "cdlocatto", "napickupby", "dttxnorigin"};
-    ArrayList<SimpleListItem> searchBy = new ArrayList<SimpleListItem>();
   
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+
+        ArrayList<SimpleListItem> searchBy = new ArrayList<SimpleListItem>();
         try {
             HttpSession httpSession = request.getSession(false);
             DbConnect db;

@@ -807,6 +807,7 @@ public class DbConnect {
                     + " AND B.NUXREFCO=C.NUXREFCO "
                     + " and a.nusenate=d.nusenate "
                     + " AND d.nuxrpd =e.nuxrpd "
+                    + " AND d.cdstatus = 'A'"
                     + " and e.nuxrpd=" + nuxrpd;
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
