@@ -9,20 +9,23 @@ public class Delivery extends Transaction {
     private ArrayList<String> checkedItems;
     private ArrayList<String> notCheckedItems;
     private String comments;
-    private String naDeliverBy;
-    private String naAcceptBy;
-    private String nuxrAccptSign;
+    private String nadeliverby;
+    private String naacceptby;
+    private String nuxraccptsign;
+    private String nadeliverbyName;
+    private Location location;
 
     public Delivery() {
         comments = "";
-        naDeliverBy = "";
-        naAcceptBy = "";
-        nuxrAccptSign = "";
+        nadeliverby = "";
+        naacceptby = "";
+        nuxraccptsign = "";
         origin = new Location();
         destination = new Location();
         allItems = new ArrayList<String>();
         checkedItems = new ArrayList<String>();
         notCheckedItems = new ArrayList<String>();
+        nadeliverbyName = "";
     }
 
     public void generateNotCheckedItems() {
@@ -72,28 +75,28 @@ public class Delivery extends Transaction {
         this.comments = comments;
     }
 
-    public String getNaDeliverBy() {
-        return naDeliverBy;
+    public String getNadeliverby() {
+        return nadeliverby;
     }
 
-    public void setNaDeliverBy(String naDeliverBy) {
-        this.naDeliverBy = naDeliverBy.toUpperCase();
+    public void setNadeliverby(String nadeliverby) {
+        this.nadeliverby = nadeliverby.toUpperCase();
     }
 
-    public String getNaAcceptBy() {
-        return naAcceptBy;
+    public String getNaacceptby() {
+        return naacceptby;
     }
 
-    public void setNaAcceptBy(String naAcceptBy) {
-        this.naAcceptBy = naAcceptBy.toUpperCase();
+    public void setNaacceptby(String naacceptby) {
+        this.naacceptby = naacceptby.toUpperCase();
     }
 
     public String getNuxrAccptSign() {
-        return nuxrAccptSign;
+        return nuxraccptsign;
     }
 
-    public void setNuxrAccptSign(String nuxrAccptSign) {
-        this.nuxrAccptSign = nuxrAccptSign;
+    public void setNuxrAccptSign(String nuxraccptsign) {
+        this.nuxraccptsign = nuxraccptsign;
     }
 
 }

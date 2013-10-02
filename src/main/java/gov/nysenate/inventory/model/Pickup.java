@@ -9,18 +9,20 @@ public class Pickup extends Transaction {
 
     private ArrayList<InvItem> pickupItems;
     private String comments;
-    private String naPickupBy;
-    private String naReleaseBy;
-    private String nuxrRelSign;
+    private String napickupby;
+    private String nareleaseby;
+    private String nuxrrelsign;
     private String date;
+    private String napickupbyName;
 
     public Pickup() {
         super();
         comments = "";
-        naPickupBy = "";
-        naReleaseBy = "";
-        nuxrRelSign = "";
+        napickupby = "";
+        nareleaseby = "";
+        nuxrrelsign = "";
         pickupItems = new ArrayList<InvItem>();
+        napickupbyName = "";   
     }
 
     public ArrayList<InvItem> getPickupItems() {
@@ -69,34 +71,42 @@ public class Pickup extends Transaction {
         return comments;
     }
 
-    public void setComments(String comments) {
+    public void setComments(String commentzs) {
         this.comments = comments;
     }
 
-    public String getNaPickupBy() {
-        return naPickupBy;
+    public String getNapickupby() {
+        return napickupby;
     }
 
-    public void setNaPickupBy(String naPickupBy) {
-        this.naPickupBy = naPickupBy.toUpperCase();
+    public void setNapickupby(String napickupby) {
+        this.napickupby = napickupby.toUpperCase();
     }
 
-    public String getNaReleaseBy() {
-        return naReleaseBy;
+    public String getNareleaseby() {
+        return nareleaseby;
     }
 
-    public void setNaReleaseBy(String naReleaseBy) {
-        this.naReleaseBy = naReleaseBy.toUpperCase();
+    public void setNareleaseby(String nareleaseby) {
+        this.nareleaseby = nareleaseby.toUpperCase();
+    }
+    
+    public String getNapickupbyName() {
+        return napickupbyName;
+    }
+    
+    public void setNapickupbyName(String napickupbyName) {
+        this.napickupbyName = napickupbyName;
     }
 
-    public String getNuxrRelSign() {
-        return nuxrRelSign;
+    public String getNuxrrelsign() {
+        return nuxrrelsign;
     }
 
-    public void setNuxrRelSign(String nuxrRelSign) {
-        this.nuxrRelSign = nuxrRelSign;
+    public void setNuxrrelsign(String nuxrrelsign) {
+        this.nuxrrelsign = nuxrrelsign;
     }
-
+    
     public String getDate() {
         return date;
     }

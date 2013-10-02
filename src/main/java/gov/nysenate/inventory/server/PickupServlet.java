@@ -12,7 +12,9 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.sql.SQLException;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -35,7 +37,6 @@ public class PickupServlet extends HttpServlet
   DbConnect db = null;
   String userFallback = null;
   Pickup pickup = new Pickup();
-  Employee currentEmployee = null;
   String testingModeParam = null;
   String testingModeProperty = null;
   static String error = null;
@@ -68,17 +69,27 @@ public class PickupServlet extends HttpServlet
     db.ipAddr = request.getRemoteAddr();
     log.info(db.ipAddr + "|" + "Servlet Pickup : start");
     String originLocation = request.getParameter("originLocation");
-    pickup.getOrigin().setCdLoc(originLocation);
-    pickup.getOrigin().setCdLocType(request.getParameter("cdloctypefrm"));
-    pickup.getDestination().setCdLoc(request.getParameter("destinationLocation"));
-    pickup.getDestination().setCdLocType(request.getParameter("cdloctypeto"));
+    pickup.getOrigin().setCdlocat(originLocation);
+    pickup.getOrigin().setCdloctype(request.getParameter("cdloctypefrm"));
+    pickup.getDestination().setCdlocat(request.getParameter("destinationLocation"));
+    pickup.getDestination().setCdloctype(request.getParameter("cdloctypeto"));
     if (request.getParameterValues("barcode[]") != null) {
       pickup.setPickupItems(request.getParameterValues("barcode[]"));
     }
-    pickup.setNaPickupBy(request.getParameter("NAPICKUPBY"));
-    pickup.setNuxrRelSign(request.getParameter("NUXRRELSIGN"));
-    pickup.setNaReleaseBy(request.getParameter("NARELEASEBY").replaceAll("'", "''"));
+    pickup.setNapickupby(request.getParameter("NAPICKUPBY"));
+    pickup.setNuxrrelsign(request.getParameter("NUXRRELSIGN"));
+    pickup.setNareleaseby(request.getParameter("NARELEASEBY").replaceAll("'", "''"));
     pickup.setComments(request.getParameter("DECOMMENTS").replaceAll("'", "''"));
+    /*try {
+      db.setLocationInfo(pickup.getOrigin());
+    } catch (SQLException ex) {
+      Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, null, ex);
+    }
+    try {
+      db.setLocationInfo(pickup.getDestination());
+    } catch (SQLException ex) {
+      Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, null, ex);
+    }*/
     userFallback = request.getParameter("userFallback");
     System.out.println("After Parameters");
 
@@ -101,10 +112,15 @@ public class PickupServlet extends HttpServlet
       int emailReceiptStatus = 0;
       try {
         System.out.println("Before E-mail Receipt");
-        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt();
+        HttpSession httpSession = request.getSession(false);        
+        String user = (String) httpSession.getAttribute("user");
+        String pwd = (String) httpSession.getAttribute("pwd");        
+        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(user, pwd, pickup);
+        user = null;
+        pwd = null;
 
         System.out.println("RIGHT Before E-mail Receipt");
-        emailReceiptStatus = emailMoveReceipt.sendPickupEmail(this, pickup);
+        emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(pickup);
         System.out.println("emailReceiptStatus:" + emailReceiptStatus);
 
         if (emailReceiptStatus == 0) {

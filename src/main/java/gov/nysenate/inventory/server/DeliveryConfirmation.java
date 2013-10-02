@@ -4,6 +4,7 @@ package gov.nysenate.inventory.server;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+import gov.nysenate.inventory.model.Employee;
 import gov.nysenate.inventory.model.Delivery;
 
 import java.io.IOException;
@@ -39,6 +40,7 @@ public class DeliveryConfirmation extends HttpServlet {
   String naemailFrom = null; 
   String naemailNameFrom = null; 
   Properties properties = new Properties();
+  HttpServletRequest request;
  
  /**
      * Processes requests for both HTTP
@@ -55,6 +57,7 @@ public class DeliveryConfirmation extends HttpServlet {
 
         Logger log = Logger.getLogger(DeliveryConfirmation.class.getName());
         response.setContentType("text/html;charset=UTF-8");
+        this.request = request;
         PrintWriter out = response.getWriter();
         int newDeliveryResult = 0;
         int orgDeliveryResult = 0;
@@ -96,8 +99,8 @@ public class DeliveryConfirmation extends HttpServlet {
                 delivery.setCheckedItems(request.getParameterValues("checkedStr[]"));
             }
             delivery.setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
-            delivery.setNaDeliverBy(request.getParameter("NADELIVERBY"));
-            delivery.setNaAcceptBy(request.getParameter("NAACCEPTBY"));
+            delivery.setNadeliverby(request.getParameter("NADELIVERBY"));
+            delivery.setNaacceptby(request.getParameter("NAACCEPTBY"));
             delivery.setComments(request.getParameter("DECOMMENTS"));
             delivery.generateNotCheckedItems();
 
@@ -136,9 +139,12 @@ public class DeliveryConfirmation extends HttpServlet {
     public void emailDeliveryReceipt (PrintWriter out, String msg) {
       int emailReceiptStatus  = 0;
       try {
-        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt();
+        HttpSession httpSession = request.getSession(false);        
+        String user = (String) httpSession.getAttribute("user");
+        String pwd = (String) httpSession.getAttribute("pwd");        
+        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(user, pwd, delivery);        
         
-        emailReceiptStatus = emailMoveReceipt.sendDeliveryEmail(this, delivery);
+        emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(delivery);
         if (emailReceiptStatus==0) {
           out.println("Database updated successfully");         
         }

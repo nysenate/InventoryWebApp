@@ -1,11 +1,11 @@
 package gov.nysenate.inventory.server;
 
+import gov.nysenate.inventory.model.Employee;
 import gov.nysenate.inventory.model.Delivery;
 import gov.nysenate.inventory.model.Location;
 import gov.nysenate.inventory.model.Pickup;
 
 import gov.nysenate.inventory.model.Commodity;
-import gov.nysenate.inventory.model.SimpleListItem;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -72,7 +72,7 @@ public class DbConnect {
     DbConnect(String user, String pwd) {
         userName = user;
         password = pwd;
-        System.out.println("NEW DBCONNECT userName:"+userName);
+        //System.out.println("NEW DBCONNECT userName:"+userName);
     }
 
     /*-------------------------------------------------------------------------------------------------------
@@ -218,7 +218,7 @@ public class DbConnect {
             ResultSet result = pstmt.executeQuery(query);*/
 
             while (result.next()) {
-                System.out.println (user.trim().toUpperCase()+" HAS CLEARANCE");
+                //System.out.println (user.trim().toUpperCase()+" HAS CLEARANCE");
                 loginStatus = "VALID";
             }
         }
@@ -233,7 +233,7 @@ public class DbConnect {
                 e.printStackTrace();
             }
         }
-        System.out.println ("SECURITY RETURNS "+loginStatus+" FOR DEFRMINT "+defrmint);
+        //System.out.println ("SECURITY RETURNS "+loginStatus+" FOR DEFRMINT "+defrmint);
         return loginStatus;
     }    
     
@@ -256,7 +256,7 @@ public class DbConnect {
             cs.setString(2, barcodeNum);
             cs.executeUpdate();
             details = cs.getString(1);
-            System.out.println(details);
+            //System.out.println(details);
             conn.close();
         } catch (SQLException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
@@ -318,7 +318,7 @@ public class DbConnect {
             cs.setString(2, locCode);
             cs.executeUpdate();
             details = cs.getString(1);
-            System.out.println(details);
+            //System.out.println(details);
         } catch (SQLException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
         }
@@ -629,10 +629,10 @@ public class DbConnect {
             String updQry = "INSERT INTO FM12INVINTRANS (NUXRPD,CDLOCATTO, cdloctypeto, CDLOCATFROM, cdloctypefrm, CDINTRANSIT,"
                     + "NAPICKUPBY, NARELEASEBY,NUXRRELSIGN,NADELIVERBY,NAACCEPTBY,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,"
                     + "NATXNUPDUSER,DEPUCOMMENTS, DTPICKUP) "
-                    + "VALUES(" + pickup.getNuxrpd() + ",'" + pickup.getDestination().getCdLoc() + "','" + pickup.getDestination().getCdLocType()
-                    + "','" + pickup.getOrigin().getCdLoc() + "','" + pickup.getOrigin().getCdLocType() + "','" + "Y" + "','"
-                    + pickup.getNaPickupBy() + "','" + pickup.getNaReleaseBy() + "'," + pickup.getNuxrRelSign() + ",'" + "" + "','" + ""
-                    + "','" + "A" + "',SYSDATE,SYSDATE,'" + pickup.getNaPickupBy() + "','" + pickup.getNaPickupBy() + "','"
+                    + "VALUES(" + pickup.getNuxrpd() + ",'" + pickup.getDestination().getCdlocat() + "','" + pickup.getDestination().getCdloctype()
+                    + "','" + pickup.getOrigin().getCdlocat() + "','" + pickup.getOrigin().getCdloctype() + "','" + "Y" + "','"
+                    + pickup.getNapickupby() + "','" + pickup.getNareleaseby() + "'," + pickup.getNuxrrelsign() + ",'" + "" + "','" + ""
+                    + "','" + "A" + "',SYSDATE,SYSDATE,'" + pickup.getNapickupby() + "','" + pickup.getNapickupby() + "','"
                     + pickup.getComments() + "',SYSDATE)";
             stmt.executeQuery(updQry);
             log.info("** updQry *** : " + updQry);
@@ -640,8 +640,8 @@ public class DbConnect {
 
             for (String nusenate : pickup.getPickupItemsNusenate()) {
                 String insertQry = "INSERT INTO FD12INVINTRANS (NUXRPD,NUSENATE,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,NATXNUPDUSER) "
-                        + "VALUES(" + pickup.getNuxrpd() + ",'" + nusenate + "','" + "A" + "',SYSDATE,SYSDATE,'" + pickup.getNaPickupBy()
-                        + "','" + pickup.getNaPickupBy() + "')";
+                        + "VALUES(" + pickup.getNuxrpd() + ",'" + nusenate + "','" + "A" + "',SYSDATE,SYSDATE,'" + pickup.getNapickupby()
+                        + "','" + pickup.getNapickupby() + "')";
                 stmt.executeQuery(insertQry);
             }
             conn.close();
@@ -679,7 +679,7 @@ public class DbConnect {
                     + " AND c.cdlocat = a.cdlocatfrom"
                     + " GROUP BY a.nuxrpd, a.dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode"
                     + " ORDER BY a.dtpickup NULLS LAST";
-            System.out.println(qry);
+            //System.out.println(qry);
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
                 int nuxrpd = result.getInt(1);
@@ -760,7 +760,7 @@ public class DbConnect {
                     + " AND c.cdlocat = a.cdlocatfrom"
                     + " GROUP BY a.nuxrpd, a.dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode"
                     + " ORDER BY a.dtpickup NULLS LAST";
-            System.out.println(qry);
+            //System.out.println(qry);
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
                 int nuxrpd = result.getInt(1);
@@ -852,7 +852,7 @@ public class DbConnect {
         if (con==null) {
             log.fatal(this.ipAddr + "|" + "Null Connection in insertSignature() after getDbConnection().");
         }
-        System.out.println("DbConnect insertSignature byte Image Length:" + imageInArray.length);
+        //System.out.println("DbConnect insertSignature byte Image Length:" + imageInArray.length);
 
         Blob blobValue;
         int nuxrsign = -1;
@@ -905,7 +905,7 @@ public class DbConnect {
 
             con.setAutoCommit(false);
             //blobValue = new SerialBlob(imageInArray);
-            System.out.println ("insert into FD12INVSIGNS nuxrsign:"+nuxrsign+", nuxrefem:"+nuxrefem+", nauser:"+nauser);
+            //System.out.println ("insert into FD12INVSIGNS nuxrsign:"+nuxrsign+", nuxrefem:"+nuxrefem+", nauser:"+nauser);
             ps = con.prepareStatement("insert into FD12INVSIGNS (nuxrsign, blsign, nuxrefem, cdstatus, natxnorguser, natxnupduser, dttxnorigin, dttxnupdate ) values(?, empty_blob(), ?, 'A', ?,  ?, SYSDATE, SYSDATE )");
             ps.setInt(1, nuxrsign);
             ps.setInt(2, nuxrefem);
@@ -915,14 +915,14 @@ public class DbConnect {
 //            ps.setBlob(2, blobValue);
             ps.executeUpdate();
             con.commit();
-            System.out.println(imageInArray.length + " bytes should have been saved to PCIMAGE");
+            //System.out.println(imageInArray.length + " bytes should have been saved to PCIMAGE");
 
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery("select blsign from FD12INVSIGNS where nuxrsign=" + nuxrsign + " for update");
             BLOB writeBlob = null;
 
             if (rs.next()) {
-                System.out.println("RECORD TO WRITE BLOB");
+                //System.out.println("RECORD TO WRITE BLOB");
                 writeBlob = (BLOB) rs.getBlob(1);
             } else {
                 System.out.println("handelSaveAskTree(): BLOB object could not be found...");
@@ -981,7 +981,7 @@ public class DbConnect {
                     + " ORDER BY  a.nalast||DECODE(a.nasuffix, NULL, NULL, ' '||a.nasuffix)||', '||a.nafirst||DECODE(a.namidinit, NULL, NULL, ' '||a.namidinit)";
 
 
-            System.out.println("QRY:" + qry);
+            //System.out.println("QRY:" + qry);
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
 
@@ -1001,7 +1001,7 @@ public class DbConnect {
      * ---------------Function to confirm delivery i.e. updates the FD12Issue table and changes location-----
      *------------------------------------------------------------------------------------------------------*/
     public int confirmDelivery(Delivery delivery, String userFallback) {
-        log.info(this.ipAddr + "|" + "confirmDelivery() begin.");
+        //log.info(this.ipAddr + "|" + "confirmDelivery() begin.");
 
         Connection conn = getDbConnection();
         Statement stmt;
@@ -1015,10 +1015,10 @@ public class DbConnect {
 
             ResultSet res1 = stmt.executeQuery(qry1);
             while (res1.next()) {
-                delivery.getDestination().setCdLoc(res1.getString(1));
-                delivery.getDestination().setCdLocType(res1.getString(2));
-                delivery.getOrigin().setCdLoc(res1.getString(3));
-                delivery.getOrigin().setCdLocType(res1.getString(4));
+                delivery.getDestination().setCdlocat(res1.getString(1));
+                delivery.getDestination().setCdloctype(res1.getString(2));
+                delivery.getOrigin().setCdlocat(res1.getString(3));
+                delivery.getOrigin().setCdloctype(res1.getString(4));
             }
 
             // Update its entry in FM12InvInTrans to show it is delivered.
@@ -1027,8 +1027,8 @@ public class DbConnect {
                     + " ,DTTXNUPDATE=SYSDATE "
                     + " ,NATXNUPDUSER=USER "
                     + " ,NUXRACCPTSIGN=" + delivery.getNuxrAccptSign()
-                    + " ,NADELIVERBY='" + delivery.getNaDeliverBy()
-                    + "' ,NAACCEPTBY='" + delivery.getNaAcceptBy()
+                    + " ,NADELIVERBY='" + delivery.getNadeliverby()
+                    + "' ,NAACCEPTBY='" + delivery.getNaacceptby()
                     + "' ,DTDELIVERY=SYSDATE "
                     + "  ,DEDELCOMMENTS='" + delivery.getComments()
                     + "' WHERE NUXRPD=" + delivery.getNuxrpd();
@@ -1041,10 +1041,10 @@ public class DbConnect {
                 CallableStatement cs = conn.prepareCall("{?=call move_inventory_item(?,?,?,?,?,?)}");
                 cs.registerOutParameter(1, Types.VARCHAR);
                 cs.setString(2, nusenate);
-                cs.setString(3, delivery.getOrigin().getCdLoc());
-                cs.setString(4, delivery.getOrigin().getCdLocType());
-                cs.setString(5, delivery.getDestination().getCdLoc());
-                cs.setString(6, delivery.getDestination().getCdLocType());
+                cs.setString(3, delivery.getOrigin().getCdlocat());
+                cs.setString(4, delivery.getOrigin().getCdloctype());
+                cs.setString(5, delivery.getDestination().getCdlocat());
+                cs.setString(6, delivery.getDestination().getCdloctype());
                 cs.setString(7, String.valueOf(delivery.getNuxrpd()));
                 cs.executeUpdate();
             }
@@ -1096,8 +1096,8 @@ public class DbConnect {
    public Employee getEmployee(String nuxrefem,  String userFallback) {
      return getEmployee(nuxrefem, true, userFallback);
    }
-
-    public Employee getEmployee(String nuxrefem, boolean upperCase, String userFallback) {
+   
+   public Employee getEmployee(String nuxrefem, boolean upperCase, String userFallback) {
         log.info(this.ipAddr + "|" + "getEmployee() begin : nuxrefem= " + nuxrefem);
         if (nuxrefem.isEmpty() || nuxrefem == null) {
             throw new IllegalArgumentException("Invalid nuxrefem");
@@ -1159,13 +1159,13 @@ public class DbConnect {
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
                 String nuxrpd = result.getString(1);
-                pickup.getOrigin().setCdLoc(result.getString(2));
-                pickup.getOrigin().setCdLocType(result.getString(3));
-                pickup.getDestination().setCdLoc(result.getString(4));
-                pickup.getDestination().setCdLocType(result.getString(5));
-                pickup.setNaPickupBy(result.getString(6));
-                pickup.setNaReleaseBy(result.getString(7));
-                pickup.setNuxrRelSign(result.getString(8));
+                pickup.getOrigin().setCdlocat(result.getString(2));
+                pickup.getOrigin().setCdloctype(result.getString(3));
+                pickup.getDestination().setCdlocat(result.getString(4));
+                pickup.getDestination().setCdloctype(result.getString(5));
+                pickup.setNapickupby(result.getString(6));
+                pickup.setNareleaseby(result.getString(7));
+                pickup.setNuxrrelsign(result.getString(8));
             }
             conn.close();
         }
@@ -1216,18 +1216,18 @@ public class DbConnect {
         while (result.next()) {
             pickup.setNuxrpd(Integer.parseInt(result.getString(1)));
             pickup.setDate(result.getString(2));
-            pickup.setNaPickupBy(result.getString(3));
+            pickup.setNapickupby(result.getString(3));
             pickup.setComments(result.getString(4));
-            origin.setCdLoc(result.getString(5));
-            origin.setCdLocType(result.getString(6));
-            origin.setAddressStreet1(result.getString(7));
-            origin.setCity(result.getString(8));
-            origin.setZip(result.getString(9));
-            dest.setCdLoc(result.getString(10));
-            dest.setCdLocType(result.getString(11));
-            dest.setAddressStreet1(result.getString(12));
-            dest.setCity(result.getString(13));
-            dest.setZip(result.getString(14));
+            origin.setCdlocat(result.getString(5));
+            origin.setCdloctype(result.getString(6));
+            origin.setAdstreet1(result.getString(7));
+            origin.setAdcity(result.getString(8));
+            origin.setAdzipcode(result.getString(9));
+            dest.setCdlocat(result.getString(10));
+            dest.setCdloctype(result.getString(11));
+            dest.setAdstreet1(result.getString(12));
+            dest.setAdcity(result.getString(13));
+            dest.setAdzipcode(result.getString(14));
         }
         conn.close();
         pickup.setOrigin(origin);
@@ -1261,5 +1261,84 @@ public class DbConnect {
         ps.setInt(2, nuxrpd);
         ps.executeUpdate();
         conn.close();
+    }
+    
+    public void setLocationInfo(Location location) throws SQLException {
+      //System.out.println ("DBCONNECT.setLocationInfo cdlocat:"+location.getCdlocat()+", cdloctype:"+location.getCdloctype());
+      if  (location.getCdlocat()==null||location.getCdlocat().trim().length()==0) {
+         log.info("Location has no cdlocat, setLocationInfo could not obtain location information."); 
+         return;         
+      }
+      Connection conn = getDbConnection();
+      Statement stmt;      
+      stmt = conn.createStatement();      
+      
+      if  (location.getCdloctype()==null||location.getCdloctype().trim().length()==0) {
+         log.info("Location has no cdloctype, looking up cdloctype.. Recommending to always pass cdloctype."); 
+   
+            // Get location info for this transaction.
+            String qry0 = "SELECT cdloctype "
+                    + " FROM sl16location a "
+                    + " WHERE cdlocat = '"+location.getCdlocat()+"' "
+                    + "   AND cdstatus = 'A' "
+                    + "   AND NOT EXISTS (SELECT 1 "
+                    + "                   FROM sl16location a2 "
+                    + "                   WHERE a2.cdlocat = a.cdlocat "
+                    + "                     AND a2.cdloctype != a.cdloctype "
+                    + "                     AND a2.cdstatus = 'A')";
+                    
+            ResultSet res0 = stmt.executeQuery(qry0);
+            while (res0.next()) {
+                location.setCdloctype(res0.getString(1));
+            }               
+      }
+      if  (location.getCdloctype()==null||location.getCdloctype().trim().length()==0) {
+         log.info("Location has no cdloctype, setLocationInfo could not obtain location information.");
+         return;
+       }
+          stmt = conn.createStatement();
+          // Get location info for this transaction.
+          String qry1 = "SELECT adstreet1,adcity,adstate,adzipcode "
+                    + " FROM sl16location  "
+                    + " WHERE cdlocat = '"+location.getCdlocat()+"' "
+                    + "   AND cdloctype = '"+location.getCdloctype()+"' "
+                    + "   AND cdstatus = 'A'";
+                    
+           //System.out.println ("DBCONNECT Location "+location.getCdlocat()+" QRY: "+qry1);
+            ResultSet res1 = stmt.executeQuery(qry1);
+            while (res1.next()) {
+                location.setAdstreet1(res1.getString(1));
+                location.setAdcity(res1.getString(2));
+                location.setAdstate(res1.getString(3));
+                location.setAdzipcode(res1.getString(4));
+            }     
+           stmt.close();
+           conn.close();
+           //System.out.println ("DBCONNECT Location "+location.getCdlocat()+" SET: "+location.getAdstreet1());
+    }
+    
+    public Employee getEmployee(String nauser) throws SQLException {
+         Employee employee = new Employee();
+          Connection conn = getDbConnection();
+         Statement stmt;
+         stmt = conn.createStatement();
+          // Get location info for this transaction.
+          String qry1 = "SELECT b.nuxrefem, b.nafirst, b.nalast, b.namidinit, b.nasuffix, b.naemail "
+                    + " FROM fm11user a, pm21personn b  "
+                    + " WHERE UPPER(a.nauser) = '"+nauser.toUpperCase()+"' "
+                    + "   AND a.nuxrefem = b.nuxrefem "
+                    + "   AND b.cdempstatus = 'A'";
+          //System.out.println ("getEmployee qry1:"+qry1);
+          
+            ResultSet res1 = stmt.executeQuery(qry1);
+            while (res1.next()) {
+                employee.setEmployeeXref(res1.getInt(1));
+                employee.setNafirst(res1.getString(2));
+                employee.setNalast(res1.getString(3));
+                employee.setNamidinit(res1.getString(4));
+                employee.setNasuffix(res1.getString(5));
+                employee.setNaemail(res1.getString(5));
+            }            
+      return employee;
     }
 }

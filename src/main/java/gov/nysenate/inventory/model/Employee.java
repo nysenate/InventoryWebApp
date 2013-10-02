@@ -1,4 +1,4 @@
-package gov.nysenate.inventory.server;
+package gov.nysenate.inventory.model;
 
 
 
@@ -232,4 +232,7 @@ public class Employee {
       return nuxrefem;
   }
     
+  public void setEmployeeXref(int nuxrefem ) {
+      this.nuxrefem =  nuxrefem;
+  }  
 }

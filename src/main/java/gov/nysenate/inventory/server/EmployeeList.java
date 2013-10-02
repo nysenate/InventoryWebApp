@@ -4,6 +4,7 @@ package gov.nysenate.inventory.server;
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+import gov.nysenate.inventory.model.Employee;
 import com.google.gson.Gson;
 import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;

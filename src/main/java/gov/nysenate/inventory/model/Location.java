@@ -2,49 +2,60 @@ package gov.nysenate.inventory.model;
 
 public class Location {
 
-    private String cdLocType;
-    private String cdLoc;
-    private String addressStreet1;
-    private String city;
-    private String zip;
+    private String cdloctype;
+    private String cdlocat;
+    private String adstreet1;
+    private String adcity;
+    private String adzipcode;
+    private String adstate;
 
-    public String getAddressStreet1() {
-        return addressStreet1;
+    public String getAdstreet1() {
+        return adstreet1;
     }
 
-    public void setAddressStreet1(String addressStreet1) {
-        this.addressStreet1 = addressStreet1;
+    public void setAdstreet1(String adstreet1) {
+        this.adstreet1 = adstreet1;
     }
 
-    public String getCdLocType() {
-        return cdLocType;
+    public String getCdloctype() {
+        return cdloctype;
     }
 
-    public void setCdLocType(String cdLocType) {
-        this.cdLocType = cdLocType;
+    public void setCdloctype(String cdloctype) {
+        this.cdloctype = cdloctype;
     }
 
-    public String getCdLoc() {
-        return cdLoc;
+    public String getCdlocat() {
+        return cdlocat;
     }
 
-    public void setCdLoc(String cdLoc) {
-        this.cdLoc = cdLoc;
+    public void setCdlocat(String cdlocat) {
+        this.cdlocat = cdlocat;
     }
 
-    public String getCity() {
-        return city;
+    public String getAdcity() {
+        return adcity;
     }
 
-    public void setCity(String city) {
-        this.city = city;
+    public void setAdcity(String adcity) {
+        this.adcity = adcity;
+    }
+    
+    public String getAdstate() {
+        return adstate;
     }
 
-    public String getZip() {
-        return zip;
+    public void setAdstate(String adstate) {
+        this.adstate = adstate;
+    }
+        
+
+    public String getAdzipcode() {
+        return adzipcode;
     }
 
-    public void setZip(String zip) {
-        this.zip = zip;
+    public void setAdzipcode(String adzipcode) {
+        this.adzipcode = adzipcode;
     }
+
 }

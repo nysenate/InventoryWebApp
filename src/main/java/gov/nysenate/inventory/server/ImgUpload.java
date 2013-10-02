@@ -72,9 +72,9 @@ public class ImgUpload extends HttpServlet {
             if (nauser != null) {
                 nauser = nauser.toUpperCase();
             }
-            System.out.println("NAUSER:(" + nauser + ")");
+            //System.out.println("NAUSER:(" + nauser + ")");
             String nuxrefemString = request.getParameter("nuxrefem");
-            System.out.println("NUXREFEM:(" + nuxrefemString + ")");
+            //System.out.println("NUXREFEM:(" + nuxrefemString + ")");
             int nuxrefem = -1;
             int nuxrsign = -1;
             if (nauser == null || nauser.length() < 1) {
@@ -112,7 +112,7 @@ public class ImgUpload extends HttpServlet {
                         // set data equal to newData in prep for next block of data
                         data = newData;
                     }
-                    System.out.println("IMGUPLOAD insertSignature({"+data.length+"},"+nuxrefem+","+nauser+","+userFallback+")");
+                    //System.out.println("IMGUPLOAD insertSignature({"+data.length+"},"+nuxrefem+","+nauser+","+userFallback+")");
                             
                  
                     nuxrsign = db.insertSignature(data, nuxrefem, nauser, userFallback);
@@ -129,7 +129,7 @@ public class ImgUpload extends HttpServlet {
                         System.out.println ("ImgUpload Return: Failure: NUXRSIGN:" + nuxrsign);
                     } else {
                         out.println("NUXRSIGN:" + nuxrsign);
-                        System.out.println ("ImgUpload Return: NUXRSIGN:" + nuxrsign);
+                        //System.out.println ("ImgUpload Return: NUXRSIGN:" + nuxrsign);
                     }
                 } else {
                     out.println("Failure: Employee Xref must be a number. RECEIVED:" + nuxrefemString);
