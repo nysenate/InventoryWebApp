@@ -807,6 +807,7 @@ public class DbConnect {
                     + " AND B.NUXREFCO=C.NUXREFCO "
                     + " and a.nusenate=d.nusenate "
                     + " AND d.nuxrpd =e.nuxrpd "
+                    + " AND d.cdstatus = 'A'"
                     + " and e.nuxrpd=" + nuxrpd;
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
@@ -1340,5 +1341,25 @@ public class DbConnect {
                 employee.setNaemail(res1.getString(5));
             }            
       return employee;
+    }
+
+    public void removeDeliveryItems(int nuxrpd, String[] items) throws SQLException {
+        String query = "UPDATE FD12INVINTRANS "
+                + "SET CDSTATUS = 'I', "
+                + "DTTXNUPDATE = SYSDATE, "
+                + "NATXNUPDUSER = USER "
+                + "WHERE NUSENATE = ? "
+                + "AND NUXRPD = ?";
+        Connection conn = getDbConnection();
+        PreparedStatement ps = conn.prepareStatement(query);
+
+        for (String item : items) {
+            ps.setString(1, item);
+            ps.setInt(2, nuxrpd);
+            ps.addBatch();
+        }
+
+        ps.executeBatch();
+        conn.close();
     }
 }
