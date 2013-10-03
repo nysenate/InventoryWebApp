@@ -48,14 +48,14 @@ import java.util.Arrays;
  */
 public class DbConnect {
 
-    String ipAddr = "";
+    public String ipAddr = "";
     static Logger log = Logger.getLogger(DbConnect.class.getName());
     static Properties properties = new Properties();
     static InputStream in;
     static private String userName,  password;
     final int RELEASESIGNATURE = 3001, ACCEPTBYSIGNATURE = 3002;
    
-    DbConnect() {
+    public DbConnect() {
         properties = new Properties();
         in = getClass().getClassLoader().getResourceAsStream("config.properties");
         try {
@@ -69,7 +69,7 @@ public class DbConnect {
 
     }
 
-    DbConnect(String user, String pwd) {
+    public DbConnect(String user, String pwd) {
         userName = user;
         password = pwd;
         //System.out.println("NEW DBCONNECT userName:"+userName);
