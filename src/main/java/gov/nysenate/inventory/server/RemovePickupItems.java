@@ -1,5 +1,9 @@
 package gov.nysenate.inventory.server;
 
+import gov.nysenate.inventory.util.HttpUtils;
+
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.Arrays;
 
@@ -16,7 +20,20 @@ public class RemovePickupItems extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         Logger log = Logger.getLogger(RemovePickupItems.class.getName());
-        log.info("RemovePickupItems start.");
+
+        PrintWriter out = null;
+        DbConnect db = null;
+        try {
+            out = response.getWriter();
+            db = HttpUtils.getHttpSession(request, out);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // Temporary fix to abide by current session checking functionality.
+        if (out.toString().contains("Session timed out")) {
+            response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
+        }
+
         String nuxrpdString = request.getParameter("nuxrpd");
         String[] items = request.getParameterValues("items[]");
         log.info("RemovePickupItems nuxrpd = " + nuxrpdString);
@@ -28,7 +45,7 @@ public class RemovePickupItems extends HttpServlet {
 
         int nuxrpd = Integer.parseInt(nuxrpdString);
         try {
-            new DbConnect().removeDeliveryItems(nuxrpd, items);
+            db.removeDeliveryItems(nuxrpd, items);
         } catch (SQLException ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("Cancel Pickup Exception: ", ex);

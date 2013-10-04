@@ -1,6 +1,7 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.model.Pickup;
+import gov.nysenate.inventory.util.HttpUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -24,6 +25,19 @@ public class GetPickup extends HttpServlet {
         Logger log = Logger.getLogger(CancelPickup.class.getName());
         response.setContentType("text/html;charset=UTF-8");
 
+        PrintWriter out = null;
+        DbConnect db = null;
+        try {
+            out = response.getWriter();
+            db = HttpUtils.getHttpSession(request, out);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // Temporary fix to abide by current session checking functionality.
+        if (out.toString().contains("Session timed out")) {
+            response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
+        }
+
         int nuxrpd;
         Pickup pickup = null;
         ArrayList<InvItem> items;
@@ -35,7 +49,6 @@ public class GetPickup extends HttpServlet {
         }
 
         nuxrpd = Integer.parseInt(nuxrpdString);
-        DbConnect db = new DbConnect();
         try {
             pickup = db.getPickupInfo(nuxrpd);
             items = db.getDeliveryDetails(nuxrpdString, userFallback);
@@ -52,7 +65,6 @@ public class GetPickup extends HttpServlet {
         }
 
         pickup.setPickupItems(items);
-        PrintWriter out = response.getWriter();
         out.print(new Gson().toJson(pickup));
         out.close();
     }
