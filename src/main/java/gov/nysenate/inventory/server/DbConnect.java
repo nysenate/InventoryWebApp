@@ -494,43 +494,80 @@ public class DbConnect {
      * ---------------Function to return arraylist of all Serial#s
      *----------------------------------------------------------------------------------------------------*/
 
-    public ArrayList getNuSerialList(String userFallback) {
+    public ArrayList getNuSerialList(String nuserialFilter, int numaxResults, String userFallback) {
         ArrayList<InvSerialNumber> invSerialList = new ArrayList<InvSerialNumber>();
         try {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
+            int nucnt = 0;
+            
+            String gryCnt ="SELECT COUNT(DISTINCT b.nuserial)\n" +
+                "FROM fm12senxref a, fd12issue b, fm12commodty c, fm12comxref e\n" +
+                "WHERE a.nuxrefsn = b.nuxrefsn\n" +
+                "AND b.nuserial LIKE '"+nuserialFilter.toUpperCase()+"%'\n" +
+                "AND b.nuxrefco = c.nuxrefco\n" +
+                "AND e.nuxrefco = c.nuxrefco\n" +
+                "AND a.cdstatus = 'A' \n" +
+                "AND c.cdstatus = 'A'\n" +
+                "AND e.cdstatus = 'A'\n" +
+                "AND b.nuserial IN (SELECT a2.nuserial \n" +
+                "FROM fd12issue a2 \n" +
+                "GROUP BY a2.nuserial HAVING COUNT(*)=1)\n" +
+                "ORDER BY b.nuserial";
 
+            ResultSet resultCnt = stmt.executeQuery(gryCnt);
+            
+            while (resultCnt.next()) {
+                nucnt = resultCnt.getInt(1);
+            }
+             log.info(this.ipAddr + "|" + "getNuSerialList() gryCnt ("+nucnt+") :"+gryCnt);
+            System.out.println ( "getNuSerialList() gryCnt ("+nucnt+") :"+gryCnt);
             String qry;
             
             qry ="SELECT a.nuxrefsn, b.nuserial, a.nusenate, e.cdcommodity, c.decommodityf\n" +
                 "FROM fm12senxref a, fd12issue b, fm12commodty c, fm12comxref e\n" +
                 "WHERE a.nuxrefsn = b.nuxrefsn\n" +
+                "AND b.nuserial LIKE '"+nuserialFilter.toUpperCase()+"%'\n" +                    
                 "AND b.nuxrefco = c.nuxrefco\n" +
                 "AND e.nuxrefco = c.nuxrefco\n" +
                 "AND a.cdstatus = 'A' \n" +
-                "AND b.cdstatus = 'A' \n" +
                 "AND c.cdstatus = 'A'\n" +
                 "AND e.cdstatus = 'A'\n" +
                 "AND b.nuserial IN (SELECT a2.nuserial \n" +
                 "FROM fd12issue a2 \n" +
-                "WHERE a2.cdstatus = 'A' \n" +
                 "GROUP BY a2.nuserial HAVING COUNT(*)=1)\n" +
                 "ORDER BY b.nuserial";
 
+
+             log.info(this.ipAddr + "|" + "getNuSerialList() qry:"+qry);
+                     System.out.println ( "getNuSerialList() qry:"+qry);
+            
             ResultSet result = stmt.executeQuery(qry);
             
             while (result.next()) {
+              
                 String nuxrefsn = result.getString(1);
                 String nuserial = result.getString(2);
                 String nusenate = result.getString(3);
                 String cdcommodity = result.getString(4);
                 String decommodityf = result.getString(5);
+                
+                 log.info(this.ipAddr + "|" + "getNuSerialList() qry loop:"+nuserial);   
+                   System.out.println ( "getNuSerialList() qry loop:"+nuserial);
                 InvSerialNumber invSerialNumber = new InvSerialNumber();
                 invSerialNumber.setNuxrefsn(nuxrefsn);
                 invSerialNumber.setNuserial(nuserial);
                 invSerialNumber.setNusenate(nusenate);
                 invSerialNumber.setCdcommodity(cdcommodity);
                 invSerialNumber.setDecommodityf(decommodityf);
+                if (numaxResults<nucnt) {
+                  invSerialNumber.setStatusNum(Integer.toString(nucnt));
+                  invSerialList.add(invSerialNumber);
+                  break;
+                }
+                else {
+                  invSerialNumber.setStatusNum("0");
+                }
                 invSerialList.add(invSerialNumber);
             }
         } catch (SQLException e) {

@@ -15,3 +15,5 @@ testingMode=TRUE
 dbaUrl=
 downloadPath=\\path\\to\\filename\\for\\windows  OR /path/to/filename for unix/linux
 receiptPath=\\path\\to\\filename\\for\\windows  OR /path/to/filename for unix/linux
+report.gen.retry_limit=3
+report.gen.wait_interval=120
