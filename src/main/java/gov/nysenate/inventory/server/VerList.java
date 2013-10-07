@@ -14,5 +14,6 @@ public class VerList {
     String CDCATEGORY;
     String DECOMMODITYF;
     String CDLOCATTO;
+    String CDLOCTYPETO;
     String CDSTATUS;
 }

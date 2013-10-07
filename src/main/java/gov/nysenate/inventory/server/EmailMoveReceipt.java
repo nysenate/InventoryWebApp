@@ -53,6 +53,10 @@ public class EmailMoveReceipt implements Runnable
   private String naemailTo2 = null;
   private String naemailNameTo2 = null;
   private String testingModeProperty = null;
+  private String[] naemailErrorTo = null;
+  private String[] naemailErrorNameTo = null;  
+  private String[] naemailGenTo = null;
+  private String[] naemailGenNameTo = null;
   private String testingModeParam = null;
   private Employee signingEmployee = null;
   private String username = null;
@@ -68,6 +72,7 @@ public class EmailMoveReceipt implements Runnable
   private String pickupAddress = null;  
   private String nadeliverbyName = null;
   private String deliverAddress = null;
+  private boolean testingMode = false;
   private Employee pickupEmployee;
   private Employee deliverEmployee;
   private final int REPORTRETRYLIMITDEFAULT = 5;   // Default Report Retry Limit
@@ -79,6 +84,9 @@ public class EmailMoveReceipt implements Runnable
   private int reportWaitInterval = REPORTWAITINTERVALDEFAULT;      
   private int retryCounter = 0;  // Default to 0 since the initial try will be counted as part of the retries
       // Ex: Max Retry Interval of 5 would be the first try plus two more. 
+  private int nuxrpd = 0;
+  private MimeBodyPart attachmentPart;
+  private String receiptURL = null;
   
   public EmailMoveReceipt(String username, String password, Pickup pickup) {
         this.emailType = PICKUP;
@@ -88,6 +96,7 @@ public class EmailMoveReceipt implements Runnable
         userFallback = username; // userfallback is not really being used
                                  // but it needs to be passed so it is being
                                  // set to username (which should be set)
+        attachmentPart = null;
         System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
         db = new DbConnect(username, password);
         properties = new Properties();
@@ -104,6 +113,8 @@ public class EmailMoveReceipt implements Runnable
             }
             //System.out.println ("EmailMoveReceipt Receipt Location:"+receiptPath);
             dbaUrl = properties.getProperty("dbaUrl");
+            testingModeCheck();
+            initializeEmailTo();
         } catch (IOException ex) {
             java.util.logging.Logger.getLogger(EmailMoveReceipt.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }        
@@ -117,6 +128,7 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
         userFallback = username; // userfallback is not really being used
                                  // but it needs to be passed so it is being
                                  // set to username (which should be set)
+        attachmentPart = null;        
         db = new DbConnect(username, password);
         System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
         properties = new Properties();
@@ -133,10 +145,67 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
             }
             //System.out.println ("EmailMoveReceipt Receipt Location:"+receiptPath);
             dbaUrl = properties.getProperty("dbaUrl");
+            testingModeCheck();
+            initializeEmailTo();
         } catch (IOException ex) {
             java.util.logging.Logger.getLogger(EmailMoveReceipt.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }        
 }
+
+public void testingModeCheck() {
+      if (testingModeParam!=null && testingModeParam.trim().length()>0) {
+      if (testingModeParam.toUpperCase().indexOf("T")>-1) {
+        testingMode = true;
+        Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "****testingModeParam has a T, so Testing Mode is set to TRUE Pickup.processRequest ");
+      }
+      else {
+        testingMode = false;
+      }
+    }
+    else if (testingModeProperty==null || testingModeProperty.toUpperCase().contains("T")) {
+      testingMode = true;
+      Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "***Testing Mode is set to TRUE Pickup.processRequest ");
+    }
+}
+
+ private void initializeEmailTo () {
+       if (properties==null) {
+          return;
+       } 
+       String naemailGenToS = properties.getProperty("report.gen.email_to");
+       String naemailGenNameToS = properties.getProperty("report.gen.email_name_to");
+       String naemailErrorToS = properties.getProperty("report.error.email_to");
+       String naemailErrorNameToS = properties.getProperty("report.error.email_name_to");
+       if (naemailGenToS == null) {
+         this.naemailGenTo = null;
+       }
+       else {
+          this.naemailGenTo = naemailGenToS.split("\\|");
+       }
+       
+       if (naemailGenNameToS == null) {
+         this.naemailGenNameTo = null;
+       }
+       else {
+         this.naemailGenNameTo = naemailGenNameToS.split("\\|");
+       }
+
+       if (naemailErrorToS == null) {
+         this.naemailErrorTo = null;
+       }
+       else {
+         this.naemailErrorTo = naemailErrorToS.split("\\|");
+       }
+       
+       if (naemailErrorNameToS == null) {
+         this.naemailGenNameTo = null;
+       }
+       else {
+         this.naemailErrorNameTo = naemailErrorNameToS.split("\\|");
+       }
+       
+      Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "initializeEmailTo: Length:"+this.naemailErrorTo.length+" Name Length:"+this.naemailGenNameTo.length);
+ }
   
   /*
    * Pickup Specific function serves as the initial setup code for the sendEmail(int emailType)
@@ -251,9 +320,9 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
     }
     
     final int nuxrpd = nuxrpdOrig;
+    this.nuxrpd = nuxrpd;
       
     StringBuilder sb = new StringBuilder();
-    boolean testingMode = false;
     byte[] attachment = null;
     String msgBody = "";
     receiptFilename = nuxrpd+"_"+formatDate(dtreceipt, "yyMMddhh24mmss");
@@ -269,19 +338,21 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
     
     String smtpServer = properties.getProperty("smtpServer");
     final String receiptURL = properties.getProperty("pickupReceiptURL");
+    this.receiptURL = receiptURL;
 
     Properties props = new Properties();
     props.setProperty("mail.smtp.host", smtpServer);
     Session session = Session.getDefaultInstance(props, null);
  
-    properties.getProperty("pickupEmailTo2");
+    this.naemailTo2 =  properties.getProperty("pickupEmailTo2");
     naemailFrom = null; 
-    naemailFrom = properties.getProperty("pickupEmailFrom");
+    naemailFrom = properties.getProperty("pickupEmailFrom");    
     naemailNameFrom = null; 
     naemailNameFrom = properties.getProperty("pickupEmailNameFrom");
     reportRetryLimitString = properties.getProperty("report.gen.retry_limit");
     reportWaitIntervalString = properties.getProperty("report.gen.wait_interval");
-    if (reportRetryLimitString==null) {
+    Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "pickupEmailFrom:"+naemailNameFrom);
+    if (reportRetryLimitString==null||reportWaitIntervalString.isEmpty()) {
         reportRetryLimit = REPORTRETRYLIMITDEFAULT;
         Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "**WARNING: report.gen.retry_limit was not found in config.properties file defaulting to "+reportRetryLimit+".");
     }
@@ -291,21 +362,23 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
       }
       catch (Exception e) {
         reportRetryLimit = REPORTRETRYLIMITDEFAULT;
-        Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "**WARNING: report.gen.retry_limit was found with an invalid numeric value of ("+reportRetryLimitString+") in config.properties file defaulting to "+reportRetryLimit+".");
+        e.printStackTrace();
+        Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "**WARNING: report.gen.retry_limit was found with an invalid numeric value of ("+reportRetryLimitString+") in config.properties file defaulting to "+reportRetryLimit+".["+e.getMessage()+"] at "+e.getStackTrace()[0].toString());
       }
     }
     
-    if (reportWaitIntervalString==null) {
+    if (reportWaitIntervalString==null||reportWaitIntervalString.isEmpty()) {
         reportWaitInterval = REPORTWAITINTERVALDEFAULT;  
         Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "**WARNING: report.gen.wait_interval was not found in config.properties file defaulting to "+reportWaitInterval+".");
     }
     else {
       try {
-        reportRetryLimit = Integer.getInteger(reportRetryLimitString);
+        reportWaitInterval = Integer.getInteger(reportWaitIntervalString);
       }
       catch (Exception e) {
+        e.printStackTrace();
         reportWaitInterval = REPORTWAITINTERVALDEFAULT;
-        Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "**WARNING: report.gen.wait_interval was found with an invalid numeric value of ("+reportRetryLimitString+") in config.properties file defaulting to "+reportRetryLimit+".");
+        Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "**WARNING: report.gen.wait_interval was found with an invalid numeric value of ("+reportWaitIntervalString+") in config.properties file defaulting to "+reportWaitInterval+".["+e.getMessage()+"] at "+e.getStackTrace()[0].toString());
       }      
     }
 
@@ -368,20 +441,7 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
      * instead of the user that should be e-mailed. This would mean that the server is in testing mode.
      */
     
-    if (testingModeParam!=null && testingModeParam.trim().length()>0) {
-      if (testingModeParam.toUpperCase().indexOf("T")>-1) {
-        testingMode = true;
-        Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "****testingModeParam has a T, so Testing Mode is set to TRUE Pickup.processRequest ");
-      }
-      else {
-        testingMode = false;
-      }
-    }
-    else if (testingModeProperty==null || testingModeProperty.toUpperCase().contains("T")) {
-      testingMode = true;
-      Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "***Testing Mode is set to TRUE Pickup.processRequest ");
-    }
-    
+   
     if (testingMode) {
       sb.append("<b>TESTINGMODE</b>: E-mail under normal circumstances would have been sent to:");
       sb.append(signingEmployee.getNaemail());
@@ -498,6 +558,147 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
     
     //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT");
     MimeMultipart mimeMultipart = new MimeMultipart();
+    attachmentPart = getOracleReportResponse(receiptURL, nuxrpd);
+/*    try {
+
+      //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ADD ATTACHMENT");
+      attachmentPart.setDataHandler(
+              new DataHandler(
+              new DataSource()
+      {
+        @Override
+        public String getContentType()
+        {
+          return "application/pdf";
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException
+        {
+          try {
+            ////System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT getInputStream()");
+            
+            return new ByteArrayInputStream(bytesFromUrlWithJavaIO(receiptURL + nuxrpd));
+          }
+          catch (ReportNotGeneratedException e) {
+            ////System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT getInputStream() ReportNotGeneratedException");
+            Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, "Oracle Reports Server failed to generate a PDF Report for the Pickup Receipt. Please contact STS/BAC.", e);                  
+            return new ByteArrayInputStream(new byte[0]);
+          }
+        }
+
+        @Override
+        public String getName()
+        {
+          return receiptFilename+".pdf";
+        }
+
+        @Override
+        public OutputStream getOutputStream() throws IOException
+        {
+          return null;
+        }
+      }));
+      //System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME:"+attachmentPart.getDataHandler().getName());
+      //System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME(2):"+attachmentPart.getDataHandler().getDataSource().getName());
+      
+    } catch (MessagingException ex) {
+      Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
+    }*/
+
+    try {
+      in = this.getClass().getClassLoader().getResourceAsStream("config.properties");
+      properties.load(in);
+ 
+      msgBody = sb.toString();
+      MimeMessage msg = new MimeMessage(session);
+      //System.out.println("EMAILING FROM:" + naemailFrom + ":" + naemailNameFrom);
+      msg.setFrom(new InternetAddress(naemailFrom, naemailNameFrom));
+      int recipientCount = 0;
+      if (testingMode) {
+          System.out.println("TESTINGMODE Would have sent (BUT DID NOT) TO:" + signingEmployee.getNaemail() + " (" + signingEmployee.getEmployeeName()+")");
+        if (naemailTo1!=null && naemailTo1.trim().length()>0){
+          System.out.println("TESTINGMODE EMAILING TO:" + naemailTo1 + ":" + naemailNameTo1);
+          msg.addRecipient(Message.RecipientType.TO,
+            new InternetAddress(naemailTo1, naemailNameTo1));  //naemailTo, naemployeeTo
+        }
+        if (naemailTo2!=null && naemailTo2.trim().length()>0){
+          System.out.println("TESTINGMODE EMAILING TO:" + naemailTo2 + ":" + naemailNameTo2);
+          msg.addRecipient(Message.RecipientType.TO,
+            new InternetAddress(naemailTo2, naemailNameTo2));  //naemailTo, naemployeeTo
+        }
+      }
+      else {
+          msg.addRecipient(Message.RecipientType.TO,
+            new InternetAddress(signingEmployee.getNaemail(), signingEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
+          addDistributionRecipients(msg);
+      }
+      
+      //System.out.println("EMAILING BEFORE SUBJECT");
+      msg.setSubject("Equipment Pickup Receipt");
+      //msg.setText(msgBody, "utf-8", "html");
+      MimeBodyPart mbp1 = new MimeBodyPart();
+      mbp1.setText(msgBody);
+      mbp1.setContent(msgBody, "text/html");
+      mimeMultipart.addBodyPart(mbp1);
+      mimeMultipart.addBodyPart(attachmentPart);
+      msg.setContent(mimeMultipart);
+      if (attachmentPart==null||attachmentPart.getSize()==0) {
+          System.out.println("***E-mail NOT sent because attachment was malformed.");
+          if (returnStatus==0) {
+              returnStatus= 8;
+          }            
+      }
+      else {
+          if (attachmentPart.getContent()==null) {
+              if (returnStatus==0) {
+                returnStatus= 9;
+              }            
+              System.out.println("***E-mail NOT sent because attachment was malformed(2).");
+          }
+          else {
+              //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT BEFORE SENDING E-MAIL");
+
+              if (recipientCount==0) {
+                  Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "**WARNING: There were no e-mail recipients for a Report. No e-mail will be sent!!!");
+              }
+              else {
+                  Transport.send(msg);
+                  //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT AFTER SENDING E-MAIL");
+              }
+          }
+      }
+      System.out.println("E-mail sent with no errors.");
+
+    } catch (AddressException e) {
+      if (returnStatus == 0) {
+        returnStatus = 10;
+      }
+      
+      e.printStackTrace();
+    } catch (MessagingException e) {
+      if (returnStatus == 0) {
+        returnStatus = 11;
+      }
+      e.printStackTrace();
+    } catch (Exception e) {
+      if (returnStatus == 0) {
+        returnStatus = 12;
+      }
+      e.printStackTrace();
+    }    
+    return returnStatus;
+  }
+  
+  public String formatDate(Date d, String format) {
+    if (d==null) {
+      return "";
+    }
+    SimpleDateFormat sdf = new SimpleDateFormat(format);
+    return sdf.format(d);
+  }
+  
+  private MimeBodyPart getOracleReportResponse(final String receiptURL , final int nuxrpd) {
     MimeBodyPart attachmentPart = new MimeBodyPart();
     try {
 
@@ -545,90 +746,9 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
     } catch (MessagingException ex) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
     }
-
-    try {
-      in = this.getClass().getClassLoader().getResourceAsStream("config.properties");
-      properties.load(in);
- 
-      msgBody = sb.toString();
-      MimeMessage msg = new MimeMessage(session);
-      //System.out.println("EMAILING FROM:" + naemailFrom + ":" + naemailNameFrom);
-      msg.setFrom(new InternetAddress(naemailFrom, naemailNameFrom));
-      if (testingMode) {
-          System.out.println("TESTINGMODE Would have sent (BUT DID NOT) TO:" + signingEmployee.getNaemail() + " (" + signingEmployee.getEmployeeName()+")");
-        if (naemailTo1!=null && naemailTo1.trim().length()>0){
-          System.out.println("TESTINGMODE EMAILING TO:" + naemailTo1 + ":" + naemailNameTo1);
-          msg.addRecipient(Message.RecipientType.TO,
-            new InternetAddress(naemailTo1, naemailNameTo1));  //naemailTo, naemployeeTo
-        }
-        if (naemailTo2!=null && naemailTo2.trim().length()>0){
-          System.out.println("TESTINGMODE EMAILING TO:" + naemailTo2 + ":" + naemailNameTo2);
-          msg.addRecipient(Message.RecipientType.TO,
-            new InternetAddress(naemailTo2, naemailNameTo2));  //naemailTo, naemployeeTo
-        }
-      }
-      else {
-          msg.addRecipient(Message.RecipientType.TO,
-            new InternetAddress(signingEmployee.getNaemail(), signingEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
-      }
-      
-      //System.out.println("EMAILING BEFORE SUBJECT");
-      msg.setSubject("Equipment Pickup Receipt");
-      //msg.setText(msgBody, "utf-8", "html");
-      MimeBodyPart mbp1 = new MimeBodyPart();
-      mbp1.setText(msgBody);
-      mbp1.setContent(msgBody, "text/html");
-      mimeMultipart.addBodyPart(mbp1);
-      mimeMultipart.addBodyPart(attachmentPart);
-      msg.setContent(mimeMultipart);
-      if (attachmentPart==null||attachmentPart.getSize()==0) {
-          System.out.println("***E-mail NOT sent because attachment was malformed.");
-          if (returnStatus==0) {
-              returnStatus= 8;
-          }            
-      }
-      else {
-          if (attachmentPart.getContent()==null) {
-              if (returnStatus==0) {
-                returnStatus= 9;
-              }            
-              System.out.println("***E-mail NOT sent because attachment was malformed(2).");
-          }
-          else {
-              //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT BEFORE SENDING E-MAIL");
-              Transport.send(msg);
-              //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT AFTER SENDING E-MAIL");
-          }
-      }
-      System.out.println("E-mail sent with no errors.");
-
-    } catch (AddressException e) {
-      if (returnStatus == 0) {
-        returnStatus = 10;
-      }
-      
-      e.printStackTrace();
-    } catch (MessagingException e) {
-      if (returnStatus == 0) {
-        returnStatus = 11;
-      }
-      e.printStackTrace();
-    } catch (Exception e) {
-      if (returnStatus == 0) {
-        returnStatus = 12;
-      }
-      e.printStackTrace();
-    }    
-    return returnStatus;
+    return attachmentPart;
   }
   
-  public String formatDate(Date d, String format) {
-    if (d==null) {
-      return "";
-    }
-    SimpleDateFormat sdf = new SimpleDateFormat(format);
-    return sdf.format(d);
-  }
   
  /*
   * New EmailError
@@ -640,6 +760,7 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
       String smtpServer = properties.getProperty("smtpServer");
       props.setProperty("mail.smtp.host", smtpServer);
       Session session = Session.getDefaultInstance(props, null);
+      int recipientCount = 0;
       try{
          // Create a default MimeMessage object.
          MimeMessage message = new MimeMessage(session);
@@ -647,22 +768,51 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
          // Set From: header field of the header.
          message.setFrom(new InternetAddress(naemailFrom, naemailNameFrom));
 
+
          // Set To: header field of the header.
+     if (testingMode) {
+        recipientCount = addErrorRecipients(message);
         if (naemailTo1!=null && naemailTo1.trim().length()>0){
           message.addRecipient(Message.RecipientType.TO,
             new InternetAddress(naemailTo1, naemailNameTo1));  //naemailTo, naemployeeTo
+          recipientCount++;
         }
         if (naemailTo2!=null && naemailTo2.trim().length()>0){
           message.addRecipient(Message.RecipientType.TO,
             new InternetAddress(naemailTo2, naemailNameTo2));  //naemailTo, naemployeeTo
+          recipientCount++;
           }
+     }
+     else {
+         recipientCount = addErrorRecipients(message);
+     }
 
+     if (recipientCount==0) {
+        Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "**WARNING: There were no e-mail recipients for a Report Genration error. No error e-mail will be sent!!!");
+       return;
+     }
+        Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "!!!!EMAILERROR BEFORE SUBJECT");
          // Set Subject: header field
-         message.setSubject("Oracle Report Server Unable to Generate Pickup Receipt. Contact STS/BAC.");
-
+        message.setSubject("Oracle Report Server Unable to Generate Pickup Receipt. Contact STS/BAC.");
+        Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "!!!!EMAILERROR BEFORE MESSAGE HEADER");
+       String sEmailType = "";
+       if (emailType==PICKUP) {
+          sEmailType = "PICKUP";
+       } 
+       else if (emailType==DELIVERY) {
+          sEmailType = "DELIVERY";
+       }
+       else {
+          sEmailType = "UNKNOWN EMAIL TYPE:"+emailType;
+       }
+        
+       String msgHeader = "<html><body><b>URL:<a href='"+receiptURL + nuxrpd+"'>"+receiptURL + nuxrpd+"</a> ("+sEmailType+") Try#:"+retryCounter+" failed to generated and came back with the following response...<br /><br /> </body></html>"; 
+         
+        Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "!!!!EMAILERROR BEFORE SET MESSAGE:"+msgHeader+error);
          // Now set the actual message
-         message.setText(error, "utf-8", "html");
-
+         message.setText(msgHeader+error, "utf-8", "html");
+        Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "!!!!EMAILERROR AFTER SET MESSAGE");
+         Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "| EMAIL ERRORR MSG:" + message);
          // Send message
          Transport.send(message);
          System.out.println("Sent error message successfully....");
@@ -730,5 +880,64 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
     
   }
   
+  private int addDistributionRecipients(MimeMessage msg) throws MessagingException, UnsupportedEncodingException {
+    int cnt = 0;
+    
+    if (this.naemailGenTo==null) {
+      return cnt;
+    }
+    for (int x=0;x<naemailGenTo.length;x++) {
+       msg.addRecipient(Message.RecipientType.TO,
+            new InternetAddress(naemailGenTo[x], getName(x, this.naemailGenNameTo) ));  //naemailTo, naemployeeTo
+       cnt++;       
+    }
+    return cnt;    
+  }
+  
+  private int addErrorRecipients(MimeMessage msg) throws MessagingException, UnsupportedEncodingException {
+    int cnt = 0;
+    String curNaemailErrorTo = null;
+    String curNameErrorTo = null;
+    //Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "| addErrorRecipients");
+    
+    if (this.naemailErrorTo==null) {
+      //Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "| addErrorRecipients NO RECIPIENTS");
+      return cnt;
+    }
+    
+   //Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "| addErrorRecipients "+naemailErrorTo.length+" RECIPIENTS");
+           
+    for (int x=0;x<naemailErrorTo.length;x++) {
+       curNaemailErrorTo = naemailErrorTo[x];
+       curNameErrorTo = getName(x, this.naemailErrorNameTo);
+       
+       //Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "| EMAIL ERRORR TO:" + curNaemailErrorTo + " NAME:"+curNameErrorTo);
+             
+       msg.addRecipient(Message.RecipientType.TO,
+            new InternetAddress(curNaemailErrorTo, curNameErrorTo ));  //naemailTo, naemployeeTo
+       cnt++;
+    }
+    return cnt;
+    
+  }
+  
+  private String getName(int row, String[] nameList) {
+    if (nameList==null||nameList.length<row) {
+        return "";
+    }
+    else {
+        return nvl(nameList[row], "");
+    }
+    
+  }
+  
+  private String nvl(String value, String nullReturn) {
+    if (value==null) {
+        return nullReturn;
+    }
+    else {
+        return value;
+    }
+  }
 
 }

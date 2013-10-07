@@ -71,6 +71,9 @@ public class ItemsList extends HttpServlet {
             itemList = db.getLocationItemList(loc_code, userFallback);
             
             String json = new Gson().toJson(itemList);
+            Logger.getLogger(ItemsList.class.getName()).info(db.ipAddr+"|"+"ItemsList:"+json);
+             System.out.println (db.ipAddr+"|"+"ItemsList:"+json);
+            
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(json);

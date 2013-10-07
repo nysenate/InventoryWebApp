@@ -340,7 +340,7 @@ public class DbConnect {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
             //  String loc_code;
-            String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF, B.CDLOCATTO, DECODE(b.cdstatus, 'I', b.cdstatus, c.cdstatus) cdstatus "
+            String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF, B.CDLOCATTO, DECODE(b.cdstatus, 'I', b.cdstatus, c.cdstatus) cdstatus, b.cdloctypeto "
                     + " FROM FM12SENXREF A,FD12ISSUE B, FM12COMMODTY C"
                     + " WHERE A.CDSTATUS='A'"
                     + " AND b.cdstatus = 'A'"
@@ -358,6 +358,7 @@ public class DbConnect {
                 vl.DECOMMODITYF = result.getString(3);
                 vl.CDLOCATTO = result.getString(4);
                 vl.CDSTATUS = result.getString(5);
+                vl.CDLOCTYPETO = result.getString(6);
                 itemList.add(vl);
             }
         } catch (SQLException e) {
