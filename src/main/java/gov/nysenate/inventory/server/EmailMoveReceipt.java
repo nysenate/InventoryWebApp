@@ -70,7 +70,15 @@ public class EmailMoveReceipt implements Runnable
   private String deliverAddress = null;
   private Employee pickupEmployee;
   private Employee deliverEmployee;
+  private final int REPORTRETRYLIMITDEFAULT = 5;   // Default Report Retry Limit
+  private final int REPORTWAITINTERVALDEFAULT = 120; // Default Wait Time between Retries in Seconds
   private int emailType;
+  private String reportRetryLimitString = String.valueOf(REPORTRETRYLIMITDEFAULT); // (String Representation) Max number of Retries
+  private String reportWaitIntervalString = String.valueOf(REPORTWAITINTERVALDEFAULT); // (String Represenation) In Seconds between retries
+  private int reportRetryLimit = REPORTRETRYLIMITDEFAULT;
+  private int reportWaitInterval = REPORTWAITINTERVALDEFAULT;      
+  private int retryCounter = 0;  // Default to 0 since the initial try will be counted as part of the retries
+      // Ex: Max Retry Interval of 5 would be the first try plus two more. 
   
   public EmailMoveReceipt(String username, String password, Pickup pickup) {
         this.emailType = PICKUP;
@@ -271,7 +279,36 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
     naemailFrom = properties.getProperty("pickupEmailFrom");
     naemailNameFrom = null; 
     naemailNameFrom = properties.getProperty("pickupEmailNameFrom");
+    reportRetryLimitString = properties.getProperty("report.gen.retry_limit");
+    reportWaitIntervalString = properties.getProperty("report.gen.wait_interval");
+    if (reportRetryLimitString==null) {
+        reportRetryLimit = REPORTRETRYLIMITDEFAULT;
+        Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "**WARNING: report.gen.retry_limit was not found in config.properties file defaulting to "+reportRetryLimit+".");
+    }
+    else {
+      try {
+        reportRetryLimit = Integer.getInteger(reportRetryLimitString);
+      }
+      catch (Exception e) {
+        reportRetryLimit = REPORTRETRYLIMITDEFAULT;
+        Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "**WARNING: report.gen.retry_limit was found with an invalid numeric value of ("+reportRetryLimitString+") in config.properties file defaulting to "+reportRetryLimit+".");
+      }
+    }
     
+    if (reportWaitIntervalString==null) {
+        reportWaitInterval = REPORTWAITINTERVALDEFAULT;  
+        Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "**WARNING: report.gen.wait_interval was not found in config.properties file defaulting to "+reportWaitInterval+".");
+    }
+    else {
+      try {
+        reportRetryLimit = Integer.getInteger(reportRetryLimitString);
+      }
+      catch (Exception e) {
+        reportWaitInterval = REPORTWAITINTERVALDEFAULT;
+        Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "**WARNING: report.gen.wait_interval was found with an invalid numeric value of ("+reportRetryLimitString+") in config.properties file defaulting to "+reportRetryLimit+".");
+      }      
+    }
+
     try {
         naemailTo1 = properties.getProperty("pickupEmailTo1");   
     }
@@ -639,6 +676,8 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
   @Override
   public void run()
   {
+      int returnStatus = -1;
+      retryCounter = 0;
       switch (emailType) {
         case PICKUP:
           if (pickup==null) {
@@ -647,7 +686,19 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
           else {
               Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "Asynchronouly generating a Pickup E-mail Receipt ");
           }
-          sendEmailReceipt(pickup);
+          do {
+            retryCounter++;
+            returnStatus = sendEmailReceipt(pickup);
+            if (returnStatus != 0) {
+              Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" +  "Pickup receipt generated a returnStatus="+returnStatus+". Will retry to generate the Pickup receipt after "+this.reportWaitInterval+" seconds.");
+              try {
+                Thread.sleep(this.reportWaitInterval*1000);
+              } catch (InterruptedException ex) {
+                Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, null, ex);
+              }
+            } 
+          }
+          while (returnStatus !=0 && retryCounter<=reportRetryLimit);
           break;
         case DELIVERY:
           if (delivery==null) {
@@ -656,7 +707,21 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
           else {
               Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "Asynchronouly generating a Delivery E-mail Receipt ");
           }
-          sendEmailReceipt(delivery);
+          do {
+            retryCounter++;
+            returnStatus = sendEmailReceipt(delivery);
+            if (returnStatus != 0) {
+              Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" +  "Delivery receipt generated a returnStatus="+returnStatus+". Will retry to generate the Delivery receipt after "+this.reportWaitInterval+" seconds.");
+              try {
+                Thread.sleep(this.reportWaitInterval*1000);
+              } catch (InterruptedException ex) {
+                Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, null, ex);
+              }
+            } 
+          }
+          while (returnStatus !=0 && retryCounter<=reportRetryLimit);
+          // TODO
+          // Need an E-mail if it could not generate after the max number of retries          
           break;
         default: 
           Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "**WARNING: E-mail Receipt type not set to PICKUP or DELIVERY. No e-mail will be generated!!!");

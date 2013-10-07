@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
 public class SerialList extends HttpServlet
 {
 
+   int numaxResults = 500;
   /**
    * Processes requests for both HTTP
    * <code>GET</code> and
@@ -69,6 +70,19 @@ public class SerialList extends HttpServlet
                 db = new DbConnect(user, pwd);
             }
             
+            String nuserial = request.getParameter("nuserial");
+            
+            String maxResults = request.getParameter("maxResults");
+            
+            if (maxResults!=null) {
+               try {
+                this.numaxResults = Integer.valueOf(maxResults);
+               }
+               catch (Exception e) {
+                 Logger.getLogger(SerialList.class.getName()).warn(db.ipAddr+"|"+"Servlet SerialList could not convert maxResults ("+maxResults+") to a number, defaulting to "+maxResults);
+               }
+            }
+            
             db.ipAddr=request.getRemoteAddr();
             Gson gson = new GsonBuilder()
                   .excludeFieldsWithoutExposeAnnotation()
@@ -77,13 +91,15 @@ public class SerialList extends HttpServlet
 
             List<InvSerialNumber> serialList = Collections.synchronizedList(new ArrayList<InvSerialNumber>());
             
-            serialList = db.getNuSerialList(userFallback);
+            serialList = db.getNuSerialList(nuserial, numaxResults, userFallback);
 
             if (serialList.size() == 0) {
                 System.out.println("NO SERIAL#s FOUND");
             }
 
             String json = gson.toJson(serialList);
+            System.out.println ("SERIAL LIST RESULTS:"+json);
+            log.info("SERIAL LIST RESULTS:"+json);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(json);

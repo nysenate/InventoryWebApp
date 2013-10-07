@@ -17,12 +17,14 @@ public class InvSerialNumber
    @Expose  String nuxrefsn = "";
    @Expose  String cdcommodity = "";
    @Expose  String decommodityf = "";
+   @Expose  String statusNum = "0";
    
     final int NUSERIAL = -101;
     final int NUSENATE = -103;
     final int NUXERFSN = -104;
     final int CDCOMMODITY = -105;
     final int DECOMMODITYF = -106;
+    final int STATUSNUM = -107;
      
     public InvSerialNumber() {
     }
@@ -65,6 +67,14 @@ public class InvSerialNumber
 
     public void setDecommodityf(String decommodityf) {
         this.decommodityf = decommodityf;
+    }    
+
+    public String getStatusNum() {
+        return statusNum;
+    }
+
+    public void setStatusNum(String statusNum) {
+        this.statusNum = statusNum;
     }    
     
     @Override
