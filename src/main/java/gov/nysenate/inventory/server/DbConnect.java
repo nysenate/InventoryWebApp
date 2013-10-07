@@ -1204,7 +1204,7 @@ public class DbConnect {
         Location origin = new Location();
         Location dest = new Location();
         Connection conn = getDbConnection();
-        String query = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM') dtpickup, a.napickupby, a.depucomments,"
+        String query = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM- Day') dtpickup, a.napickupby, a.depucomments,"
                 + " a.cdlocatfrom, b.cdloctype, b.adstreet1 fromstreet1, b.adcity fromcity, b.adzipcode fromzip,"
                 + " a.cdlocatto, c.cdloctype, c.adstreet1 tostreet1, c.adcity tocity, c.adzipcode tozip"
                 + " FROM fm12invintrans a, sl16location b, sl16location c"
@@ -1361,5 +1361,68 @@ public class DbConnect {
 
         ps.executeBatch();
         conn.close();
+    }
+
+    // Get a list of all valid pickups, ignoring the items.
+    public List<Pickup> getAllValidPickups() throws SQLException {
+        ArrayList<Pickup> validPickups = new ArrayList<Pickup>();
+        String query = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM- Day') dtpickup, a.napickupby, a.depucomments,"
+                + " a.cdlocatfrom, b.cdloctype, b.adstreet1 fromstreet1, b.adcity fromcity, b.adzipcode fromzip,"
+                + " a.cdlocatto, c.cdloctype, c.adstreet1 tostreet1, c.adcity tocity, c.adzipcode tozip"
+                + " FROM fm12invintrans a, sl16location b, sl16location c"
+                + " WHERE a.cdlocatfrom = b.cdlocat"
+                + " AND a.cdlocatto = c.cdlocat"
+                + " AND a.cdstatus = 'A'"
+                + " AND a.cdintransit = 'Y'";
+        Connection conn = getDbConnection();
+        PreparedStatement ps = conn.prepareStatement(query);
+        ResultSet result = ps.executeQuery();
+
+        while (result.next()) {
+            Pickup pickup = new Pickup();
+            Location origin = new Location();
+            Location dest = new Location();
+
+            pickup.setNuxrpd(Integer.parseInt(result.getString(1)));
+            pickup.setDate(result.getString(2));
+            pickup.setNapickupby(result.getString(3));
+            pickup.setComments(result.getString(4));
+            origin.setCdlocat(result.getString(5));
+            origin.setCdloctype(result.getString(6));
+            origin.setAdstreet1(result.getString(7));
+            origin.setAdcity(result.getString(8));
+            origin.setAdzipcode(result.getString(9));
+            dest.setCdlocat(result.getString(10));
+            dest.setCdloctype(result.getString(11));
+            dest.setAdstreet1(result.getString(12));
+            dest.setAdcity(result.getString(13));
+            dest.setAdzipcode(result.getString(14));
+
+            pickup.setOrigin(origin);
+            pickup.setDestination(dest);
+            validPickups.add(pickup);
+        }
+
+        conn.close();
+        return validPickups;
+    }
+
+    public String[] getEmployeeInfo(String nalast) throws SQLException {
+        String[] empInfo = new String[3];
+        String query = "SELECT nafirst, nalast, cdrespctrhd"
+                + " FROM PM21PERSONN"
+                + " WHERE nalast = ?"
+                + " AND SUBSTR(naemail, 0, REGEXP_INSTR(naemail, '@') - 1) = lower(nalast)";
+        Connection conn = getDbConnection();
+        PreparedStatement ps = conn.prepareStatement(query);
+        ps.setString(1, nalast);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            empInfo[0] = rs.getString(1);
+            empInfo[1] = rs.getString(2);
+            empInfo[2] = rs.getString(3);
+        }
+        conn.close();
+        return empInfo;
     }
 }
