@@ -87,6 +87,7 @@ public class EmailMoveReceipt implements Runnable
   private int nuxrpd = 0;
   private MimeBodyPart attachmentPart;
   private String receiptURL = null;
+  private String transTypeParam;
   
   public EmailMoveReceipt(String username, String password, Pickup pickup) {
         this.emailType = PICKUP;
@@ -97,6 +98,7 @@ public class EmailMoveReceipt implements Runnable
                                  // but it needs to be passed so it is being
                                  // set to username (which should be set)
         attachmentPart = null;
+        transTypeParam = "&p_transtype=PICKUP";
         System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
         db = new DbConnect(username, password);
         properties = new Properties();
@@ -128,6 +130,7 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
         userFallback = username; // userfallback is not really being used
                                  // but it needs to be passed so it is being
                                  // set to username (which should be set)
+        transTypeParam = "&p_transtype=DELIVERY";
         attachmentPart = null;        
         db = new DbConnect(username, password);
         System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
@@ -514,7 +517,7 @@ public void testingModeCheck() {
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE nuxrpd: "+ nuxrpd);
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE FILE TO WRITE:"+receiptPath+nuxrpd+"_"+formatDate(new Date(), "yyMMddhh24mmss"));
        // If the Attachment does not return a pdf, then it will be null since it expects a PDF, so we can tag on .pdf as a filename
-      attachment = bytesFromUrlWithJavaIO(receiptURL + nuxrpd, receiptPath+receiptFilename); // +"&destype=CACHE&desformat=PDF
+      attachment = bytesFromUrlWithJavaIO(receiptURL + nuxrpd + transTypeParam, receiptPath+receiptFilename); // +"&destype=CACHE&desformat=PDF
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE AFTER GETTING ATTACHMENT");
 
       // Attachment needs to be checked to ensure that there were no issues with the Reports Server
@@ -719,7 +722,7 @@ public void testingModeCheck() {
           try {
             ////System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT getInputStream()");
             
-            return new ByteArrayInputStream(bytesFromUrlWithJavaIO(receiptURL + nuxrpd));
+            return new ByteArrayInputStream(bytesFromUrlWithJavaIO(receiptURL + nuxrpd + transTypeParam));
           }
           catch (ReportNotGeneratedException e) {
             ////System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT getInputStream() ReportNotGeneratedException");
