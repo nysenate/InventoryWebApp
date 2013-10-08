@@ -652,7 +652,12 @@ public void testingModeCheck() {
       }
       
       //System.out.println("EMAILING BEFORE SUBJECT");
-      msg.setSubject("Equipment Pickup Receipt");
+      if (emailType==DELIVERY) {
+         msg.setSubject("Equipment Delivery Receipt");
+      }
+      else {
+         msg.setSubject("Equipment Pickup Receipt");
+      }
       //msg.setText(msgBody, "utf-8", "html");
       MimeBodyPart mbp1 = new MimeBodyPart();
       mbp1.setText(msgBody);
