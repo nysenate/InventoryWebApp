@@ -635,17 +635,20 @@ public void testingModeCheck() {
           System.out.println("TESTINGMODE EMAILING TO:" + naemailTo1 + ":" + naemailNameTo1);
           msg.addRecipient(Message.RecipientType.TO,
             new InternetAddress(naemailTo1, naemailNameTo1));  //naemailTo, naemployeeTo
+          recipientCount++;
         }
         if (naemailTo2!=null && naemailTo2.trim().length()>0){
           System.out.println("TESTINGMODE EMAILING TO:" + naemailTo2 + ":" + naemailNameTo2);
           msg.addRecipient(Message.RecipientType.TO,
             new InternetAddress(naemailTo2, naemailNameTo2));  //naemailTo, naemployeeTo
+          recipientCount++;
         }
       }
       else {
+          recipientCount = addDistributionRecipients(msg);
           msg.addRecipient(Message.RecipientType.TO,
             new InternetAddress(signingEmployee.getNaemail(), signingEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
-          addDistributionRecipients(msg);
+          recipientCount++;
       }
       
       //System.out.println("EMAILING BEFORE SUBJECT");
