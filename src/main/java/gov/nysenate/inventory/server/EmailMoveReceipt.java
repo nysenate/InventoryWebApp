@@ -213,7 +213,12 @@ public void testingModeCheck() {
          this.naemailErrorNameTo = naemailErrorNameToS.split("\\|");
        }
        
+      try {
       Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "initializeEmailTo: Length:"+this.naemailErrorTo.length+" Name Length:"+this.naemailGenNameTo.length);
+      }
+      catch (NullPointerException e) {
+          e.printStackTrace();
+      }
  }
   
   /*

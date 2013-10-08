@@ -35,7 +35,6 @@ import oracle.sql.BLOB;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import gov.nysenate.inventory.model.InvSerialNumber;
 import gov.nysenate.inventory.model.SimpleListItem;
