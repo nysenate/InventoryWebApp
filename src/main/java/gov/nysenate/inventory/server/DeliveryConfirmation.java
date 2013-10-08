@@ -1,15 +1,9 @@
 package gov.nysenate.inventory.server;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-import gov.nysenate.inventory.model.Employee;
 import gov.nysenate.inventory.model.Delivery;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -26,21 +20,6 @@ import org.apache.log4j.Logger;
  */
 @WebServlet(name = "DeliveryConfirmation", urlPatterns = {"/DeliveryConfirmation"})
 public class DeliveryConfirmation extends HttpServlet {
-  Delivery delivery = new Delivery();
-  DbConnect db  = null;
-  String userFallback = null;
-  Employee currentEmployee = null;
-  String testingModeParam =  null;
-  String testingModeProperty = null;
-  static String error = null;
-  String naemailTo1 = null;
-  String naemailNameTo1 = null;
-  String naemailTo2 = null; 
-  String naemailNameTo2 = null; 
-  String naemailFrom = null; 
-  String naemailNameFrom = null; 
-  Properties properties = new Properties();
-  HttpServletRequest request;
  
  /**
      * Processes requests for both HTTP
@@ -57,7 +36,11 @@ public class DeliveryConfirmation extends HttpServlet {
 
         Logger log = Logger.getLogger(DeliveryConfirmation.class.getName());
         response.setContentType("text/html;charset=UTF-8");
-        this.request = request;
+
+        Delivery delivery = new Delivery();
+        DbConnect db = null;
+        String userFallback = null;
+
         PrintWriter out = response.getWriter();
         int newDeliveryResult = 0;
         int orgDeliveryResult = 0;
@@ -116,7 +99,7 @@ public class DeliveryConfirmation extends HttpServlet {
             }
 
             if (orgDeliveryResult == 0 && newDeliveryResult == 0) {
-              emailDeliveryReceipt(out,"Database updated successfully");
+                emailDeliveryReceipt(out, "Database updated successfully", delivery, request);
               //out.println("Database updated successfully");
               log.info(db.ipAddr + "|" + "Database updated successfully");
             } else if (orgDeliveryResult != 0 && newDeliveryResult != 0) {
@@ -136,7 +119,7 @@ public class DeliveryConfirmation extends HttpServlet {
         }
     }
     
-    public void emailDeliveryReceipt (PrintWriter out, String msg) {
+    public void emailDeliveryReceipt(PrintWriter out, String msg, Delivery delivery, HttpServletRequest request) {
       int emailReceiptStatus  = 0;
       try {
         HttpSession httpSession = request.getSession(false);        

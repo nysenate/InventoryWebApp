@@ -12,10 +12,6 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.sql.SQLException;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,7 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+
 
 /**
  *
@@ -34,19 +31,6 @@ import org.apache.commons.io.IOUtils;
 public class PickupServlet extends HttpServlet
 {
 
-  DbConnect db = null;
-  String userFallback = null;
-  Pickup pickup = new Pickup();
-  String testingModeParam = null;
-  String testingModeProperty = null;
-  static String error = null;
-  String naemailTo1 = null;
-  String naemailNameTo1 = null;
-  String naemailTo2 = null;
-  String naemailNameTo2 = null;
-  String naemailFrom = null;
-  String naemailNameFrom = null;
-  Properties properties = new Properties();
   String nafileext = ".pdf";
 
   /**
@@ -65,6 +49,12 @@ public class PickupServlet extends HttpServlet
     response.setContentType("text/html;charset=UTF-8");
     PrintWriter out = response.getWriter();
     Logger log = Logger.getLogger(PickupServlet.class.getName());
+
+    DbConnect db = null;
+    String userFallback = null;
+    Pickup pickup = new Pickup();
+    String testingModeParam = null;
+
     db = checkHttpSession(request, out);
     db.ipAddr = request.getRemoteAddr();
     log.info(db.ipAddr + "|" + "Servlet Pickup : start");
@@ -261,87 +251,7 @@ public class PickupServlet extends HttpServlet
     return bytes;
   }
 
-  public static byte[] bytesFromUrlWithJavaIO(String fileUrl) throws MalformedURLException, IOException, ReportNotGeneratedException
-  {
-    return bytesFromUrlWithJavaIO(fileUrl, null);
-  }
-
-// Using Java IO
-  public static byte[] bytesFromUrlWithJavaIO(String fileUrl, String nafile)
-          throws MalformedURLException, IOException, ReportNotGeneratedException
-  {
-    //System.out.println("bytesFromUrlWithJavaIO " + fileUrl);
-    String nafileext = ".pdf";
-    BufferedInputStream in = null;
-    ByteArrayOutputStream bout;
-    error = null;
-    byte[] returnBytes = null;
-    bout = new ByteArrayOutputStream();
-    try {
-      //System.out.println("bytesFromUrlWithJavaIO READ " + fileUrl);
-      in = new BufferedInputStream(new URL(fileUrl).openStream());
-      //System.out.println("bytesFromUrlWithJavaIO READ DONE " + fileUrl);
-      returnBytes = IOUtils.toByteArray(in);
-      //System.out.println("bytesFromUrlWithJavaIO returnBytes:" + returnBytes.length);
-    } finally {
-
-      if (in != null) {
-        in.close();
-      }
-    }
-
-    String decoded = new String(returnBytes, "UTF-8");
-    //System.out.println("****URL:" + fileUrl);
-    if (decoded.toUpperCase().startsWith("%PDF-")) {
-        try {
-          if (nafile!=null && nafile.trim().length()>0) {
-            //System.out.println("PickupServlet.bytesFromUrlWithJavaIO writing file:" + nafile + nafileext);
-            FileOutputStream fos = new FileOutputStream(nafile + nafileext);
-            fos.write(returnBytes);
-            fos.flush();
-            fos.close();
-          }
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-    } else {
-      if (decoded.toUpperCase().contains("<HTML>") || decoded.toUpperCase().contains("<BODY>")) {
-        nafileext = ".html";
-        //decoded = insertTextInto(decoded, "src=\"^", );
-        try {
-          if (nafile!=null && nafile.trim().length()>0) {
-            //System.out.println("PickupServlet.bytesFromUrlWithJavaIO writing file:" + nafile + nafileext);
-            FileOutputStream fos = new FileOutputStream(nafile + nafileext);
-            fos.write(returnBytes);
-            fos.flush();
-            fos.close();
-          }
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      } else {
-        nafileext = ".???";
-      }
-      //System.out.println("PickupServlet.bytesFromUrlWithJavaIO writing file:" + nafile + nafileext);
-      try {
-        FileOutputStream fos = new FileOutputStream(nafile + nafileext);
-        fos.write(returnBytes);
-        fos.flush();
-        fos.close();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-
-      //System.out.println("****REPORT DOES NOT CONTAIN %PDF- STARTS WITH: " + decoded.substring(0, 100));
-      error = decoded;
-
-      throw new ReportNotGeneratedException("Reports Server was unable to generate a receipt.");
-    }
-    //System.out.println(decoded);
-
-    return returnBytes;
-  }
+  
 
   public String insertTextInto(String allText, String whereText, String insertText)
   {

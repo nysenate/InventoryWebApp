@@ -27,9 +27,6 @@ import org.apache.log4j.Logger;
 @WebServlet(name = "DownloadServlet", urlPatterns = {"/DownloadServlet"})
 public class DownloadServlet extends HttpServlet
 {
-  Logger log = Logger.getLogger(DownloadServlet.class.getName());
-  Properties properties = new Properties();
-  InputStream in;  
   String serverOS = "Windows"; // Default to Windows OS
   String pathDelimeter = "\\"; 
 
@@ -46,7 +43,7 @@ public class DownloadServlet extends HttpServlet
   protected void processRequest(HttpServletRequest request, HttpServletResponse response)
           throws ServletException, IOException
   {
-
+    Logger log = Logger.getLogger(DownloadServlet.class.getName());
     response.setContentType("text/html;charset=UTF-8");
     PrintWriter out = response.getWriter();
     try {
@@ -84,7 +81,8 @@ public class DownloadServlet extends HttpServlet
             pathDelimeter = "/";
         }
         
-        properties = new Properties();
+        InputStream in;
+        Properties properties = new Properties();
         in = getClass().getClassLoader().getResourceAsStream("config.properties");
         String filename = "";
         String downloadPath = "";

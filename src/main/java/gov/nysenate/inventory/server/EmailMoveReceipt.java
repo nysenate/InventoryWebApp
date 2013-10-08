@@ -8,14 +8,17 @@ import gov.nysenate.inventory.model.Employee;
 import gov.nysenate.inventory.model.Delivery;
 import gov.nysenate.inventory.model.Pickup;
 import gov.nysenate.inventory.model.ReportNotGeneratedException;
-import static gov.nysenate.inventory.server.PickupServlet.bytesFromUrlWithJavaIO;
-import static gov.nysenate.inventory.server.PickupServlet.error;
+
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -33,6 +36,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+
+import org.apache.commons.io.IOUtils;
 
 /**
  *
@@ -88,6 +93,7 @@ public class EmailMoveReceipt implements Runnable
   private MimeBodyPart attachmentPart;
   private String receiptURL = null;
   private String transTypeParam;
+  private static String error;
   
   public EmailMoveReceipt(String username, String password, Pickup pickup) {
         this.emailType = PICKUP;
@@ -943,4 +949,85 @@ public void testingModeCheck() {
     }
   }
 
+  public static byte[] bytesFromUrlWithJavaIO(String fileUrl) throws MalformedURLException, IOException, ReportNotGeneratedException
+  {
+    return bytesFromUrlWithJavaIO(fileUrl, null);
+  }
+
+// Using Java IO
+  public static byte[] bytesFromUrlWithJavaIO(String fileUrl, String nafile)
+          throws MalformedURLException, IOException, ReportNotGeneratedException
+  {
+    //System.out.println("bytesFromUrlWithJavaIO " + fileUrl);
+    String nafileext = ".pdf";
+    BufferedInputStream in = null;
+    ByteArrayOutputStream bout;
+    error = null;
+    byte[] returnBytes = null;
+    bout = new ByteArrayOutputStream();
+    try {
+      //System.out.println("bytesFromUrlWithJavaIO READ " + fileUrl);
+      in = new BufferedInputStream(new URL(fileUrl).openStream());
+      //System.out.println("bytesFromUrlWithJavaIO READ DONE " + fileUrl);
+      returnBytes = IOUtils.toByteArray(in);
+      //System.out.println("bytesFromUrlWithJavaIO returnBytes:" + returnBytes.length);
+    } finally {
+
+      if (in != null) {
+        in.close();
+      }
+    }
+
+    String decoded = new String(returnBytes, "UTF-8");
+    //System.out.println("****URL:" + fileUrl);
+    if (decoded.toUpperCase().startsWith("%PDF-")) {
+        try {
+          if (nafile!=null && nafile.trim().length()>0) {
+            //System.out.println("PickupServlet.bytesFromUrlWithJavaIO writing file:" + nafile + nafileext);
+            FileOutputStream fos = new FileOutputStream(nafile + nafileext);
+            fos.write(returnBytes);
+            fos.flush();
+            fos.close();
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+    } else {
+      if (decoded.toUpperCase().contains("<HTML>") || decoded.toUpperCase().contains("<BODY>")) {
+        nafileext = ".html";
+        //decoded = insertTextInto(decoded, "src=\"^", );
+        try {
+          if (nafile!=null && nafile.trim().length()>0) {
+            //System.out.println("PickupServlet.bytesFromUrlWithJavaIO writing file:" + nafile + nafileext);
+            FileOutputStream fos = new FileOutputStream(nafile + nafileext);
+            fos.write(returnBytes);
+            fos.flush();
+            fos.close();
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      } else {
+        nafileext = ".???";
+      }
+      //System.out.println("PickupServlet.bytesFromUrlWithJavaIO writing file:" + nafile + nafileext);
+      try {
+        FileOutputStream fos = new FileOutputStream(nafile + nafileext);
+        fos.write(returnBytes);
+        fos.flush();
+        fos.close();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+
+
+      //System.out.println("****REPORT DOES NOT CONTAIN %PDF- STARTS WITH: " + decoded.substring(0, 100));
+      error = decoded;
+
+      throw new ReportNotGeneratedException("Reports Server was unable to generate a receipt.");
+    }
+    //System.out.println(decoded);
+
+    return returnBytes;
+  }
 }
