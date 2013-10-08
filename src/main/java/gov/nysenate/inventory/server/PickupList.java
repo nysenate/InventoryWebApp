@@ -17,7 +17,7 @@ import java.util.List;
 
 import com.google.gson.Gson;
 import gov.nysenate.inventory.model.SimpleListItem;
-import static gov.nysenate.inventory.server.DbConnect.log;
+import gov.nysenate.inventory.server.DbConnect;
 import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 
@@ -44,6 +44,7 @@ public class PickupList extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+        Logger log = Logger.getLogger(PickupList.class.getName());
 
         ArrayList<SimpleListItem> searchBy = new ArrayList<SimpleListItem>();
         try {

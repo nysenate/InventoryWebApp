@@ -1,7 +1,6 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.model.Pickup;
-import gov.nysenate.inventory.model.ReportNotGeneratedException;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,10 +11,7 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.sql.SQLException;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,7 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+
 
 /**
  *
@@ -64,6 +61,12 @@ public class PickupServlet extends HttpServlet
     response.setContentType("text/html;charset=UTF-8");
     PrintWriter out = response.getWriter();
     Logger log = Logger.getLogger(PickupServlet.class.getName());
+
+    DbConnect db = null;
+    String userFallback = null;
+    Pickup pickup = new Pickup();
+    String testingModeParam = null;
+
     db = checkHttpSession(request, out);
     db.ipAddr = request.getRemoteAddr();
     log.info(db.ipAddr + "|" + "Servlet Pickup : start");

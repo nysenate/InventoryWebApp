@@ -33,9 +33,6 @@ import com.google.gson.JsonObject;
 @WebServlet(name = "CheckAppVersion", urlPatterns = {"/CheckAppVersion"})
 public class CheckAppVersion extends HttpServlet {
     
-    String APKManifest;
-    String downloadPath;
-    String webFileUrl;
     String serverOS = "Windows"; // Default to Windows OS
     String pathDelimeter = "\\"; 
     
@@ -55,7 +52,10 @@ public class CheckAppVersion extends HttpServlet {
         if (serverOS.toUpperCase().indexOf("WINDOWS")==-1) {
             pathDelimeter = "/";
         }
- 
+        String APKManifest;
+        String downloadPath;
+        String webFileUrl;
+
         PrintWriter out = response.getWriter();
         response.setContentType("text/html");
         try {
@@ -105,8 +105,8 @@ public class CheckAppVersion extends HttpServlet {
             int APKVersion = -1;
             String APKVersionName = "";
             if (APKManifest!=null && APKManifest.trim().length()>0) {
-                APKVersion = getAPKVersionNumber();
-                APKVersionName = this.getAPKVersionName();
+                APKVersion = getAPKVersionNumber(APKManifest);
+                APKVersionName = this.getAPKVersionName(APKManifest);
             }
             
             JsonObject myObj = new JsonObject();
@@ -186,7 +186,7 @@ public class CheckAppVersion extends HttpServlet {
                 return xml;
     }
     
-    private int getAPKVersionNumber() {
+    private int getAPKVersionNumber(String APKManifest) {
         try {
             String lookFor = "<manifest versionCode=\"resourceID ";
             int start = APKManifest.indexOf(lookFor)+lookFor.length();
@@ -203,7 +203,7 @@ public class CheckAppVersion extends HttpServlet {
         }
     }
    
-     private String getAPKVersionName() {
+    private String getAPKVersionName(String APKManifest) {
          try {
             String lookFor = "versionName=\"";
             int start = APKManifest.indexOf(lookFor)+lookFor.length();
