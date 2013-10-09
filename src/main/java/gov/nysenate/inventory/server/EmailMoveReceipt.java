@@ -481,9 +481,9 @@ public void testingModeCheck() {
       sb.append("delivered ");
     }
     else {
-      sb.append("picked ");
+      sb.append("picked up ");
     }
-    sb.append("up by ");
+    sb.append(" by ");
     if (emailType==DELIVERY) {
       sb.append(delivery.getNadeliverby());
     }
