@@ -372,7 +372,7 @@ public void testingModeCheck() {
     }
     else {
       try {
-        reportRetryLimit = Integer.getInteger(reportRetryLimitString);
+        reportRetryLimit = Integer.parseInt(reportRetryLimitString);
       }
       catch (Exception e) {
         reportRetryLimit = REPORTRETRYLIMITDEFAULT;
@@ -387,7 +387,7 @@ public void testingModeCheck() {
     }
     else {
       try {
-        reportWaitInterval = Integer.getInteger(reportWaitIntervalString);
+        reportWaitInterval = Integer.parseInt(reportWaitIntervalString);
       }
       catch (Exception e) {
         e.printStackTrace();
@@ -753,6 +753,7 @@ public void testingModeCheck() {
         @Override
         public String getName()
         {
+         Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "DataSource.getName() called. Returning:"+receiptFilename+".pdf");
           return receiptFilename+".pdf";
         }
 
@@ -762,8 +763,8 @@ public void testingModeCheck() {
           return null;
         }
       }));
-      //System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME:"+attachmentPart.getDataHandler().getName());
-      //System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME(2):"+attachmentPart.getDataHandler().getDataSource().getName());
+      System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME:"+attachmentPart.getDataHandler().getName());
+      System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME(2):"+attachmentPart.getDataHandler().getDataSource().getName());
       
     } catch (MessagingException ex) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
