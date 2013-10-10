@@ -645,8 +645,9 @@ public void testingModeCheck() {
       //System.out.println("EMAILING FROM:" + naemailFrom + ":" + naemailNameFrom);
       msg.setFrom(new InternetAddress(naemailFrom, naemailNameFrom));
       int recipientCount = 0;
+      recipientCount = addDistributionRecipients(msg);
       if (testingMode) {
-          System.out.println("TESTINGMODE Would have sent (BUT DID NOT) TO:" + signingEmployee.getNaemail() + " (" + signingEmployee.getEmployeeName()+")");
+        System.out.println("TESTINGMODE Would have sent (BUT DID NOT) TO:" + signingEmployee.getNaemail() + " (" + signingEmployee.getEmployeeName()+")");
         if (naemailTo1!=null && naemailTo1.trim().length()>0){
           System.out.println("TESTINGMODE EMAILING TO:" + naemailTo1 + ":" + naemailNameTo1);
           msg.addRecipient(Message.RecipientType.TO,
@@ -661,7 +662,6 @@ public void testingModeCheck() {
         }
       }
       else {
-          recipientCount = addDistributionRecipients(msg);
           msg.addRecipient(Message.RecipientType.TO,
             new InternetAddress(signingEmployee.getNaemail(), signingEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
           recipientCount++;
