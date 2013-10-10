@@ -573,6 +573,22 @@ public void testingModeCheck() {
     //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT");
     MimeMultipart mimeMultipart = new MimeMultipart();
     attachmentPart = getOracleReportResponse(receiptURL, nuxrpd);
+    
+    
+    try{
+    System.out.println("-=-=-=-=-=-=-=-=-=TRACE ATTACHMENT (before) FILENAME:"+attachmentPart.getFileName());
+    }
+    catch (Exception e) {
+        e.printStackTrace();
+    }
+    try{
+    attachmentPart.setFileName(receiptFilename+".pdf");
+    System.out.println("-=-=-=-=-=-=-=-=-=TRACE ATTACHMENT(after) FILENAME:"+attachmentPart.getFileName());
+    }
+    catch (Exception e) {
+        e.printStackTrace();
+    }    
+    
 /*    try {
 
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ADD ATTACHMENT");
