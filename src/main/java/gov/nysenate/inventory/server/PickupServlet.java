@@ -11,7 +11,6 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -30,18 +29,6 @@ import javax.servlet.http.HttpSession;
 public class PickupServlet extends HttpServlet
 {
 
-  DbConnect db = null;
-  String userFallback = null;
-  Pickup pickup = new Pickup();
-  String testingModeParam = null;
-  String testingModeProperty = null;
-  String naemailTo1 = null;
-  String naemailNameTo1 = null;
-  String naemailTo2 = null;
-  String naemailNameTo2 = null;
-  String naemailFrom = null;
-  String naemailNameFrom = null;
-  Properties properties = new Properties();
   String nafileext = ".pdf";
 
   /**
@@ -60,6 +47,12 @@ public class PickupServlet extends HttpServlet
     response.setContentType("text/html;charset=UTF-8");
     PrintWriter out = response.getWriter();
     Logger log = Logger.getLogger(PickupServlet.class.getName());
+
+    DbConnect db = null;
+    String userFallback = null;
+    Pickup pickup = new Pickup();
+    String testingModeParam = null;
+
     db = checkHttpSession(request, out);
     db.ipAddr = request.getRemoteAddr();
     log.info(db.ipAddr + "|" + "Servlet Pickup : start");
