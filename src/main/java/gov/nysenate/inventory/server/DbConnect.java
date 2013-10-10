@@ -1400,12 +1400,13 @@ public class DbConnect {
         conn.close();
     }
 
-    // Get a list of all valid pickups, ignoring the items.
+    // Get a list of all valid pickups, not getting a list of all items, only the count.
     public List<Pickup> getAllValidPickups() throws SQLException {
         ArrayList<Pickup> validPickups = new ArrayList<Pickup>();
         String query = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM- Day') dtpickup, a.napickupby, a.depucomments,"
                 + " a.cdlocatfrom, b.cdloctype, b.adstreet1 fromstreet1, b.adcity fromcity, b.adzipcode fromzip,"
-                + " a.cdlocatto, c.cdloctype, c.adstreet1 tostreet1, c.adcity tocity, c.adzipcode tozip"
+                + " a.cdlocatto, c.cdloctype, c.adstreet1 tostreet1, c.adcity tocity, c.adzipcode tozip,"
+                + " (SELECT count(nusenate) from fd12invintrans d where d.nuxrpd = a.nuxrpd and d.cdstatus = 'A') cnt"
                 + " FROM fm12invintrans a, sl16location b, sl16location c"
                 + " WHERE a.cdlocatfrom = b.cdlocat"
                 + " AND a.cdlocatto = c.cdlocat"
@@ -1434,6 +1435,7 @@ public class DbConnect {
             dest.setAdstreet1(result.getString(12));
             dest.setAdcity(result.getString(13));
             dest.setAdzipcode(result.getString(14));
+            pickup.setCount(result.getInt(15));
 
             pickup.setOrigin(origin);
             pickup.setDestination(dest);
