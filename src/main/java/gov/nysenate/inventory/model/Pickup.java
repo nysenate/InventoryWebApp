@@ -72,7 +72,7 @@ public class Pickup extends Transaction {
         return comments;
     }
 
-    public void setComments(String commentzs) {
+    public void setComments(String comments) {
         this.comments = comments;
     }
 

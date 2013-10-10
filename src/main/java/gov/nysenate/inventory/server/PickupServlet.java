@@ -62,7 +62,7 @@ public class PickupServlet extends HttpServlet
     Logger log = Logger.getLogger(PickupServlet.class.getName());
     db = checkHttpSession(request, out);
     db.ipAddr = request.getRemoteAddr();
-    log.info(db.ipAddr + "|" + "Servlet Pickup : start");
+    //log.info(db.ipAddr + "|" + "Servlet Pickup : start");
     String originLocation = request.getParameter("originLocation");
     pickup.getOrigin().setCdlocat(originLocation);
     pickup.getOrigin().setCdloctype(request.getParameter("cdloctypefrm"));
@@ -97,10 +97,10 @@ public class PickupServlet extends HttpServlet
     }
     System.out.println("A)PickupItems = " + pickup.getPickupItems());
 
-    log.info("PickupItems = " + pickup.getPickupItems()); // TODO: for testing.
+    //log.info("PickupItems = " + pickup.getPickupItems()); // TODO: for testing.
     int dbResponse = db.invTransit(pickup, userFallback);
-    log.info("PickupItems TESTING dbResponse=" + dbResponse); // TODO: for testing.
-    System.out.println("B)PickupItems TESTING dbResponse=" + dbResponse);
+    //log.info("PickupItems TESTING dbResponse=" + dbResponse); // TODO: for testing.
+    //System.out.println("B)PickupItems TESTING dbResponse=" + dbResponse);
     pickup.setNuxrpd(dbResponse);
 
     if (dbResponse > -1) {
@@ -118,10 +118,10 @@ public class PickupServlet extends HttpServlet
         //emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(pickup);
         Thread threadEmailMoveReceipt = new Thread(emailMoveReceipt);
         threadEmailMoveReceipt.start();
-        System.out.println("emailReceiptStatus:" + emailReceiptStatus);
+        //System.out.println("emailReceiptStatus:" + emailReceiptStatus);
 
 //        if (emailReceiptStatus == 0) {
-          System.out.println("Database updated successfully");
+          //System.out.println("Database updated successfully");
           out.println("Database updated successfully");
 /*        } else {
           System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + ").");
@@ -135,7 +135,7 @@ public class PickupServlet extends HttpServlet
     } else {
       out.println("Database not updated");
     }
-    System.out.println("(C) Servlet Pickup : end");
+    //System.out.println("(C) Servlet Pickup : end");
     log.info(db.ipAddr + "|" + "Servlet Pickup : end");
     out.close();
   }
