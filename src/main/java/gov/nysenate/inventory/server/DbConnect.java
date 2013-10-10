@@ -35,7 +35,6 @@ import oracle.sql.BLOB;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import gov.nysenate.inventory.model.InvSerialNumber;
 import gov.nysenate.inventory.model.SimpleListItem;
@@ -1077,7 +1076,7 @@ public class DbConnect {
             // Move delivered Items to their new location.
             for (String item : delivery.getCheckedItems()) {
                 String nusenate = item;
-                CallableStatement cs = conn.prepareCall("{?=call move_inventory_item(?,?,?,?,?,?)}");
+                CallableStatement cs = conn.prepareCall("{?=call inv_app.move_inventory_item(?,?,?,?,?,?)}");
                 cs.registerOutParameter(1, Types.VARCHAR);
                 cs.setString(2, nusenate);
                 cs.setString(3, delivery.getOrigin().getCdlocat());
@@ -1358,7 +1357,7 @@ public class DbConnect {
     
     public Employee getEmployee(String nauser) throws SQLException {
          Employee employee = new Employee();
-          Connection conn = getDbConnection();
+         Connection conn = getDbConnection();
          Statement stmt;
          stmt = conn.createStatement();
           // Get location info for this transaction.

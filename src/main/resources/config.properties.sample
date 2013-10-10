@@ -17,3 +17,7 @@ downloadPath=\\path\\to\\filename\\for\\windows  OR /path/to/filename for unix/l
 receiptPath=\\path\\to\\filename\\for\\windows  OR /path/to/filename for unix/linux
 report.gen.retry_limit=5
 report.gen.wait_interval=120
+report.gen.email_to=
+report.gen.email_name_to=
+report.error.email_to=email1@website.com|email2@website.com|email3@website.com
+report.error.email_name_to=Email Name1|Email Name2|Email Name3

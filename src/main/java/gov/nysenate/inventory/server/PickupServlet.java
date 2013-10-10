@@ -1,7 +1,6 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.model.Pickup;
-import gov.nysenate.inventory.model.ReportNotGeneratedException;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,6 +11,8 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Properties;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -19,8 +20,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import org.apache.log4j.Logger;
 
 
 /**
@@ -31,6 +30,18 @@ import org.apache.log4j.Logger;
 public class PickupServlet extends HttpServlet
 {
 
+  DbConnect db = null;
+  String userFallback = null;
+  Pickup pickup = new Pickup();
+  String testingModeParam = null;
+  String testingModeProperty = null;
+  String naemailTo1 = null;
+  String naemailNameTo1 = null;
+  String naemailTo2 = null;
+  String naemailNameTo2 = null;
+  String naemailFrom = null;
+  String naemailNameFrom = null;
+  Properties properties = new Properties();
   String nafileext = ".pdf";
 
   /**
@@ -49,12 +60,6 @@ public class PickupServlet extends HttpServlet
     response.setContentType("text/html;charset=UTF-8");
     PrintWriter out = response.getWriter();
     Logger log = Logger.getLogger(PickupServlet.class.getName());
-
-    DbConnect db = null;
-    String userFallback = null;
-    Pickup pickup = new Pickup();
-    String testingModeParam = null;
-
     db = checkHttpSession(request, out);
     db.ipAddr = request.getRemoteAddr();
     log.info(db.ipAddr + "|" + "Servlet Pickup : start");
@@ -123,8 +128,9 @@ public class PickupServlet extends HttpServlet
           out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + ").");
         }*/
       } catch (Exception e) {
-        System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).");
-        out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).");
+          e.printStackTrace();
+          System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).["+e.getMessage()+":"+e.getStackTrace()[0].toString()+"]");
+          out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).");
       }
     } else {
       out.println("Database not updated");
@@ -250,9 +256,7 @@ public class PickupServlet extends HttpServlet
     }
     return bytes;
   }
-
   
-
   public String insertTextInto(String allText, String whereText, String insertText)
   {
     if (allText == null || allText.length() == 0) {

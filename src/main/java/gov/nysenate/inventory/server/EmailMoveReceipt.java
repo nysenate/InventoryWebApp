@@ -51,6 +51,7 @@ public class EmailMoveReceipt implements Runnable
   String dbaUrl = "";
   String serverOS = "Windows"; // Default to Windows OS
   String pathDelimeter = "\\";   
+  private String error = null;
   private String naemailFrom = null; 
   private String naemailNameFrom = null; 
   private String naemailTo1 = null;
@@ -93,7 +94,6 @@ public class EmailMoveReceipt implements Runnable
   private MimeBodyPart attachmentPart;
   private String receiptURL = null;
   private String transTypeParam;
-  private static String error;
   
   public EmailMoveReceipt(String username, String password, Pickup pickup) {
         this.emailType = PICKUP;
@@ -213,7 +213,12 @@ public void testingModeCheck() {
          this.naemailErrorNameTo = naemailErrorNameToS.split("\\|");
        }
        
+      try {
       Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "initializeEmailTo: Length:"+this.naemailErrorTo.length+" Name Length:"+this.naemailGenNameTo.length);
+      }
+      catch (NullPointerException e) {
+          e.printStackTrace();
+      }
  }
   
   /*
@@ -367,7 +372,7 @@ public void testingModeCheck() {
     }
     else {
       try {
-        reportRetryLimit = Integer.getInteger(reportRetryLimitString);
+        reportRetryLimit = Integer.parseInt(reportRetryLimitString);
       }
       catch (Exception e) {
         reportRetryLimit = REPORTRETRYLIMITDEFAULT;
@@ -382,7 +387,7 @@ public void testingModeCheck() {
     }
     else {
       try {
-        reportWaitInterval = Integer.getInteger(reportWaitIntervalString);
+        reportWaitInterval = Integer.parseInt(reportWaitIntervalString);
       }
       catch (Exception e) {
         e.printStackTrace();
@@ -476,9 +481,9 @@ public void testingModeCheck() {
       sb.append("delivered ");
     }
     else {
-      sb.append("picked ");
+      sb.append("picked up ");
     }
-    sb.append("up by ");
+    sb.append(" by ");
     if (emailType==DELIVERY) {
       sb.append(delivery.getNadeliverby());
     }
@@ -568,6 +573,22 @@ public void testingModeCheck() {
     //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT");
     MimeMultipart mimeMultipart = new MimeMultipart();
     attachmentPart = getOracleReportResponse(receiptURL, nuxrpd);
+    
+    
+    try{
+    System.out.println("-=-=-=-=-=-=-=-=-=TRACE ATTACHMENT (before) FILENAME:"+attachmentPart.getFileName());
+    }
+    catch (Exception e) {
+        e.printStackTrace();
+    }
+    try{
+    attachmentPart.setFileName(receiptFilename+".pdf");
+    System.out.println("-=-=-=-=-=-=-=-=-=TRACE ATTACHMENT(after) FILENAME:"+attachmentPart.getFileName());
+    }
+    catch (Exception e) {
+        e.printStackTrace();
+    }    
+    
 /*    try {
 
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ADD ATTACHMENT");
@@ -624,27 +645,35 @@ public void testingModeCheck() {
       //System.out.println("EMAILING FROM:" + naemailFrom + ":" + naemailNameFrom);
       msg.setFrom(new InternetAddress(naemailFrom, naemailNameFrom));
       int recipientCount = 0;
+      recipientCount = addDistributionRecipients(msg);
       if (testingMode) {
-          System.out.println("TESTINGMODE Would have sent (BUT DID NOT) TO:" + signingEmployee.getNaemail() + " (" + signingEmployee.getEmployeeName()+")");
+        System.out.println("TESTINGMODE Would have sent (BUT DID NOT) TO:" + signingEmployee.getNaemail() + " (" + signingEmployee.getEmployeeName()+")");
         if (naemailTo1!=null && naemailTo1.trim().length()>0){
           System.out.println("TESTINGMODE EMAILING TO:" + naemailTo1 + ":" + naemailNameTo1);
           msg.addRecipient(Message.RecipientType.TO,
             new InternetAddress(naemailTo1, naemailNameTo1));  //naemailTo, naemployeeTo
+          recipientCount++;
         }
         if (naemailTo2!=null && naemailTo2.trim().length()>0){
           System.out.println("TESTINGMODE EMAILING TO:" + naemailTo2 + ":" + naemailNameTo2);
           msg.addRecipient(Message.RecipientType.TO,
             new InternetAddress(naemailTo2, naemailNameTo2));  //naemailTo, naemployeeTo
+          recipientCount++;
         }
       }
       else {
           msg.addRecipient(Message.RecipientType.TO,
             new InternetAddress(signingEmployee.getNaemail(), signingEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
-          addDistributionRecipients(msg);
+          recipientCount++;
       }
       
       //System.out.println("EMAILING BEFORE SUBJECT");
-      msg.setSubject("Equipment Pickup Receipt");
+      if (emailType==DELIVERY) {
+         msg.setSubject("Equipment Delivery Receipt");
+      }
+      else {
+         msg.setSubject("Equipment Pickup Receipt");
+      }
       //msg.setText(msgBody, "utf-8", "html");
       MimeBodyPart mbp1 = new MimeBodyPart();
       mbp1.setText(msgBody);
@@ -740,6 +769,7 @@ public void testingModeCheck() {
         @Override
         public String getName()
         {
+         Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "DataSource.getName() called. Returning:"+receiptFilename+".pdf");
           return receiptFilename+".pdf";
         }
 
@@ -749,8 +779,8 @@ public void testingModeCheck() {
           return null;
         }
       }));
-      //System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME:"+attachmentPart.getDataHandler().getName());
-      //System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME(2):"+attachmentPart.getDataHandler().getDataSource().getName());
+      System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME:"+attachmentPart.getDataHandler().getName());
+      System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME(2):"+attachmentPart.getDataHandler().getDataSource().getName());
       
     } catch (MessagingException ex) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
@@ -948,14 +978,14 @@ public void testingModeCheck() {
         return value;
     }
   }
-
-  public static byte[] bytesFromUrlWithJavaIO(String fileUrl) throws MalformedURLException, IOException, ReportNotGeneratedException
+  
+  public byte[] bytesFromUrlWithJavaIO(String fileUrl) throws MalformedURLException, IOException, ReportNotGeneratedException
   {
     return bytesFromUrlWithJavaIO(fileUrl, null);
   }
 
 // Using Java IO
-  public static byte[] bytesFromUrlWithJavaIO(String fileUrl, String nafile)
+  public byte[] bytesFromUrlWithJavaIO(String fileUrl, String nafile)
           throws MalformedURLException, IOException, ReportNotGeneratedException
   {
     //System.out.println("bytesFromUrlWithJavaIO " + fileUrl);
@@ -1029,5 +1059,7 @@ public void testingModeCheck() {
     //System.out.println(decoded);
 
     return returnBytes;
-  }
+  }  
+
+  
 }
