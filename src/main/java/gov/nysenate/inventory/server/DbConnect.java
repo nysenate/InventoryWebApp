@@ -1361,11 +1361,12 @@ public class DbConnect {
          Statement stmt;
          stmt = conn.createStatement();
           // Get location info for this transaction.
-          String qry1 = "SELECT b.nuxrefem, b.nafirst, b.nalast, b.namidinit, b.nasuffix, b.naemail "
-                    + " FROM fm11user a, pm21personn b  "
-                    + " WHERE UPPER(a.nauser) = '"+nauser.toUpperCase()+"' "
-                    + "   AND a.nuxrefem = b.nuxrefem "
-                    + "   AND b.cdempstatus = 'A'";
+          String qry1 = "SELECT b.nuxrefem, b.nafirst, b.nalast, b.namidinit, b.nasuffix, b.naemail, SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) nauser\n"
+                    + " FROM  pm21personn b  "
+                    + " WHERE SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) = '"+nauser.toUpperCase()+"' "
+                    + "   AND b.cdempstatus = 'A'"
+                    + " ORDER BY DECODE( INSTR(b.naemail, '@'), -1, 1, 0)";
+          
           //System.out.println ("getEmployee qry1:"+qry1);
           
             ResultSet res1 = stmt.executeQuery(qry1);
