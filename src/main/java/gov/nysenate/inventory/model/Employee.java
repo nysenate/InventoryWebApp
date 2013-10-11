@@ -113,7 +113,7 @@ public class Employee {
   }
   
   public void setNamidinit(String namidinit, boolean formatName) {
-       this.nalast = nalast;
+       this.nalast = namidinit;
        if (formatName) {
           formatEmployeeName(employeeNameOrder);
        }
