@@ -80,7 +80,7 @@ public class EmailMoveReceipt implements Runnable
   private String deliverAddress = null;
   private boolean testingMode = false;
   private Employee pickupEmployee;
-  private Employee deliverEmployee;
+  private Employee deliveryEmployee;
   private final int REPORTRETRYLIMITDEFAULT = 5;   // Default Report Retry Limit
   private final int REPORTWAITINTERVALDEFAULT = 120; // Default Wait Time between Retries in Seconds
   private int emailType;
@@ -302,9 +302,9 @@ public void testingModeCheck() {
     
     // Get the employee who picked up the items
     try {
-      deliverEmployee  = db.getEmployee(delivery.getNadeliverby());
-      deliverEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
-      this.nadeliverbyName = deliverEmployee.getEmployeeName().trim();
+      deliveryEmployee  = db.getEmployee(delivery.getNadeliverby());
+      deliveryEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
+      this.nadeliverbyName = deliveryEmployee.getEmployeeName().trim();
     }
     catch (SQLException sqle) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "***WARNING: Exception occured when trying to get Pickup Employee for (USER:"+pickup.getNapickupby()+") ("+sqle.getMessage()+")");
@@ -573,6 +573,22 @@ public void testingModeCheck() {
     //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT");
     MimeMultipart mimeMultipart = new MimeMultipart();
     attachmentPart = getOracleReportResponse(receiptURL, nuxrpd);
+    
+    
+    try{
+    System.out.println("-=-=-=-=-=-=-=-=-=TRACE ATTACHMENT (before) FILENAME:"+attachmentPart.getFileName());
+    }
+    catch (Exception e) {
+        e.printStackTrace();
+    }
+    try{
+    attachmentPart.setFileName(receiptFilename+".pdf");
+    System.out.println("-=-=-=-=-=-=-=-=-=TRACE ATTACHMENT(after) FILENAME:"+attachmentPart.getFileName());
+    }
+    catch (Exception e) {
+        e.printStackTrace();
+    }    
+    
 /*    try {
 
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ADD ATTACHMENT");
@@ -629,8 +645,36 @@ public void testingModeCheck() {
       //System.out.println("EMAILING FROM:" + naemailFrom + ":" + naemailNameFrom);
       msg.setFrom(new InternetAddress(naemailFrom, naemailNameFrom));
       int recipientCount = 0;
+      recipientCount = addDistributionRecipients(msg);
+      if (this.emailType==PICKUP) {
+          if (pickupEmployee!=null && pickupEmployee.getNaemail()!=null) {
+            msg.addRecipient(Message.RecipientType.TO,
+              new InternetAddress(pickupEmployee.getNaemail(), pickupEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
+            recipientCount++;
+          }
+          else if (pickupEmployee==null) {
+             Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "***WARNING: Pickup Employee was null so can't add Pickup Employee as recipient.");
+          }
+          else if (pickupEmployee.getNaemail()==null) {
+             Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "***WARNING: Pickup Employee ("+pickupEmployee.getEmployeeName()+") E-mail Field was null so can't add Pickup Employee as recipient.");
+          }
+      }
+      else if (this.emailType==DELIVERY) {
+         if (deliveryEmployee!=null && deliveryEmployee.getNaemail()!=null) {
+            msg.addRecipient(Message.RecipientType.TO,
+                new InternetAddress(deliveryEmployee.getNaemail(), deliveryEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
+            recipientCount++;
+         }
+         else if (deliveryEmployee==null) {
+             Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "***WARNING: Delivery Employee was null so can't add Delivery Employee as recipient.");
+         }
+         else if (deliveryEmployee.getNaemail()==null) {
+             Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "***WARNING: Delivery Employee ("+deliveryEmployee.getEmployeeName()+") E-mail Field was null so can't add Delivery Employee as recipient.");
+         }
+      }
+
       if (testingMode) {
-          System.out.println("TESTINGMODE Would have sent (BUT DID NOT) TO:" + signingEmployee.getNaemail() + " (" + signingEmployee.getEmployeeName()+")");
+        System.out.println("TESTINGMODE Would have sent (BUT DID NOT) TO:" + signingEmployee.getNaemail() + " (" + signingEmployee.getEmployeeName()+")");
         if (naemailTo1!=null && naemailTo1.trim().length()>0){
           System.out.println("TESTINGMODE EMAILING TO:" + naemailTo1 + ":" + naemailNameTo1);
           msg.addRecipient(Message.RecipientType.TO,
@@ -645,7 +689,6 @@ public void testingModeCheck() {
         }
       }
       else {
-          recipientCount = addDistributionRecipients(msg);
           msg.addRecipient(Message.RecipientType.TO,
             new InternetAddress(signingEmployee.getNaemail(), signingEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
           recipientCount++;

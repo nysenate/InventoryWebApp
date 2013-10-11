@@ -15,6 +15,9 @@ public class Pickup extends Transaction {
     private String date;
     private String napickupbyName;
 
+    // used to summarize a pickup without having to query for every item
+    private int count;
+
     public Pickup() {
         super();
         comments = "";
@@ -33,7 +36,6 @@ public class Pickup extends Transaction {
         this.pickupItems = new ArrayList<InvItem>(Arrays.asList(pickupItems));
     }
 
-    // TODO: should we send the picked up items to servlet as a InvItem array instead of a String array? If so wont need this..
     public void setPickupItems(String[] items) {
         ArrayList<InvItem> pickupItems = new ArrayList<InvItem>();
         for (String item : items) {
@@ -44,7 +46,6 @@ public class Pickup extends Transaction {
         this.pickupItems = pickupItems;
     }
 
-    // TODO: temp fix
     public void setPickupItemsList(ArrayList<String> items) {
         ArrayList<InvItem> pickupItems = new ArrayList<InvItem>();
         for (String item : items) {
@@ -71,7 +72,7 @@ public class Pickup extends Transaction {
         return comments;
     }
 
-    public void setComments(String commentzs) {
+    public void setComments(String comments) {
         this.comments = comments;
     }
 
@@ -113,5 +114,13 @@ public class Pickup extends Transaction {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    public int getCount() {
+        return count;
     }
 }
