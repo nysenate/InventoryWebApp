@@ -13,19 +13,16 @@ public class Pickup extends Transaction {
     private String nareleaseby;
     private String nuxrrelsign;
     private String date;
-    private String napickupbyName;
-
-    // used to summarize a pickup without having to query for every item
     private int count;
 
     public Pickup() {
-        super();
         comments = "";
         napickupby = "";
         nareleaseby = "";
         nuxrrelsign = "";
         pickupItems = new ArrayList<InvItem>();
-        napickupbyName = "";   
+        origin = new Location();
+        destination = new Location();
     }
 
     public ArrayList<InvItem> getPickupItems() {
@@ -90,14 +87,6 @@ public class Pickup extends Transaction {
 
     public void setNareleaseby(String nareleaseby) {
         this.nareleaseby = nareleaseby.toUpperCase();
-    }
-    
-    public String getNapickupbyName() {
-        return napickupbyName;
-    }
-    
-    public void setNapickupbyName(String napickupbyName) {
-        this.napickupbyName = napickupbyName;
     }
 
     public String getNuxrrelsign() {

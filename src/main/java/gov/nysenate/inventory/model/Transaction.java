@@ -6,8 +6,30 @@ public abstract class Transaction {
     protected int nuxrpd;
     protected Location origin;
     protected Location destination;
-    // SignatureView signature;
-    // byte[] sigBytes;
+
+    public String getOriginCdLoc() {
+        return origin.getCdlocat();
+    }
+
+    public String getOriginCdLocType() {
+        return origin.getCdloctype();
+    }
+
+    public String getOriginAddressLine1() {
+        return origin.getAdstreet1();
+    }
+
+    public String getDestinationCdLoc() {
+        return destination.getCdlocat();
+    }
+
+    public String getDestinationCdLocType() {
+        return destination.getCdloctype();
+    }
+
+    public String getDestinationAddressLine1() {
+        return destination.getAdstreet1();
+    }
 
     public int getNuxrpd() {
         return nuxrpd;
@@ -17,37 +39,27 @@ public abstract class Transaction {
         this.nuxrpd = nuxrpd;
     }
 
-    public Location getOrigin() {
-      /*
-       *   If origin is not set, then 
-       *   create a new origin. This is much 
-       *   better than having the Server Crash
-       * 
-       */
-        if (origin==null) {
-          origin = new Location();
-        }
-        return origin;
-    }
-
     public void setOrigin(Location origin) {
         this.origin = origin;
     }
 
-    public Location getDestination() {
-      /*
-       *   If destination is not set, then 
-       *   create a new destination. This is much 
-       *   better than having the Server Crash
-       * 
-       */
-        if (destination==null) {
-          destination = new Location();
-        }
-        return destination;
+    public Location getOrigin() {
+        return origin;
     }
 
     public void setDestination(Location destination) {
         this.destination = destination;
+    }
+
+    public Location getDestination() {
+        return destination;
+    }
+
+    public String getOriginSummaryString() {
+        return origin.getLocationSummaryString();
+    }
+
+    public String getDestinationSummaryString() {
+        return destination.getLocationSummaryString();
     }
 }

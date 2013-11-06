@@ -12,8 +12,6 @@ public class Delivery extends Transaction {
     private String nadeliverby;
     private String naacceptby;
     private String nuxraccptsign;
-    private String nadeliverbyName;
-    private Location location;
 
     public Delivery() {
         comments = "";
@@ -25,7 +23,6 @@ public class Delivery extends Transaction {
         allItems = new ArrayList<String>();
         checkedItems = new ArrayList<String>();
         notCheckedItems = new ArrayList<String>();
-        nadeliverbyName = "";
     }
 
     public void generateNotCheckedItems() {
@@ -91,11 +88,11 @@ public class Delivery extends Transaction {
         this.naacceptby = naacceptby.toUpperCase();
     }
 
-    public String getNuxrAccptSign() {
+    public String getNuxraccptsign() {
         return nuxraccptsign;
     }
 
-    public void setNuxrAccptSign(String nuxraccptsign) {
+    public void setNuxrsccptsign(String nuxraccptsign) {
         this.nuxraccptsign = nuxraccptsign;
     }
 

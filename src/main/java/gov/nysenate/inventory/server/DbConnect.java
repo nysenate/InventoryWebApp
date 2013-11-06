@@ -1064,7 +1064,7 @@ public class DbConnect {
                     + "SET CDINTRANSIT='N' "
                     + " ,DTTXNUPDATE=SYSDATE "
                     + " ,NATXNUPDUSER=USER "
-                    + " ,NUXRACCPTSIGN=" + delivery.getNuxrAccptSign()
+                    + " ,NUXRACCPTSIGN=" + delivery.getNuxraccptsign()
                     + " ,NADELIVERBY='" + delivery.getNadeliverby()
                     + "' ,NAACCEPTBY='" + delivery.getNaacceptby()
                     + "' ,DTDELIVERY=SYSDATE "

@@ -9,6 +9,18 @@ public class Location {
     private String adzipcode;
     private String adstate;
 
+    public Location() {
+
+    }
+
+    public Location(String summary) {
+        String[] tmp = summary.split("-");
+        cdlocat = tmp[0];
+        tmp = tmp[1].split(":");
+        cdloctype = tmp[0];
+        adstreet1 = tmp[1].trim();
+    }
+
     public String getAdstreet1() {
         return adstreet1;
     }
@@ -48,7 +60,6 @@ public class Location {
     public void setAdstate(String adstate) {
         this.adstate = adstate;
     }
-        
 
     public String getAdzipcode() {
         return adzipcode;
@@ -56,6 +67,10 @@ public class Location {
 
     public void setAdzipcode(String adzipcode) {
         this.adzipcode = adzipcode;
+    }
+
+    public String getLocationSummaryString() {
+        return getCdlocat() + "-" + getCdloctype()+ ": " + getAdstreet1();
     }
 
 }

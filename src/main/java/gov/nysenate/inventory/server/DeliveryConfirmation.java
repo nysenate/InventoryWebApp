@@ -81,7 +81,7 @@ public class DeliveryConfirmation extends HttpServlet {
             if (request.getParameterValues("checkedStr[]") != null) {
                 delivery.setCheckedItems(request.getParameterValues("checkedStr[]"));
             }
-            delivery.setNuxrAccptSign(request.getParameter("NUXRACCPTSIGN"));
+            delivery.setNuxrsccptsign(request.getParameter("NUXRACCPTSIGN"));
             delivery.setNadeliverby(request.getParameter("NADELIVERBY"));
             delivery.setNaacceptby(request.getParameter("NAACCEPTBY"));
             delivery.setComments(request.getParameter("DECOMMENTS"));

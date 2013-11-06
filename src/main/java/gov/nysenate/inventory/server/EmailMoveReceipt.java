@@ -295,7 +295,7 @@ public void testingModeCheck() {
 
  
     // Get the employee who signed the Release 
-    signingEmployee = db.getEmployeeWhoSigned(delivery.getNuxrAccptSign(), false, userFallback);
+    signingEmployee = db.getEmployeeWhoSigned(delivery.getNuxraccptsign(), false, userFallback);
     signingEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
     
     // Get the employee who picked up the items
