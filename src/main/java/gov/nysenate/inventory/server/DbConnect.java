@@ -49,9 +49,9 @@ public class DbConnect {
 
     public String ipAddr = "";
     static Logger log = Logger.getLogger(DbConnect.class.getName());
-    static Properties properties = new Properties();
-    static InputStream in;
-    static private String userName,  password;
+    private Properties properties = new Properties();
+    private InputStream in;
+    private String userName,  password;
     final int RELEASESIGNATURE = 3001, ACCEPTBYSIGNATURE = 3002;
    
     public DbConnect() {
@@ -115,7 +115,7 @@ public class DbConnect {
      * ---------------Function to establish and return database connection 
      *----------------------------------------------------------------------------------------------------*/
 
-    public static Connection getDbConnection() {
+    public Connection getDbConnection() {
         log.info("getDbConnection() begin ");
         Connection conn = null;
         try {
