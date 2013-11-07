@@ -13,7 +13,7 @@ public abstract class Transaction {
     private String verificationMethod;
     private String verificationComments;
     private int employeeId;
-    private int helpReferenceNum;
+    private String helpReferenceNum;
 
     // shipType must exists for all remote transactions.
     public boolean isRemote() {
@@ -135,11 +135,11 @@ public abstract class Transaction {
         this.employeeId = employeeId;
     }
 
-    public int getHelpReferenceNum() {
+    public String getHelpReferenceNum() {
         return helpReferenceNum;
     }
 
-    public void setHelpReferenceNum(int helpReferenceNum) {
+    public void setHelpReferenceNum(String helpReferenceNum) {
         this.helpReferenceNum = helpReferenceNum;
     }
 }
