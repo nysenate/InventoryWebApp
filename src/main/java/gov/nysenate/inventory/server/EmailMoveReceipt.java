@@ -225,8 +225,7 @@ public void testingModeCheck() {
    * Pickup Specific function serves as the initial setup code for the sendEmail(int emailType)
    * which handles both Pickup and Delivery
    */
-  
-  
+    
   public int sendEmailReceipt(Pickup pickup)
   {
     if (emailType!=PICKUP) {
@@ -253,7 +252,6 @@ public void testingModeCheck() {
     } catch (SQLException ex) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, null, ex);
     }
-
  
     // Get the employee who signed the Release 
     signingEmployee = db.getEmployeeWhoSigned(pickup.getNuxrrelsign(), false, userFallback);
@@ -539,6 +537,11 @@ public void testingModeCheck() {
       //System.out.println("ATTACHMENT SIZE:" + attachment.length + " " + ((attachment.length) / 1024.0) + "KB");
     } catch (MalformedURLException ex) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
+      if (returnStatus == 0) {
+        returnStatus = 2;
+      }
+      emailError(emailType, "<html><body>Email Error URL was MALFORMED: <b>"+receiptURL + nuxrpd + transTypeParam+"</b><br/><br/></body></html>");
+      return returnStatus;
     } catch (IOException ex) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
     } catch (ReportNotGeneratedException ex) {
@@ -548,6 +551,7 @@ public void testingModeCheck() {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, "There was an issue with Oracle Reports Server. Please contact STS/BAC.", ex);    
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ERROR ReportNotGeneratedException1");
       emailError(emailType);
+      return returnStatus;
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE AFTER E-MAIL ERROR ReportNotGeneratedException1");
      }
     if (attachment == null) {
@@ -557,6 +561,7 @@ public void testingModeCheck() {
         returnStatus = 4;
       }
       emailError(emailType);
+      return returnStatus;
 
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ERROR attachment == null 2");
     }
@@ -567,6 +572,7 @@ public void testingModeCheck() {
         returnStatus = 5;
       }
       emailError(emailType);
+      return returnStatus;
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE AFTER E-MAIL ERROR attachment.length==0 1");
     }
     
@@ -589,54 +595,7 @@ public void testingModeCheck() {
         e.printStackTrace();
     }    
     
-/*    try {
-
-      //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ADD ATTACHMENT");
-      attachmentPart.setDataHandler(
-              new DataHandler(
-              new DataSource()
-      {
-        @Override
-        public String getContentType()
-        {
-          return "application/pdf";
-        }
-
-        @Override
-        public InputStream getInputStream() throws IOException
-        {
-          try {
-            ////System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT getInputStream()");
-            
-            return new ByteArrayInputStream(bytesFromUrlWithJavaIO(receiptURL + nuxrpd));
-          }
-          catch (ReportNotGeneratedException e) {
-            ////System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT getInputStream() ReportNotGeneratedException");
-            Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, "Oracle Reports Server failed to generate a PDF Report for the Pickup Receipt. Please contact STS/BAC.", e);                  
-            return new ByteArrayInputStream(new byte[0]);
-          }
-        }
-
-        @Override
-        public String getName()
-        {
-          return receiptFilename+".pdf";
-        }
-
-        @Override
-        public OutputStream getOutputStream() throws IOException
-        {
-          return null;
-        }
-      }));
-      //System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME:"+attachmentPart.getDataHandler().getName());
-      //System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME(2):"+attachmentPart.getDataHandler().getDataSource().getName());
-      
-    } catch (MessagingException ex) {
-      Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
-    }*/
-
-    try {
+   try {
       in = this.getClass().getClassLoader().getResourceAsStream("config.properties");
       properties.load(in);
  
@@ -738,17 +697,38 @@ public void testingModeCheck() {
     } catch (AddressException e) {
       if (returnStatus == 0) {
         returnStatus = 10;
+        try {
+          emailError(emailType, "ADDRESS EXCEPTION:+" +e.getMessage());
+        }
+        catch (Exception e2) {
+          e2.printStackTrace();
+        }
+        return returnStatus;
       }
       
       e.printStackTrace();
     } catch (MessagingException e) {
       if (returnStatus == 0) {
         returnStatus = 11;
+        try {
+          emailError(emailType, "MESSAGING EXCEPTION:+" +e.getMessage());
+        }
+        catch (Exception e2) {
+          e2.printStackTrace();
+        }
+        return returnStatus;
       }
       e.printStackTrace();
     } catch (Exception e) {
       if (returnStatus == 0) {
-        returnStatus = 12;
+        returnStatus = 20;
+        try {
+          emailError(emailType, "GENERAL EXCEPTION:+" +e.getMessage());
+        }
+        catch (Exception e2) {
+          e2.printStackTrace();
+        }
+        return returnStatus;
       }
       e.printStackTrace();
     }    
@@ -806,8 +786,8 @@ public void testingModeCheck() {
           return null;
         }
       }));
-      System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME:"+attachmentPart.getDataHandler().getName());
-      System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME(2):"+attachmentPart.getDataHandler().getDataSource().getName());
+      //System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME:"+attachmentPart.getDataHandler().getName());
+      //System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME(2):"+attachmentPart.getDataHandler().getDataSource().getName());
       
     } catch (MessagingException ex) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
@@ -815,13 +795,15 @@ public void testingModeCheck() {
     return attachmentPart;
   }
   
-  
  /*
   * New EmailError
   */
-  
+
  public void emailError(int emailType) {
-   
+    emailError(emailType, null);
+ }
+  
+ public void emailError(int emailType,String msgOverride) {
       Properties props = new Properties();
       String smtpServer = properties.getProperty("smtpServer");
       props.setProperty("mail.smtp.host", smtpServer);
@@ -833,10 +815,9 @@ public void testingModeCheck() {
 
          // Set From: header field of the header.
          message.setFrom(new InternetAddress(naemailFrom, naemailNameFrom));
-
-
-         // Set To: header field of the header.
-     if (testingMode) {
+         
+      // Set To: header field of the header.
+      if (testingMode) {
         recipientCount = addErrorRecipients(message);
         if (naemailTo1!=null && naemailTo1.trim().length()>0){
           message.addRecipient(Message.RecipientType.TO,
@@ -848,45 +829,62 @@ public void testingModeCheck() {
             new InternetAddress(naemailTo2, naemailNameTo2));  //naemailTo, naemployeeTo
           recipientCount++;
           }
-     }
-     else {
+      }
+      else {
          recipientCount = addErrorRecipients(message);
-     }
+      }
 
-     if (recipientCount==0) {
-        Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "**WARNING: There were no e-mail recipients for a Report Genration error. No error e-mail will be sent!!!");
-       return;
-     }
-        Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "!!!!EMAILERROR BEFORE SUBJECT");
-         // Set Subject: header field
-        message.setSubject("Oracle Report Server Unable to Generate Pickup Receipt. Contact STS/BAC.");
-        Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "!!!!EMAILERROR BEFORE MESSAGE HEADER");
-       String sEmailType = "";
-       if (emailType==PICKUP) {
+      if (recipientCount==0) {
+          Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "**WARNING: There were no e-mail recipients for a Report Genration error. No error e-mail will be sent!!!");
+          return;
+      }
+      Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "!!!!EMAILERROR BEFORE SUBJECT");
+      // Set Subject: header field
+      
+      if (emailType==PICKUP) {
+          message.setSubject("Oracle Report Server Unable to Generate Pickup Receipt. Contact STS/BAC.");
+      } else if (emailType==DELIVERY) {
+          message.setSubject("Oracle Report Server Unable to Generate Delivery Receipt. Contact STS/BAC.");
+      }
+      
+      Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "!!!!EMAILERROR BEFORE MESSAGE HEADER");
+      String sEmailType = "";
+      if (emailType==PICKUP) {
           sEmailType = "PICKUP";
-       } 
-       else if (emailType==DELIVERY) {
+      } 
+      else if (emailType==DELIVERY) {
           sEmailType = "DELIVERY";
-       }
-       else {
+      }
+      else {
           sEmailType = "UNKNOWN EMAIL TYPE:"+emailType;
-       }
-        
-       String msgHeader = "<html><body><b>URL:<a href='"+receiptURL + nuxrpd+"'>"+receiptURL + nuxrpd+"</a> ("+sEmailType+") Try#:"+retryCounter+" failed to generated and came back with the following response...<br /><br /> </body></html>"; 
+      }
+      
+      String msgHeader = "<html><body><b>URL:<a href='"+receiptURL + nuxrpd+"'>"+receiptURL + nuxrpd+"</a> ("+sEmailType+") Try#:"+retryCounter+" failed to generated and came back with the following response...<br /><br /> </body></html>"; 
          
-        Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "!!!!EMAILERROR BEFORE SET MESSAGE:"+msgHeader+error);
-         // Now set the actual message
-         message.setText(msgHeader+error, "utf-8", "html");
-        Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "!!!!EMAILERROR AFTER SET MESSAGE");
-         Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "| EMAIL ERRORR MSG:" + message);
-         // Send message
-         Transport.send(message);
-         System.out.println("Sent error message successfully....");
-      }catch (MessagingException mex) {
-         mex.printStackTrace();
-      } catch (UnsupportedEncodingException ex1) {
+      Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "!!!!EMAILERROR BEFORE SET MESSAGE:"+msgHeader+error);
+      // Now set the actual message
+      if (msgOverride==null) {
+        message.setText(msgHeader+error, "utf-8", "html");
+      }
+      else {
+        if (error==null) {
+            message.setText(msgOverride, "utf-8", "html");
+        }
+        else {
+            message.setText(msgOverride+msgHeader+error, "utf-8", "html");
+        }
+      }
+      Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "!!!!EMAILERROR AFTER SET MESSAGE");
+      Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "| EMAIL ERRORR MSG:" + message);
+      // Send message
+      Transport.send(message);
+      System.out.println("Sent error message successfully....");
+    }  catch (MessagingException mex) {
+          mex.printStackTrace();
+        Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, null, mex);
+    } catch (UnsupportedEncodingException ex1) {
         Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, null, ex1);
-      }    
+    }    
   }    
 
   @Override
@@ -943,7 +941,6 @@ public void testingModeCheck() {
           Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "**WARNING: E-mail Receipt type not set to PICKUP or DELIVERY. No e-mail will be generated!!!");
           break;
       }
-    
   }
   
   private int addDistributionRecipients(MimeMessage msg) throws MessagingException, UnsupportedEncodingException {
@@ -984,7 +981,6 @@ public void testingModeCheck() {
        cnt++;
     }
     return cnt;
-    
   }
   
   private String getName(int row, String[] nameList) {
@@ -994,7 +990,6 @@ public void testingModeCheck() {
     else {
         return nvl(nameList[row], "");
     }
-    
   }
   
   private String nvl(String value, String nullReturn) {
@@ -1076,8 +1071,7 @@ public void testingModeCheck() {
       } catch (Exception e) {
         e.printStackTrace();
       }
-
-
+      
       //System.out.println("****REPORT DOES NOT CONTAIN %PDF- STARTS WITH: " + decoded.substring(0, 100));
       error = decoded;
 
@@ -1086,7 +1080,5 @@ public void testingModeCheck() {
     //System.out.println(decoded);
 
     return returnBytes;
-  }  
-
-  
+  }    
 }
