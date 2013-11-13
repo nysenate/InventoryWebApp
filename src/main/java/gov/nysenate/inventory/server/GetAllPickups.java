@@ -1,12 +1,13 @@
 package gov.nysenate.inventory.server;
 
-import gov.nysenate.inventory.model.Pickup;
+import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.TransactionMapper;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.Collection;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -21,36 +22,29 @@ import com.google.gson.Gson;
 public class GetAllPickups extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Logger log = Logger.getLogger(GetAllPickups.class.getName());
 
-        PrintWriter out = null;
         DbConnect db = null;
-        try {
-            out = response.getWriter();
-            db = HttpUtils.getHttpSession(request, out);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (out.toString().contains("Session timed out")) {
-            response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
-        }
+        PrintWriter out = response.getWriter();
+        db = HttpUtils.getHttpSession(request, response, out);
 
-        List<Pickup> pickups = null;
+        TransactionMapper transMap = new TransactionMapper();
+        Collection<Transaction> trans = null;
         try {
-            pickups = db.getAllValidPickups();
+            trans = transMap.queryAllValidTransactions(db);
         } catch (SQLException ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("GetAllPickups Exception: ", ex);
         }
 
         Gson gson = new Gson();
-        out.print(gson.toJson(pickups));
+        out.print(gson.toJson(trans));
         out.close();
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         doGet(request, response);
     }
 }

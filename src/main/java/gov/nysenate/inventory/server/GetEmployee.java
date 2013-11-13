@@ -21,17 +21,9 @@ public class GetEmployee extends HttpServlet {
         Logger log = Logger.getLogger(CancelPickup.class.getName());
         response.setContentType("text/html;charset=UTF-8");
 
-        PrintWriter out = null;
         DbConnect db = null;
-        try {
-            out = response.getWriter();
-            db = HttpUtils.getHttpSession(request, out);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (out.toString().contains("Session timed out")) {
-            response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
-        }
+        PrintWriter out = response.getWriter();
+        db = HttpUtils.getHttpSession(request, response, out);
 
         String[] empInfo = new String[3];
         String nalast = request.getParameter("nalast");

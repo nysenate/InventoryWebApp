@@ -1,7 +1,8 @@
 package gov.nysenate.inventory.server;
 
-import gov.nysenate.inventory.model.Pickup;
+import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.TransactionMapper;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -25,22 +26,12 @@ public class GetPickup extends HttpServlet {
         Logger log = Logger.getLogger(CancelPickup.class.getName());
         response.setContentType("text/html;charset=UTF-8");
 
-        PrintWriter out = null;
         DbConnect db = null;
-        try {
-            out = response.getWriter();
-            db = HttpUtils.getHttpSession(request, out);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // Temporary fix to abide by current session checking functionality.
-        if (out.toString().contains("Session timed out")) {
-            response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
-        }
+        PrintWriter out = response.getWriter();
+        db = HttpUtils.getHttpSession(request, response, out);
 
         int nuxrpd;
-        Pickup pickup = null;
-        ArrayList<InvItem> items;
+        Transaction pickup = null;
         String userFallback = request.getParameter("userFallback");
         String nuxrpdString = request.getParameter("nuxrpd");
         if (nuxrpdString == null) {
@@ -48,10 +39,10 @@ public class GetPickup extends HttpServlet {
             return;
         }
 
+        TransactionMapper mapper = new TransactionMapper();
         nuxrpd = Integer.parseInt(nuxrpdString);
         try {
-            pickup = db.getPickupInfo(nuxrpd);
-            items = db.getDeliveryDetails(nuxrpdString, userFallback);
+            pickup = mapper.queryTransaction(db, nuxrpd);
         } catch (SQLException ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("GetPickup: SQL Exception: ", ex);
@@ -64,7 +55,6 @@ public class GetPickup extends HttpServlet {
             return;
         }
 
-        pickup.setPickupItems(items);
         out.print(new Gson().toJson(pickup));
         out.close();
     }

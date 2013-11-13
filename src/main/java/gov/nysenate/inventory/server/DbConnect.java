@@ -1,9 +1,8 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.model.Employee;
-import gov.nysenate.inventory.model.Delivery;
 import gov.nysenate.inventory.model.Location;
-import gov.nysenate.inventory.model.Pickup;
+import gov.nysenate.inventory.model.Transaction;
 
 import gov.nysenate.inventory.model.Commodity;
 
@@ -49,7 +48,7 @@ public class DbConnect {
 
     public String ipAddr = "";
     static Logger log = Logger.getLogger(DbConnect.class.getName());
-    private Properties properties = new Properties();
+    static private Properties properties = new Properties();
     private InputStream in;
     private String userName,  password;
     final int RELEASESIGNATURE = 3001, ACCEPTBYSIGNATURE = 3002;
@@ -653,7 +652,7 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to start a new pickup-delivery
      *----------------------------------------------------------------------------------------------------*/
-    public int invTransit(Pickup pickup, String userFallback) {
+    public int invTransit(Transaction pickup, String userFallback) {
         Connection conn = getDbConnection();
         Statement stmt;
         try {
@@ -670,7 +669,7 @@ public class DbConnect {
                     + "','" + pickup.getOrigin().getCdlocat() + "','" + pickup.getOrigin().getCdloctype() + "','" + "Y" + "','"
                     + pickup.getNapickupby() + "','" + pickup.getNareleaseby() + "'," + pickup.getNuxrrelsign() + ",'" + "" + "','" + ""
                     + "','" + "A" + "',SYSDATE,SYSDATE,'" + pickup.getNapickupby() + "','" + pickup.getNapickupby() + "','"
-                    + pickup.getComments() + "',SYSDATE)";
+                    + pickup.getPickupComments() + "',SYSDATE)";
             stmt.executeQuery(updQry);
             log.info("** updQry *** : " + updQry);
             log.info("****PICKUPITEMS: " + pickup.getPickupItems());
@@ -1038,7 +1037,7 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to confirm delivery i.e. updates the FD12Issue table and changes location-----
      *------------------------------------------------------------------------------------------------------*/
-    public int confirmDelivery(Delivery delivery, String userFallback) {
+    public int confirmDelivery(Transaction delivery, String userFallback) {
         //log.info(this.ipAddr + "|" + "confirmDelivery() begin.");
 
         Connection conn = getDbConnection();
@@ -1068,7 +1067,7 @@ public class DbConnect {
                     + " ,NADELIVERBY='" + delivery.getNadeliverby()
                     + "' ,NAACCEPTBY='" + delivery.getNaacceptby()
                     + "' ,DTDELIVERY=SYSDATE "
-                    + "  ,DEDELCOMMENTS='" + delivery.getComments()
+                    + "  ,DEDELCOMMENTS='" + delivery.getDeliveryComments()
                     + "' WHERE NUXRPD=" + delivery.getNuxrpd();
             stmt.executeUpdate(query);
             conn.commit();
@@ -1179,10 +1178,10 @@ public class DbConnect {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to create new delivery i.e. inserts new records into FM12InvInTrans-----
      *----------------------------------------------------------------------------------------------------*/
-    public int createNewPickup(Delivery delivery, String userFallback) {
+    public int createNewPickup(Transaction delivery, String userFallback) {
         log.info(this.ipAddr + "|" + "createNewDelivery() begin :");
 
-        Pickup pickup = new Pickup();
+        Transaction pickup = new Transaction();
         pickup.setPickupItemsList(delivery.getNotCheckedItems());
 
         Connection conn = getDbConnection();
@@ -1236,8 +1235,8 @@ public class DbConnect {
         conn.close();
     }
 
-    public Pickup getPickupInfo(int nuxrpd) throws SQLException {
-        Pickup pickup = new Pickup();
+    public Transaction getPickupInfo(int nuxrpd) throws SQLException {
+        Transaction pickup = new Transaction();
         Location origin = new Location();
         Location dest = new Location();
         Connection conn = getDbConnection();
@@ -1253,9 +1252,9 @@ public class DbConnect {
         ResultSet result = ps.executeQuery();
         while (result.next()) {
             pickup.setNuxrpd(Integer.parseInt(result.getString(1)));
-            pickup.setDate(result.getString(2));
+            pickup.setPickupDate(result.getString(2));
             pickup.setNapickupby(result.getString(3));
-            pickup.setComments(result.getString(4));
+            pickup.setPickupComments(result.getString(4));
             origin.setCdlocat(result.getString(5));
             origin.setCdloctype(result.getString(6));
             origin.setAdstreet1(result.getString(7));
@@ -1402,8 +1401,8 @@ public class DbConnect {
     }
 
     // Get a list of all valid pickups, not getting a list of all items, only the count.
-    public List<Pickup> getAllValidPickups() throws SQLException {
-        ArrayList<Pickup> validPickups = new ArrayList<Pickup>();
+    public List<Transaction> getAllValidPickups() throws SQLException {
+        ArrayList<Transaction> validPickups = new ArrayList<Transaction>();
         String query = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM- Day') dtpickup, a.napickupby, a.depucomments,"
                 + " a.cdlocatfrom, b.cdloctype, b.adstreet1 fromstreet1, b.adcity fromcity, b.adzipcode fromzip,"
                 + " a.cdlocatto, c.cdloctype, c.adstreet1 tostreet1, c.adcity tocity, c.adzipcode tozip,"
@@ -1418,14 +1417,14 @@ public class DbConnect {
         ResultSet result = ps.executeQuery();
 
         while (result.next()) {
-            Pickup pickup = new Pickup();
+            Transaction pickup = new Transaction();
             Location origin = new Location();
             Location dest = new Location();
 
             pickup.setNuxrpd(Integer.parseInt(result.getString(1)));
-            pickup.setDate(result.getString(2));
+            pickup.setPickupDate(result.getString(2));
             pickup.setNapickupby(result.getString(3));
-            pickup.setComments(result.getString(4));
+            pickup.setPickupComments(result.getString(4));
             origin.setCdlocat(result.getString(5));
             origin.setCdloctype(result.getString(6));
             origin.setAdstreet1(result.getString(7));

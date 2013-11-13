@@ -1,6 +1,8 @@
 package gov.nysenate.inventory.server;
 
-import gov.nysenate.inventory.model.Pickup;
+import gov.nysenate.inventory.model.Transaction;
+import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.TransactionMapper;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,6 +13,7 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.sql.SQLException;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -45,39 +48,46 @@ public class PickupServlet extends HttpServlet
           throws ServletException, IOException
   {
     response.setContentType("text/html;charset=UTF-8");
-    PrintWriter out = response.getWriter();
     Logger log = Logger.getLogger(PickupServlet.class.getName());
 
-    DbConnect db = null;
     String userFallback = null;
-    Pickup pickup = new Pickup();
+    Transaction trans = new Transaction();
     String testingModeParam = null;
+    DbConnect db = null;
 
-    db = checkHttpSession(request, out);
+    PrintWriter out = response.getWriter();
+    db = HttpUtils.getHttpSession(request, response, out);
+
     db.ipAddr = request.getRemoteAddr();
     //log.info(db.ipAddr + "|" + "Servlet Pickup : start");
     String originLocation = request.getParameter("originLocation");
-    pickup.getOrigin().setCdlocat(originLocation);
-    pickup.getOrigin().setCdloctype(request.getParameter("cdloctypefrm"));
-    pickup.getDestination().setCdlocat(request.getParameter("destinationLocation"));
-    pickup.getDestination().setCdloctype(request.getParameter("cdloctypeto"));
+    trans.getOrigin().setCdlocat(originLocation);
+    trans.getOrigin().setCdloctype(request.getParameter("cdloctypefrm"));
+    trans.getDestination().setCdlocat(request.getParameter("destinationLocation"));
+    trans.getDestination().setCdloctype(request.getParameter("cdloctypeto"));
     if (request.getParameterValues("barcode[]") != null) {
-      pickup.setPickupItems(request.getParameterValues("barcode[]"));
+      trans.setPickupItems(request.getParameterValues("barcode[]"));
     }
-    pickup.setNapickupby(request.getParameter("NAPICKUPBY"));
-    pickup.setNuxrrelsign(request.getParameter("NUXRRELSIGN"));
-    pickup.setNareleaseby(request.getParameter("NARELEASEBY").replaceAll("'", "''"));
-    pickup.setComments(request.getParameter("DECOMMENTS").replaceAll("'", "''"));
+    trans.setNapickupby(request.getParameter("NAPICKUPBY"));
+    trans.setNuxrrelsign(request.getParameter("NUXRRELSIGN"));
+    trans.setNareleaseby(request.getParameter("NARELEASEBY").replaceAll("'", "''"));
+    trans.setPickupComments(request.getParameter("DECOMMENTS").replaceAll("'", "''"));
     /*try {
       db.setLocationInfo(pickup.getOrigin());
     } catch (SQLException ex) {
       Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, null, ex);
-    }
-    try {
-      db.setLocationInfo(pickup.getDestination());
-    } catch (SQLException ex) {
-      Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, null, ex);
     }*/
+    
+    
+    // TODO: what is this for?
+    try {
+      db.setLocationInfo(trans.getDestination());
+    } catch (SQLException ex) {
+      //Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, null, ex);
+    }
+
+
+
     userFallback = request.getParameter("userFallback");
     System.out.println("After Parameters");
 
@@ -88,13 +98,17 @@ public class PickupServlet extends HttpServlet
       }
     } catch (Exception e) {
     }
-    System.out.println("A)PickupItems = " + pickup.getPickupItems());
+    System.out.println("A)PickupItems = " + trans.getPickupItems());
 
-    //log.info("PickupItems = " + pickup.getPickupItems()); // TODO: for testing.
-    int dbResponse = db.invTransit(pickup, userFallback);
-    //log.info("PickupItems TESTING dbResponse=" + dbResponse); // TODO: for testing.
-    //System.out.println("B)PickupItems TESTING dbResponse=" + dbResponse);
-    pickup.setNuxrpd(dbResponse);
+    TransactionMapper mapper = new TransactionMapper();
+    int dbResponse = -1;
+    try {
+        dbResponse = mapper.insertTransaction(db, trans);
+    } catch (SQLException e1) {
+        e1.printStackTrace();
+    }
+
+    trans.setNuxrpd(dbResponse);
 
     if (dbResponse > -1) {
       int emailReceiptStatus = 0;
@@ -103,7 +117,8 @@ public class PickupServlet extends HttpServlet
         HttpSession httpSession = request.getSession(false);        
         String user = (String) httpSession.getAttribute("user");
         String pwd = (String) httpSession.getAttribute("pwd");        
-        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(user, pwd, pickup);
+
+        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(user, pwd, "pickup" ,trans);
         user = null;
         pwd = null;
 
@@ -112,6 +127,8 @@ public class PickupServlet extends HttpServlet
         Thread threadEmailMoveReceipt = new Thread(emailMoveReceipt);
         threadEmailMoveReceipt.start();
         //System.out.println("emailReceiptStatus:" + emailReceiptStatus);
+
+
 
 //        if (emailReceiptStatus == 0) {
           //System.out.println("Database updated successfully");
@@ -262,28 +279,6 @@ public class PickupServlet extends HttpServlet
     allText = allText.replaceAll(searchText, replaceText);
 
     return allText;
-  }
-
-  public DbConnect checkHttpSession(HttpServletRequest request, PrintWriter out)
-  {
-    HttpSession httpSession = request.getSession(false);
-    DbConnect db;
-    String userFallback = "";
-    if (httpSession == null) {
-      System.out.println("****SESSION NOT FOUND");
-      db = new DbConnect();
-      Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");
-      userFallback = request.getParameter("userFallback");
-      out.println("Session timed out");
-    } else {
-      long lastAccess = (System.currentTimeMillis() - httpSession.getLastAccessedTime());
-      System.out.println("SESSION FOUND!!!! LAST ACCESSED:" + this.convertTime(lastAccess));
-      String user = (String) httpSession.getAttribute("user");
-      String pwd = (String) httpSession.getAttribute("pwd");
-      //System.out.println("--------USER:" + user);
-      db = new DbConnect(user, pwd);
-    }
-    return db;
   }
 
   // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

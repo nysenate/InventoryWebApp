@@ -18,21 +18,12 @@ import org.apache.log4j.Logger;
 public class RemovePickupItems extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Logger log = Logger.getLogger(RemovePickupItems.class.getName());
 
-        PrintWriter out = null;
         DbConnect db = null;
-        try {
-            out = response.getWriter();
-            db = HttpUtils.getHttpSession(request, out);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // Temporary fix to abide by current session checking functionality.
-        if (out.toString().contains("Session timed out")) {
-            response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
-        }
+        PrintWriter out = response.getWriter();
+        db = HttpUtils.getHttpSession(request, response, out);
 
         String nuxrpdString = request.getParameter("nuxrpd");
         String[] items = request.getParameterValues("items[]");
@@ -54,7 +45,7 @@ public class RemovePickupItems extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         doGet(request, response);
     }
 

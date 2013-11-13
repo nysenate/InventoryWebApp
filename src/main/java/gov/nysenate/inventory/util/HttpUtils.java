@@ -7,13 +7,15 @@ import java.io.PrintWriter;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 public class HttpUtils {
 
     public static final int SC_SESSION_TIMEOUT = 599;
 
-    public static DbConnect getHttpSession(HttpServletRequest request, PrintWriter out) {
+    // TODO: Temporary refactoring to consolidate session checking code.
+    public static DbConnect getHttpSession(HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
         HttpSession httpSession = request.getSession(false);
         DbConnect db;
         String userFallback = "";
@@ -23,6 +25,7 @@ public class HttpUtils {
             Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");
             userFallback = request.getParameter("userFallback");
             out.println("Session timed out");
+            response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
         } else {
             long lastAccess = (System.currentTimeMillis() - httpSession.getLastAccessedTime());
             System.out.println("SESSION FOUND!!!! LAST ACCESSED:" + convertTime(lastAccess));

@@ -5,9 +5,8 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.model.Employee;
-import gov.nysenate.inventory.model.Delivery;
-import gov.nysenate.inventory.model.Pickup;
 import gov.nysenate.inventory.model.ReportNotGeneratedException;
+import gov.nysenate.inventory.model.Transaction;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -70,8 +69,8 @@ public class EmailMoveReceipt implements Runnable
   private DbConnect db = null;
   private String userFallback = null;
   final int PICKUP = -101, DELIVERY = -102;
-  private Pickup pickup = null;
-  private Delivery delivery = null;
+  private Transaction pickup = null;
+  private Transaction delivery = null;
   private Date dtreceipt = new Date();
   private String receiptFilename = null;
   private String napickupbyName = null;
@@ -95,11 +94,12 @@ public class EmailMoveReceipt implements Runnable
   private String receiptURL = null;
   private String transTypeParam;
   
-  public EmailMoveReceipt(String username, String password, Pickup pickup) {
+  public EmailMoveReceipt(String username, String password, String type, Transaction trans) {
+      if (type.equals("pickup")) {
         this.emailType = PICKUP;
         this.username = username;
         this.password = password;
-        this.pickup = pickup;
+        this.pickup = trans;
         userFallback = username; // userfallback is not really being used
                                  // but it needs to be passed so it is being
                                  // set to username (which should be set)
@@ -112,54 +112,53 @@ public class EmailMoveReceipt implements Runnable
         serverOS = System.getProperty("os.name");
         if (serverOS.toUpperCase().indexOf("WINDOWS")==-1) {
             pathDelimeter = "/";
-        }        
+        }
         try {
             properties.load(in);
             receiptPath = properties.getProperty("receiptPath");
             if (!receiptPath.trim().endsWith(pathDelimeter)) {
                 receiptPath = receiptPath.trim() + pathDelimeter;
             }
-            //System.out.println ("EmailMoveReceipt Receipt Location:"+receiptPath);
-            dbaUrl = properties.getProperty("dbaUrl");
-            testingModeCheck();
-            initializeEmailTo();
-        } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(EmailMoveReceipt.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }        
-}
 
-public EmailMoveReceipt(String username, String password, Delivery delivery) {
-        this.emailType = DELIVERY;
-        this.username = username;
-        this.password = password;
-        this.delivery = delivery;
-        userFallback = username; // userfallback is not really being used
-                                 // but it needs to be passed so it is being
-                                 // set to username (which should be set)
-        transTypeParam = "&p_transtype=DELIVERY";
-        attachmentPart = null;        
-        db = new DbConnect(username, password);
-        System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
-        properties = new Properties();
-        in = getClass().getClassLoader().getResourceAsStream("config.properties");
-        serverOS = System.getProperty("os.name");
-        if (serverOS.toUpperCase().indexOf("WINDOWS")==-1) {
-            pathDelimeter = "/";
-        }        
-        try {
-            properties.load(in);
-            receiptPath = properties.getProperty("receiptPath");
-            if (!receiptPath.trim().endsWith(pathDelimeter)) {
-                receiptPath = receiptPath.trim() + pathDelimeter;
-            }
-            //System.out.println ("EmailMoveReceipt Receipt Location:"+receiptPath);
             dbaUrl = properties.getProperty("dbaUrl");
             testingModeCheck();
             initializeEmailTo();
         } catch (IOException ex) {
             java.util.logging.Logger.getLogger(EmailMoveReceipt.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }        
-}
+        }
+      }
+      else if (type.equals("delivery")) {
+          this.emailType = DELIVERY;
+          this.username = username;
+          this.password = password;
+          this.delivery = trans;
+          userFallback = username; // userfallback is not really being used
+                                   // but it needs to be passed so it is being
+                                   // set to username (which should be set)
+          transTypeParam = "&p_transtype=DELIVERY";
+          attachmentPart = null;
+          db = new DbConnect(username, password);
+          System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
+          properties = new Properties();
+          in = getClass().getClassLoader().getResourceAsStream("config.properties");
+          serverOS = System.getProperty("os.name");
+          if (serverOS.toUpperCase().indexOf("WINDOWS")==-1) {
+              pathDelimeter = "/";
+          }
+          try {
+              properties.load(in);
+              receiptPath = properties.getProperty("receiptPath");
+              if (!receiptPath.trim().endsWith(pathDelimeter)) {
+                  receiptPath = receiptPath.trim() + pathDelimeter;
+              }
+              dbaUrl = properties.getProperty("dbaUrl");
+              testingModeCheck();
+              initializeEmailTo();
+          } catch (IOException ex) {
+              java.util.logging.Logger.getLogger(EmailMoveReceipt.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+          }  
+      }
+  }
 
 public void testingModeCheck() {
       if (testingModeParam!=null && testingModeParam.trim().length()>0) {
@@ -225,8 +224,8 @@ public void testingModeCheck() {
    * Pickup Specific function serves as the initial setup code for the sendEmail(int emailType)
    * which handles both Pickup and Delivery
    */
-    
-  public int sendEmailReceipt(Pickup pickup)
+  
+  public int sendPickupEmailReceipt(Transaction pickup)
   {
     if (emailType!=PICKUP) {
        Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "***WARNING: Email Type was not set to PICKUP!!! Not emailing Pickup receipt.");
@@ -278,7 +277,7 @@ public void testingModeCheck() {
    * which handles both Pickup and Delivery
    */
   
-  public int sendEmailReceipt(Delivery delivery)
+  public int sendDeliveryEmailReceipt(Transaction delivery)
   {
     if (emailType!=DELIVERY) {
        Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "***WARNING: Email Type was not set to DELIVERY!!! Not emailing Delivery receipt.");
@@ -902,7 +901,7 @@ public void testingModeCheck() {
           }
           do {
             retryCounter++;
-            returnStatus = sendEmailReceipt(pickup);
+            returnStatus = sendPickupEmailReceipt(pickup);
             if (returnStatus != 0) {
               Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" +  "Pickup receipt generated a returnStatus="+returnStatus+". Will retry to generate the Pickup receipt after "+this.reportWaitInterval+" seconds.");
               try {
@@ -923,7 +922,7 @@ public void testingModeCheck() {
           }
           do {
             retryCounter++;
-            returnStatus = sendEmailReceipt(delivery);
+            returnStatus = sendDeliveryEmailReceipt(delivery);
             if (returnStatus != 0) {
               Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" +  "Delivery receipt generated a returnStatus="+returnStatus+". Will retry to generate the Delivery receipt after "+this.reportWaitInterval+" seconds.");
               try {
