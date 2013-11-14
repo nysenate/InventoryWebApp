@@ -3,6 +3,7 @@ package gov.nysenate.inventory.server;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
 import gov.nysenate.inventory.util.TransactionMapper;
+import gov.nysenate.inventory.util.TransactionParser;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,6 +14,7 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 
@@ -51,7 +53,7 @@ public class PickupServlet extends HttpServlet
     Logger log = Logger.getLogger(PickupServlet.class.getName());
 
     String userFallback = null;
-    Transaction trans = new Transaction();
+    Transaction pickup = new Transaction();
     String testingModeParam = null;
     DbConnect db = null;
 
@@ -59,34 +61,21 @@ public class PickupServlet extends HttpServlet
     db = HttpUtils.getHttpSession(request, response, out);
 
     db.ipAddr = request.getRemoteAddr();
-    //log.info(db.ipAddr + "|" + "Servlet Pickup : start");
-    String originLocation = request.getParameter("originLocation");
-    trans.getOrigin().setCdlocat(originLocation);
-    trans.getOrigin().setCdloctype(request.getParameter("cdloctypefrm"));
-    trans.getDestination().setCdlocat(request.getParameter("destinationLocation"));
-    trans.getDestination().setCdloctype(request.getParameter("cdloctypeto"));
-    if (request.getParameterValues("barcode[]") != null) {
-      trans.setPickupItems(request.getParameterValues("barcode[]"));
-    }
-    trans.setNapickupby(request.getParameter("NAPICKUPBY"));
-    trans.setNuxrrelsign(request.getParameter("NUXRRELSIGN"));
-    trans.setNareleaseby(request.getParameter("NARELEASEBY").replaceAll("'", "''"));
-    trans.setPickupComments(request.getParameter("DECOMMENTS").replaceAll("'", "''"));
-    /*try {
-      db.setLocationInfo(pickup.getOrigin());
-    } catch (SQLException ex) {
-      Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, null, ex);
-    }*/
-    
-    
-    // TODO: what is this for?
+    log.info(db.ipAddr + "|" + "Servlet Pickup : start");
+
+    pickup = TransactionParser.parseTransaction(URLDecoder.decode(request.getParameter("pickup"), "UTF-8"));
+
+    // TODO: what are these for?
     try {
-      db.setLocationInfo(trans.getDestination());
+      db.setLocationInfo(pickup.getOrigin());
     } catch (SQLException ex) {
       //Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, null, ex);
     }
-
-
+    try {
+      db.setLocationInfo(pickup.getDestination());
+    } catch (SQLException ex) {
+      //Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, null, ex);
+    }
 
     userFallback = request.getParameter("userFallback");
     System.out.println("After Parameters");
@@ -98,17 +87,17 @@ public class PickupServlet extends HttpServlet
       }
     } catch (Exception e) {
     }
-    System.out.println("A)PickupItems = " + trans.getPickupItems());
+    System.out.println("A)PickupItems = " + pickup.getPickupItems());
 
     TransactionMapper mapper = new TransactionMapper();
     int dbResponse = -1;
     try {
-        dbResponse = mapper.insertTransaction(db, trans);
+        dbResponse = mapper.insertTransaction(db, pickup);
     } catch (SQLException e1) {
         e1.printStackTrace();
     }
 
-    trans.setNuxrpd(dbResponse);
+    pickup.setNuxrpd(dbResponse);
 
     if (dbResponse > -1) {
       int emailReceiptStatus = 0;
@@ -118,7 +107,7 @@ public class PickupServlet extends HttpServlet
         String user = (String) httpSession.getAttribute("user");
         String pwd = (String) httpSession.getAttribute("pwd");        
 
-        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(user, pwd, "pickup" ,trans);
+        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(user, pwd, "pickup" ,pickup);
         user = null;
         pwd = null;
 
