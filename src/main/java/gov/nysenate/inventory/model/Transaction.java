@@ -4,6 +4,7 @@ import gov.nysenate.inventory.server.InvItem;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 import com.google.gson.Gson;
 
@@ -13,7 +14,6 @@ import com.google.gson.Gson;
  * Adds Domain Logic methods.
  */
 public class Transaction {
-
     private int nuxrpd;
     private Location origin;
     private Location destination;
@@ -24,7 +24,7 @@ public class Transaction {
     private String napickupby;
     private String nareleaseby;
     private String nuxrrelsign;
-    private String pickupDate;
+    private Date pickupDate;
     private int count;
 
     // Delivery Info
@@ -33,7 +33,7 @@ public class Transaction {
     private String nadeliverby;
     private String naacceptby;
     private String nuxraccptsign;
-    private String deliveryDate;
+    private Date deliveryDate;
 
     // Remote Info
     private int shipId;
@@ -42,7 +42,7 @@ public class Transaction {
     private int verificationId;
     private String verificationMethod;
     private String verificationComments;
-    private int employeeId; // <-- TODO: employee name may be better.
+    private int employeeId;
     private String helpReferenceNum;
 
     public Transaction() {
@@ -54,12 +54,12 @@ public class Transaction {
         napickupby = "";
         nareleaseby = "";
         nuxrrelsign = "";
-        pickupDate = "";
+        pickupDate = new Date();
         deliveryComments = "";
         nadeliverby = "";
         naacceptby = "";
         nuxraccptsign = "";
-        deliveryDate = "";
+        deliveryDate = new Date();
         shipType = "";
         shipComments = "";
         verificationMethod = "";
@@ -80,16 +80,7 @@ public class Transaction {
         return gson.toJson(this);
     }
 
-    public String getPickupDateWithoutTime() {
-        String[] splitDate = pickupDate.split(" ");
-        return splitDate[2] + " " + splitDate[0];
-    }
-
     public ArrayList<String> getNotCheckedItems() {
-        //ArrayList<String> notCheckedItems = (ArrayList<String>) pickupItems.clone();
-        //for (String item : checkedItems) {
-        //    notCheckedItems.remove(item);
-        //}
         ArrayList<String> notCheckedItems = new ArrayList<String>();
         for (InvItem item: pickupItems) {
             if (!checkedItems.contains(item.getNusenate())) {
@@ -290,20 +281,20 @@ public class Transaction {
     public void setNuxrrelsign(String nuxrrelsign) {
         this.nuxrrelsign = nuxrrelsign;
     }
-    
-    public String getPickupDate() {
+
+    public Date getPickupDate() {
         return pickupDate;
     }
 
-    public void setPickupDate(String date) {
+    public void setPickupDate(Date date) {
         this.pickupDate = date;
     }
 
-    public String getDeliveryDate() {
+    public Date getDeliveryDate() {
         return deliveryDate;
     }
 
-    public void setDeliveryDate(String date) {
+    public void setDeliveryDate(Date date) {
         this.deliveryDate = date;
     }
 
@@ -354,5 +345,4 @@ public class Transaction {
     public void setNuxrsccptsign(String nuxraccptsign) {
         this.nuxraccptsign = nuxraccptsign;
     }
-
 }

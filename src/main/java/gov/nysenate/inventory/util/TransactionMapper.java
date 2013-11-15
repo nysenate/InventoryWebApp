@@ -6,8 +6,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Locale;
 
 import org.apache.log4j.Logger;
 
@@ -26,9 +29,11 @@ public class TransactionMapper {
     private static final String fd12invintransColumns = "NUXRPD, NUSENATE, CDSTATUS, DTTXNORIGIN, DTTXNUPDATE, NATXNORGUSER, NATXNUPDUSER";
 
     private static final Logger log = Logger.getLogger(TransactionMapper.class.getName());
+    private static final String oracleDateString = "'MM/DD/RR HH:MI:SSAM'";
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy hh:mm:ssa", Locale.US);
 
-    public int insertTransaction(DbConnect db, Transaction trans) throws SQLException {
-        return insertTransaction(db, trans, 0);
+    public int insertPickup(DbConnect db, Transaction trans) throws SQLException {
+        return insertPickup(db, trans, 0);
     }
 
     /**
@@ -38,12 +43,7 @@ public class TransactionMapper {
      * @return unique id of inserted row.
      * @throws SQLException 
      */
-    public int insertTransaction(DbConnect db, Transaction trans, int oldNuxrpd) throws SQLException {
-        String oldNuxStr = Integer.toString(oldNuxrpd);
-        if (oldNuxStr.equals("0")) {
-            oldNuxStr = "null";
-        }
-
+    public int insertPickup(DbConnect db, Transaction trans, int oldNuxrpd) throws SQLException {
         Connection conn = db.getDbConnection();
         String query = "SELECT FM12INVINTRANS_SEQN.nextval FROM dual ";
         PreparedStatement ps = conn.prepareStatement(query);
@@ -51,18 +51,43 @@ public class TransactionMapper {
         result.next();
         trans.setNuxrpd(result.getInt(1));
 
-        query = "INSERT INTO FM12INVINTRANS ( " + fm12invintransColumns + ") " +
-                "VALUES( " + trans.getNuxrpd() + ", '" + trans.getDestinationCdLoc() + "', '" + trans.getOriginCdLoc() + "', " +
-                "'Y'" + ", '" + trans.getNapickupby() + "', '" + trans.getNareleaseby() + "', '" + trans.getNuxrrelsign() + "', " +
-                "'A'" + ", " + "SYSDATE" + ", " + "SYSDATE" + ", " + "USER" + ", " + "USER" + ", '" + trans.getPickupComments() + "', '" +
-                trans.getNuxraccptsign() + "', '" + trans.getNadeliverby() + "', '" + trans.getNaacceptby() + "', " +
-                oldNuxStr + ", '" + trans.getPickupDate() + "', '" + trans.getDeliveryDate() + "', '" + trans.getDeliveryComments() + "', '" +
-                trans.getOriginCdLocType() + "', '" + trans.getDestinationCdLocType() + "', '" +
-                trans.getShipComments() + "', '" + trans.getVerificationComments() + "', '" + trans.getHelpReferenceNum() + "', " +
-                getNotNullEmployeeId(trans) + ", " +getTransShipId(conn, trans) + ", '" + trans.getVerificationMethod() + "' ) ";
+        query = "INSERT INTO FM12INVINTRANS (NUXRPD, CDLOCATTO, CDLOCATFROM, CDINTRANSIT, NAPICKUPBY, NARELEASEBY, " +
+                "NUXRRELSIGN, CDSTATUS, DTTXNORIGIN, DTTXNUPDATE, NATXNORGUSER, NATXNUPDUSER, DEPUCOMMENTS, " +
+                "NUXRPDORIG, DTPICKUP, CDLOCTYPEFRM, CDLOCTYPETO, NUXRSHIPTYP" + ") " +
+                "VALUES(?,?,?,?,?,?,?,?,?,?,USER,USER,?,?,?,?,?,?)";
+
+        ps = conn.prepareStatement(query);
+
+        ps.setInt(1, trans.getNuxrpd());
+        ps.setString(2, trans.getDestinationCdLoc());
+        ps.setString(3, trans.getOriginCdLoc());
+        ps.setString(4, "Y");
+        ps.setString(5, trans.getNapickupby());
+        ps.setString(6, trans.getNareleaseby());
+        if (trans.getNuxrrelsign().equals("")) {
+            ps.setNull(7, java.sql.Types.INTEGER);
+        } else {
+            ps.setInt(7, Integer.valueOf(trans.getNuxrrelsign()));
+        }
+        ps.setString(8, "A");
+        ps.setDate(9, getCurrentDate());
+        ps.setDate(10, getCurrentDate());
+        ps.setString(11, trans.getPickupComments());
+        if (oldNuxrpd == 0) {
+            ps.setNull(12, java.sql.Types.INTEGER);
+        } else {
+            ps.setInt(12, oldNuxrpd);
+        }
+        ps.setDate(13, getSqlDate(trans.getPickupDate()));
+        ps.setString(14, trans.getOriginCdLocType());
+        ps.setString(15, trans.getDestinationCdLocType());
+        if (getTransShipId(conn, trans) == 0) {
+            ps.setNull(16, java.sql.Types.INTEGER);
+        } else {
+            ps.setInt(16, getTransShipId(conn, trans));
+        }
 
         log.info(query);
-        ps = conn.prepareStatement(query);
         ps.executeUpdate();
 
         // Also insert each picked up item.
@@ -80,7 +105,7 @@ public class TransactionMapper {
 
     // TODO: also query delivery info
     public Transaction queryTransaction(DbConnect db, int nuxrpd) throws SQLException {
-        final String query = "SELECT invintrans.nuxrpd, TO_CHAR(invintrans.dtpickup, 'MM/DD/RR HH:MI:SSAM- Day') dtpickup, " +
+        final String query = "SELECT invintrans.nuxrpd, TO_CHAR(invintrans.dtpickup, " + oracleDateString + " ) dtpickup, " +
                 "invintrans.napickupby, invintrans.depucomments, " +
                 "invintrans.nuxrshiptyp, shiptyp.cdshiptyp, invintrans.deshipcomments, " +
                 "invintrans.nuxrvermthd, vermthd.cdvermthd, invintrans.devercomments, " +
@@ -109,15 +134,14 @@ public class TransactionMapper {
         trans = parseTransaction(result);
 
         // Get pickup items
-        ArrayList<InvItem> items = db.getDeliveryDetails(Integer.toString(nuxrpd), ""); // TODO: do this here?
+        ArrayList<InvItem> items = db.getDeliveryDetails(Integer.toString(nuxrpd), "");
         trans.setPickupItems(items);
         conn.close();
         return trans;
     }
 
-    // TODO: does this do everything we want for the transaction?? ... delivery info?
     public Collection<Transaction> queryAllValidTransactions(DbConnect db) throws SQLException {
-        final String query = "SELECT invintrans.nuxrpd, TO_CHAR(invintrans.dtpickup, 'MM/DD/RR HH:MI:SSAM- Day') dtpickup, " +
+        final String query = "SELECT invintrans.nuxrpd, TO_CHAR(invintrans.dtpickup, " + oracleDateString + " ) dtpickup, " +
                 "invintrans.napickupby, invintrans.depucomments, " +
                 "invintrans.nuxrshiptyp, shiptyp.cdshiptyp, invintrans.deshipcomments, " +
                 "invintrans.nuxrvermthd, vermthd.cdvermthd, invintrans.devercomments, " +
@@ -216,7 +240,11 @@ public class TransactionMapper {
         Location dest = new Location();
 
         trans.setNuxrpd(Integer.parseInt(result.getString(1)));
-        trans.setPickupDate(result.getString(2));
+        try {
+            trans.setPickupDate(sdf.parse(result.getString(2)));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         trans.setNapickupby(result.getString(3));
         trans.setPickupComments(result.getString(4));
         trans.setShipId(result.getInt(5));
@@ -243,9 +271,9 @@ public class TransactionMapper {
         return trans;
     }
 
-    private String getTransShipId(Connection conn, Transaction trans) throws SQLException {
+    private int getTransShipId(Connection conn, Transaction trans) throws SQLException {
         if (trans.getShipType().equals("")) {
-            return "null";
+            return 0;
         }
 
         String query = "SELECT nuxrshiptyp " +
@@ -255,14 +283,14 @@ public class TransactionMapper {
         ResultSet result = ps.executeQuery();
         result.next();
         int id = result.getInt(1);
-        return Integer.toString(id);
+        return id;
     }
 
     private String getTransVerId(Connection conn, Transaction trans) throws SQLException {
         if (trans.getVerificationMethod().equals("")) {
-            return "null"; // TODO: return ""; ??
+            return "null";
         }
-        
+
         String query = "SELECT nuxrvermthd " +
                 "FROM FL12VERMTHD " +
                 "WHERE cdvermthd = " + trans.getVerificationMethod();
@@ -280,4 +308,14 @@ public class TransactionMapper {
         }
         return Integer.toString(id);
     }
+
+    private java.sql.Date getCurrentDate() {
+        java.util.Date date = new java.util.Date();
+        return new java.sql.Date(date.getTime());
+    }
+
+    private java.sql.Date getSqlDate(java.util.Date date) {
+        return new java.sql.Date(date.getTime());
+    }
+
 }

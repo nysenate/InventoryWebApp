@@ -92,7 +92,7 @@ public class PickupServlet extends HttpServlet
     TransactionMapper mapper = new TransactionMapper();
     int dbResponse = -1;
     try {
-        dbResponse = mapper.insertTransaction(db, pickup);
+        dbResponse = mapper.insertPickup(db, pickup);
     } catch (SQLException e1) {
         e1.printStackTrace();
     }

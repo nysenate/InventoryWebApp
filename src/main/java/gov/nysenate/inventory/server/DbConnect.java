@@ -1235,43 +1235,6 @@ public class DbConnect {
         conn.close();
     }
 
-    public Transaction getPickupInfo(int nuxrpd) throws SQLException {
-        Transaction pickup = new Transaction();
-        Location origin = new Location();
-        Location dest = new Location();
-        Connection conn = getDbConnection();
-        String query = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM- Day') dtpickup, a.napickupby, a.depucomments,"
-                + " a.cdlocatfrom, b.cdloctype, b.adstreet1 fromstreet1, b.adcity fromcity, b.adzipcode fromzip,"
-                + " a.cdlocatto, c.cdloctype, c.adstreet1 tostreet1, c.adcity tocity, c.adzipcode tozip"
-                + " FROM fm12invintrans a, sl16location b, sl16location c"
-                + " WHERE a.cdlocatfrom = b.cdlocat"
-                + " AND a.cdlocatto = c.cdlocat"
-                + " AND nuxrpd = ?";
-        PreparedStatement ps = conn.prepareStatement(query);
-        ps.setInt(1, nuxrpd);
-        ResultSet result = ps.executeQuery();
-        while (result.next()) {
-            pickup.setNuxrpd(Integer.parseInt(result.getString(1)));
-            pickup.setPickupDate(result.getString(2));
-            pickup.setNapickupby(result.getString(3));
-            pickup.setPickupComments(result.getString(4));
-            origin.setCdlocat(result.getString(5));
-            origin.setCdloctype(result.getString(6));
-            origin.setAdstreet1(result.getString(7));
-            origin.setAdcity(result.getString(8));
-            origin.setAdzipcode(result.getString(9));
-            dest.setCdlocat(result.getString(10));
-            dest.setCdloctype(result.getString(11));
-            dest.setAdstreet1(result.getString(12));
-            dest.setAdcity(result.getString(13));
-            dest.setAdzipcode(result.getString(14));
-        }
-        conn.close();
-        pickup.setOrigin(origin);
-        pickup.setDestination(dest);
-        return pickup;
-    }
-
     public void changePickupLocation(int nuxrpd, String cdLoc) throws SQLException {
         String query = "UPDATE FM12INVINTRANS "
                 + "SET CDLOCATFROM = ?, "
@@ -1398,52 +1361,6 @@ public class DbConnect {
 
         ps.executeBatch();
         conn.close();
-    }
-
-    // Get a list of all valid pickups, not getting a list of all items, only the count.
-    public List<Transaction> getAllValidPickups() throws SQLException {
-        ArrayList<Transaction> validPickups = new ArrayList<Transaction>();
-        String query = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM- Day') dtpickup, a.napickupby, a.depucomments,"
-                + " a.cdlocatfrom, b.cdloctype, b.adstreet1 fromstreet1, b.adcity fromcity, b.adzipcode fromzip,"
-                + " a.cdlocatto, c.cdloctype, c.adstreet1 tostreet1, c.adcity tocity, c.adzipcode tozip,"
-                + " (SELECT count(nusenate) from fd12invintrans d where d.nuxrpd = a.nuxrpd and d.cdstatus = 'A') cnt"
-                + " FROM fm12invintrans a, sl16location b, sl16location c"
-                + " WHERE a.cdlocatfrom = b.cdlocat"
-                + " AND a.cdlocatto = c.cdlocat"
-                + " AND a.cdstatus = 'A'"
-                + " AND a.cdintransit = 'Y'";
-        Connection conn = getDbConnection();
-        PreparedStatement ps = conn.prepareStatement(query);
-        ResultSet result = ps.executeQuery();
-
-        while (result.next()) {
-            Transaction pickup = new Transaction();
-            Location origin = new Location();
-            Location dest = new Location();
-
-            pickup.setNuxrpd(Integer.parseInt(result.getString(1)));
-            pickup.setPickupDate(result.getString(2));
-            pickup.setNapickupby(result.getString(3));
-            pickup.setPickupComments(result.getString(4));
-            origin.setCdlocat(result.getString(5));
-            origin.setCdloctype(result.getString(6));
-            origin.setAdstreet1(result.getString(7));
-            origin.setAdcity(result.getString(8));
-            origin.setAdzipcode(result.getString(9));
-            dest.setCdlocat(result.getString(10));
-            dest.setCdloctype(result.getString(11));
-            dest.setAdstreet1(result.getString(12));
-            dest.setAdcity(result.getString(13));
-            dest.setAdzipcode(result.getString(14));
-            pickup.setCount(result.getInt(15));
-
-            pickup.setOrigin(origin);
-            pickup.setDestination(dest);
-            validPickups.add(pickup);
-        }
-
-        conn.close();
-        return validPickups;
     }
 
     public String[] getEmployeeInfo(String nalast) throws SQLException {
