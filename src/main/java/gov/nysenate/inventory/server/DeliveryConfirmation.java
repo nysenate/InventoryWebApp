@@ -3,9 +3,11 @@ package gov.nysenate.inventory.server;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
 import gov.nysenate.inventory.util.TransactionMapper;
+import gov.nysenate.inventory.util.TransactionParser;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLDecoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -51,21 +53,10 @@ public class DeliveryConfirmation extends HttpServlet {
         try {
             db.ipAddr = request.getRemoteAddr();
             log.info(db.ipAddr + "|" + "Servlet DeliveryConfirmation : Start");
-           
-            delivery.setNuxrpd(Integer.parseInt(request.getParameter("NUXRPD")));
-            if (request.getParameterValues("deliveryItemsStr[]") != null) {
-                delivery.setPickupItems(request.getParameterValues("deliveryItemsStr[]"));
-            }
-            if (request.getParameterValues("checkedStr[]") != null) {
-                delivery.setCheckedItems(request.getParameterValues("checkedStr[]"));
-            }
-            delivery.setNuxrsccptsign(request.getParameter("NUXRACCPTSIGN"));
-            delivery.setNadeliverby(request.getParameter("NADELIVERBY"));
-            delivery.setNaacceptby(request.getParameter("NAACCEPTBY"));
-            delivery.setDeliveryComments(request.getParameter("DECOMMENTS"));
-            
-            
-            
+
+            String deliveryJson = URLDecoder.decode(request.getParameter("Delivery"), "UTF-8");
+            delivery = TransactionParser.parseTransaction(deliveryJson);
+
             TransactionMapper mapper = new TransactionMapper();
             try {
                 mapper.completeDelivery(db, delivery);

@@ -69,7 +69,7 @@ public class Transaction {
 
     // shipType must exists for all remote transactions.
     public boolean isRemote() {
-        if (shipType != null) {
+        if (shipType != "") {
             return true;
         }
         return false;
@@ -314,6 +314,13 @@ public class Transaction {
         this.checkedItems = new ArrayList<String>(Arrays.asList(checkedItems));
     }
 
+    public void setCheckedItems(ArrayList<InvItem> checkedItems) {
+        this.checkedItems.clear();
+        for (InvItem item: checkedItems) {
+            this.checkedItems.add(item.getNusenate());
+        }
+    }
+
     public String getDeliveryComments() {
         return deliveryComments;
     }
@@ -345,4 +352,5 @@ public class Transaction {
     public void setNuxrsccptsign(String nuxraccptsign) {
         this.nuxraccptsign = nuxraccptsign;
     }
+
 }

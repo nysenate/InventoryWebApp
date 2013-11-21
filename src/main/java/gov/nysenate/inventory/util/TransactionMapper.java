@@ -30,7 +30,7 @@ public class TransactionMapper {
 
     private static final Logger log = Logger.getLogger(TransactionMapper.class.getName());
     private static final String oracleDateString = "'MM/DD/RR HH:MI:SSAM'";
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy hh:mm:ssa", Locale.US);
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yy hh:mm:ssa", Locale.US);
 
     public int insertPickup(DbConnect db, Transaction trans) throws SQLException {
         return insertPickup(db, trans, 0);
@@ -70,15 +70,15 @@ public class TransactionMapper {
             ps.setInt(7, Integer.valueOf(trans.getNuxrrelsign()));
         }
         ps.setString(8, "A");
-        ps.setDate(9, getCurrentDate());
-        ps.setDate(10, getCurrentDate());
+        ps.setTime(9, getCurrentDate());
+        ps.setTime(10, getCurrentDate());
         ps.setString(11, trans.getPickupComments());
         if (oldNuxrpd == 0) {
             ps.setNull(12, java.sql.Types.INTEGER);
         } else {
             ps.setInt(12, oldNuxrpd);
         }
-        ps.setDate(13, getSqlDate(trans.getPickupDate()));
+        ps.setTime(13, getSqlDate(trans.getPickupDate()));
         ps.setString(14, trans.getOriginCdLocType());
         ps.setString(15, trans.getDestinationCdLocType());
         if (getTransShipId(conn, trans) == 0) {
@@ -88,6 +88,7 @@ public class TransactionMapper {
         }
 
         log.info(query);
+        log.info(sdf.format(trans.getPickupDate()));
         ps.executeUpdate();
 
         // Also insert each picked up item.
@@ -106,12 +107,12 @@ public class TransactionMapper {
     // TODO: also query delivery info
     public Transaction queryTransaction(DbConnect db, int nuxrpd) throws SQLException {
         final String query = "SELECT invintrans.nuxrpd, TO_CHAR(invintrans.dtpickup, " + oracleDateString + " ) dtpickup, " +
-                "invintrans.napickupby, invintrans.depucomments, " +
+                "invintrans.napickupby, invintrans.nareleaseby, invintrans.depucomments, " +
                 "invintrans.nuxrshiptyp, shiptyp.cdshiptyp, invintrans.deshipcomments, " +
                 "invintrans.nuxrvermthd, vermthd.cdvermthd, invintrans.devercomments, " +
                 "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adzipcode fromzip, " +
                 "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adzipcode tozip, " +
-                "invintrans.nuxrefem " +
+                "invintrans.nuxrefem, invintrans.nuxrrelsign " +
                 "FROM fm12invintrans invintrans " +
                 "LEFT OUTER JOIN fl12shiptyp shiptyp " +
                 "ON invintrans.nuxrshiptyp = shiptyp.nuxrshiptyp " +
@@ -142,12 +143,12 @@ public class TransactionMapper {
 
     public Collection<Transaction> queryAllValidTransactions(DbConnect db) throws SQLException {
         final String query = "SELECT invintrans.nuxrpd, TO_CHAR(invintrans.dtpickup, " + oracleDateString + " ) dtpickup, " +
-                "invintrans.napickupby, invintrans.depucomments, " +
+                "invintrans.napickupby, invintrans.nareleaseby, invintrans.depucomments, " +
                 "invintrans.nuxrshiptyp, shiptyp.cdshiptyp, invintrans.deshipcomments, " +
                 "invintrans.nuxrvermthd, vermthd.cdvermthd, invintrans.devercomments, " +
                 "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adzipcode fromzip, " +
                 "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adzipcode tozip, " +
-                "invintrans.nuxrefem, " +
+                "invintrans.nuxrefem, invintrans.nuxrrelsign, " +
                 "(SELECT count(nusenate) from fd12invintrans d where d.nuxrpd = invintrans.nuxrpd and d.cdstatus = 'A') cnt " +
                 "FROM fm12invintrans invintrans " +
                 "LEFT OUTER JOIN fl12shiptyp shiptyp " +
@@ -168,7 +169,7 @@ public class TransactionMapper {
 
         while (result.next()) {
             Transaction trans = parseTransaction(result);
-            trans.setCount(result.getInt(22));
+            trans.setCount(result.getInt(24));
 
             validPickups.add(trans);
         }
@@ -190,9 +191,9 @@ public class TransactionMapper {
                 "NAACCEPTBY='" + trans.getNaacceptby() + "', " +
                 "DTDELIVERY=SYSDATE" + ", " + // TODO: use Transaction.deliveryDate
                 "DEDELCOMMENTS='" + trans.getDeliveryComments() + "', " +
-                "DESHIPCOMMENTS='" + trans.getShipComments() + "', " +
+                "DESHIPCOMMENTS='" + trans.getShipComments() + "', " + // TODO: are ship comments done here?
                 "DEVERCOMMENTS='" + trans.getVerificationComments() + "', " +
-                "NUXREFEM=" + getNotNullEmployeeId(trans) + ", " + // <-- TODO: will we have nuxrefem/ how will we get it?
+                "NUXREFEM=" + getNotNullEmployeeId(trans) + ", " +
                 "NUHELPREF='" + trans.getHelpReferenceNum()  + "', " +
                 "NUXRVERMTHD=" + getTransVerId(conn, trans)  + " " +
                 "WHERE NUXRPD=" + trans.getNuxrpd();
@@ -227,10 +228,16 @@ public class TransactionMapper {
         conn.close();
 
         if (trans.getNotCheckedItems().size() > 0) {
-            // TODO: this is setting the new Pickup's dtpickup to a different value than the original pickup... do we want that???
-            // TODO: eventually, trans should have all pickup info in it as well as delivery info... can just do a simple insert.
-            // For now:
-            db.createNewPickup(trans, "userFallback"); // TODO: fallbackuser...
+            // TODO: syncronize use of InvItem and other model objects in app.
+            ArrayList<InvItem> items = new ArrayList<InvItem>();
+            for (String str: trans.getNotCheckedItems()) {
+                InvItem item = new InvItem();
+                item.setNusenate(str);
+                items.add(item);
+            }
+            trans.setPickupItems(items);
+            // Insert a new pickup that is the same as the original but only contains the non delivered items.
+            insertPickup(db, trans);
         }
     }
 
@@ -246,24 +253,26 @@ public class TransactionMapper {
             e.printStackTrace();
         }
         trans.setNapickupby(result.getString(3));
-        trans.setPickupComments(result.getString(4));
-        trans.setShipId(result.getInt(5));
-        trans.setShipType(result.getString(6));
-        trans.setShipComments(result.getString(7));
-        trans.setVerificationId(result.getInt(8));
-        trans.setVerificationMethod(result.getString(9));
-        trans.setVerificationComments(result.getString(10));
-        origin.setCdlocat(result.getString(11));
-        origin.setCdloctype(result.getString(12));
-        origin.setAdstreet1(result.getString(13));
-        origin.setAdcity(result.getString(14));
-        origin.setAdzipcode(result.getString(15));
-        dest.setCdlocat(result.getString(16));
-        dest.setCdloctype(result.getString(17));
-        dest.setAdstreet1(result.getString(18));
-        dest.setAdcity(result.getString(19));
-        dest.setAdzipcode(result.getString(20));
-        trans.setEmployeeId(result.getInt(21));
+        trans.setNareleaseby(result.getString(4));
+        trans.setPickupComments(result.getString(5));
+        trans.setShipId(result.getInt(6));
+        trans.setShipType(result.getString(7));
+        trans.setShipComments(result.getString(8));
+        trans.setVerificationId(result.getInt(9));
+        trans.setVerificationMethod(result.getString(10));
+        trans.setVerificationComments(result.getString(11));
+        origin.setCdlocat(result.getString(12));
+        origin.setCdloctype(result.getString(13));
+        origin.setAdstreet1(result.getString(14));
+        origin.setAdcity(result.getString(15));
+        origin.setAdzipcode(result.getString(16));
+        dest.setCdlocat(result.getString(17));
+        dest.setCdloctype(result.getString(18));
+        dest.setAdstreet1(result.getString(19));
+        dest.setAdcity(result.getString(20));
+        dest.setAdzipcode(result.getString(21));
+        trans.setEmployeeId(result.getInt(22));
+        trans.setNuxrrelsign(result.getString(23));
 
         trans.setOrigin(origin);
         trans.setDestination(dest);
@@ -278,8 +287,9 @@ public class TransactionMapper {
 
         String query = "SELECT nuxrshiptyp " +
                 "FROM FL12SHIPTYP " +
-                "WHERE cdshiptype = " + trans.getShipType();
+                "WHERE cdshiptyp = ?";
         PreparedStatement ps = conn.prepareStatement(query);
+        ps.setString(1, trans.getShipType());
         ResultSet result = ps.executeQuery();
         result.next();
         int id = result.getInt(1);
@@ -293,8 +303,9 @@ public class TransactionMapper {
 
         String query = "SELECT nuxrvermthd " +
                 "FROM FL12VERMTHD " +
-                "WHERE cdvermthd = " + trans.getVerificationMethod();
+                "WHERE cdvermthd = ?";
         PreparedStatement ps = conn.prepareStatement(query);
+        ps.setString(1, trans.getVerificationMethod());
         ResultSet result = ps.executeQuery();
         result.next();
         int id = result.getInt(1);
@@ -309,13 +320,13 @@ public class TransactionMapper {
         return Integer.toString(id);
     }
 
-    private java.sql.Date getCurrentDate() {
+    private java.sql.Time getCurrentDate() {
         java.util.Date date = new java.util.Date();
-        return new java.sql.Date(date.getTime());
+        return new java.sql.Time(date.getTime());
     }
 
-    private java.sql.Date getSqlDate(java.util.Date date) {
-        return new java.sql.Date(date.getTime());
+    private java.sql.Time getSqlDate(java.util.Date date) {
+        return new java.sql.Time(date.getTime());
     }
 
 }
