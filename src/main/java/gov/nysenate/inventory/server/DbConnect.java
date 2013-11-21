@@ -705,7 +705,7 @@ public class DbConnect {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
             //  String loc_code;
-            String qry = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM') dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode, COUNT(b.nuxrpd) nucount "
+            String qry = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM') dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode, COUNT(b.nuxrpd) nucount, a.nuxrshiptyp "
                     + " FROM FM12INVINTRANS a, FD12INVINTRANS b, sl16location c"
                     + " WHERE a.CDSTATUS='A'"
                     + " AND a.CDINTRANSIT='Y'"
@@ -713,7 +713,7 @@ public class DbConnect {
                     + " AND b.nuxrpd = a.nuxrpd"
                     + " AND b.cdstatus = 'A'"
                     + " AND c.cdlocat = a.cdlocatfrom"
-                    + " GROUP BY a.nuxrpd, a.dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode"
+                    + " GROUP BY a.nuxrpd, a.dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode, a.nuxrshiptyp"
                     + " ORDER BY a.dtpickup NULLS LAST";
             //System.out.println(qry);
             ResultSet result = stmt.executeQuery(qry);
@@ -728,8 +728,9 @@ public class DbConnect {
                 String adstate = result.getString(8);
                 String adzipcode = result.getString(9);
                 int nucount = result.getInt(10);
+                int nuxrshiptyp = result.getInt(11);
                 //String pickupDetails = NUXRPD + " : From " + CDLOCATFROM + "\n To " + CDLOCATTO + "\n Pickup by : " + NAPICKUPBY;
-                pickupList.add(new PickupGroup(nuxrpd, dtpickup, napickupby, nareleaseby, cdlocatfrom, adstreet1, adcity, adstate, adzipcode, nucount));
+                pickupList.add(new PickupGroup(nuxrpd, dtpickup, napickupby, nareleaseby, cdlocatfrom, adstreet1, adcity, adstate, adzipcode, nucount, nuxrshiptyp));
             }
 
             // Close the connection
@@ -810,7 +811,7 @@ public class DbConnect {
                 String adzipcode = result.getString(9);
                 int nucount = result.getInt(10);
                 //String pickupDetails = NUXRPD + " : From " + CDLOCATFROM + "\n To " + CDLOCATTO + "\n Pickup by : " + NAPICKUPBY;
-                pickupList.add(new PickupGroup(nuxrpd, dtpickup, napickupby, nareleaseby, cdlocatfrom, adstreet1, adcity, adstate, adzipcode, nucount));
+                pickupList.add(new PickupGroup(nuxrpd, dtpickup, napickupby, nareleaseby, cdlocatfrom, adstreet1, adcity, adstate, adzipcode, nucount, 0));
             }
 
             // Close the connection

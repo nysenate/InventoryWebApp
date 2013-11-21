@@ -20,8 +20,9 @@ public class PickupGroup {
           String pickupAdzipcode = "blah";
 	  int pickupItemCount = 0;
 	  int nuxrpd = 0;
+	  int shipId;
 	  
-	    public PickupGroup(int nuxrpd, String pickupDateTime, String pickupFrom, String pickupRelBy, String pickupLocat, String pickupAdstreet1, String pickupAdcity, String pickupAdstate, String pickupAdzipcode, int pickupItemCount) {
+	    public PickupGroup(int nuxrpd, String pickupDateTime, String pickupFrom, String pickupRelBy, String pickupLocat, String pickupAdstreet1, String pickupAdcity, String pickupAdstate, String pickupAdzipcode, int pickupItemCount, int shipId) {
                 Nvl nvl = new Nvl();
 	    	this.nuxrpd = nuxrpd;
 	        this.pickupDateTime = nvl.value( pickupDateTime, "N/A");
@@ -33,6 +34,7 @@ public class PickupGroup {
 	        this.pickupAdstate = nvl.value(pickupAdstate, "N/A");
 	        this.pickupAdzipcode = nvl.value(pickupAdzipcode, "N/A");
 	        this.pickupItemCount = pickupItemCount;
+	        this.shipId = shipId;
 	    }
 	    
 	    public String getPickupLocat() {
@@ -98,7 +100,13 @@ public class PickupGroup {
 	    }
 	    public void setNuxrpd(int nuxrpd) {
 	        this.nuxrpd = nuxrpd;
-	    }	    
+	    }
 
+        public int getShipId() {
+            return shipId;
+        }
 
+        public void setShipId(int shipId) {
+            this.shipId = shipId;
+        }
 }
