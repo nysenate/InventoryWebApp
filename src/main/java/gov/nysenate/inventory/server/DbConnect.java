@@ -114,21 +114,15 @@ public class DbConnect {
      * ---------------Function to establish and return database connection 
      *----------------------------------------------------------------------------------------------------*/
 
-    public Connection getDbConnection() {
+    public Connection getDbConnection() throws ClassNotFoundException, SQLException {
         log.info("getDbConnection() begin ");
         Connection conn = null;
-        try {
-            // Get the connection string, user name and password from the properties file
-            String connectionString = properties.getProperty("connectionString");
+        // Get the connection string, user name and password from the properties file
+        String connectionString = properties.getProperty("connectionString");
 
-            Class.forName("oracle.jdbc.driver.OracleDriver");
-            conn = DriverManager.getConnection(connectionString, userName, password);
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        conn = DriverManager.getConnection(connectionString, userName, password);
 
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
-        }
         log.info("getDbConnection() end");
         return conn;
     }
@@ -198,7 +192,6 @@ public class DbConnect {
                 + "FROM im86modmenu "
                 + "WHERE nauser = '"+user.trim().toUpperCase()+"' "
                 + "  AND defrmint = '"+defrmint.trim().toUpperCase()+"'";*/
-        Connection conn = getDbConnection();
 //        Statement pstmt = null;
 /*      try {
         pstmt = conn.createStatement();
@@ -208,6 +201,7 @@ public class DbConnect {
         
         PreparedStatement pstmt = null;
        try {
+           Connection conn = getDbConnection();
              pstmt = conn.prepareStatement(query);
             pstmt.setString(1, user.trim().toUpperCase());
             pstmt.setString(2, defrmint.trim().toUpperCase());
@@ -222,6 +216,8 @@ public class DbConnect {
         }
         catch (SQLException e) {
             log.error("SQL Exception in securityAccess(): ", e);
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         finally {
             try {
@@ -258,6 +254,8 @@ public class DbConnect {
             conn.close();
         } catch (SQLException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         log.info(this.ipAddr + "|" + "getDetails() details = " + details);
         log.info(this.ipAddr + "|" + "getDetails() end ");
@@ -274,9 +272,9 @@ public class DbConnect {
                 + "WHERE fm12comxref.nuxrefco = fd12issue.nuxrefco "
                 + "AND fd12issue.nuxrefsn = fm12senxref.nuxrefsn "
                 + "AND fm12senxref.nusenate like ? ";
-        Connection conn = getDbConnection();
         PreparedStatement pstmt = null;
         try {
+            Connection conn = getDbConnection();
             pstmt = conn.prepareStatement(query);
             pstmt.setString(1, barcode);
             ResultSet result = pstmt.executeQuery();
@@ -287,6 +285,8 @@ public class DbConnect {
         }
         catch (SQLException e) {
             log.error("SQL Exception in getItemCommodityCode(): ", e);
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         finally {
             try {
@@ -319,6 +319,8 @@ public class DbConnect {
             //System.out.println(details);
         } catch (SQLException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         log.info(this.ipAddr + "|" + "getInvLocDetails() end ");
         return details;
@@ -362,6 +364,8 @@ public class DbConnect {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             log.fatal(this.ipAddr + "|" + "SQLException in getLocationItemList() : " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         log.info(this.ipAddr + "|" + "getLocationItemList() end");
         return itemList;
@@ -408,6 +412,8 @@ public class DbConnect {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             log.fatal(this.ipAddr + "|" + "SQLException in getCommodityList() : " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         log.info(this.ipAddr + "|" + "getCommodityList() end");
         return commodityList;
@@ -447,6 +453,8 @@ public class DbConnect {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         log.info(this.ipAddr + "|" + "getLocCodes() end");
         return locCodes;
@@ -485,6 +493,8 @@ public class DbConnect {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         return pickupList;
     }
@@ -571,6 +581,8 @@ public class DbConnect {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         return invSerialList;
     }
@@ -642,6 +654,8 @@ public class DbConnect {
         catch (SQLException ex) {
             result = 2;
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, this.ipAddr + "|" + ex.getMessage());
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         log.info(this.ipAddr + "|" + "setBarcodesInDatabase() end");
         
@@ -653,9 +667,9 @@ public class DbConnect {
      * ---------------Function to start a new pickup-delivery
      *----------------------------------------------------------------------------------------------------*/
     public int invTransit(Transaction pickup, String userFallback) {
-        Connection conn = getDbConnection();
         Statement stmt;
         try {
+            Connection conn = getDbConnection();
             stmt = conn.createStatement();
             String qry = "SELECT FM12INVINTRANS_SEQN.nextval FROM  dual ";
             ResultSet result = stmt.executeQuery(qry);
@@ -685,6 +699,8 @@ public class DbConnect {
         catch (SQLException ex) {
             log.fatal("SQL error in invTransit ", ex);
             return -1;
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         return pickup.getNuxrpd();
     }
@@ -738,6 +754,8 @@ public class DbConnect {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             log.fatal(this.ipAddr + "|" + "SQLException in getDeliveryList() : " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         log.info(this.ipAddr + "|" + "getDeliveryList() end");
         return pickupList;
@@ -819,6 +837,8 @@ public class DbConnect {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             log.fatal(this.ipAddr + "|" + "SQLException in getDeliveryList() : " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         log.info(this.ipAddr + "|" + "getDeliveryList() end");
         return pickupList;
@@ -866,6 +886,8 @@ public class DbConnect {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             log.fatal(this.ipAddr + "|" + "SQLException in getDeliveryDetails() : " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         log.info(this.ipAddr + "|" + "getDeliveryDetails() end");
         return deliveryDetails;
@@ -886,10 +908,7 @@ public class DbConnect {
         if (imageInArray == null || nuxrefem < 0 || nauser == null) {
             throw new IllegalArgumentException("Invalid imageInArray or nuxrefem or nauser");
         }
-        Connection con = getDbConnection();
-        if (con==null) {
-            log.fatal(this.ipAddr + "|" + "Null Connection in insertSignature() after getDbConnection().");
-        }
+
         //System.out.println("DbConnect insertSignature byte Image Length:" + imageInArray.length);
 
         Blob blobValue;
@@ -927,6 +946,7 @@ public class DbConnect {
 
         PreparedStatement ps;
         try {
+            Connection con = getDbConnection();
             Statement stmtSequence = con.createStatement();
             if (con==null) {
                 System.out.println("insertSignature Connection was NULL when creating statement from it");
@@ -979,6 +999,8 @@ public class DbConnect {
             System.out.println("!!!!!!!!!!IO EXCEPTION OCCURED:"+ ex.getMessage());
             ex.printStackTrace();
             log.fatal(this.ipAddr + "|" + "IOException in insertSignature() : " + ex.getMessage());
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         } 
         log.info(this.ipAddr + "|" + "insertSignature() end");
         return nuxrsign;
@@ -1030,6 +1052,8 @@ public class DbConnect {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             log.fatal(this.ipAddr + "|" + "SQLException in getEmployeeList() : " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         log.info(this.ipAddr + "|" + "getEmployeeList() end");
         return employeeList;
@@ -1041,9 +1065,9 @@ public class DbConnect {
     public int confirmDelivery(Transaction delivery, String userFallback) {
         //log.info(this.ipAddr + "|" + "confirmDelivery() begin.");
 
-        Connection conn = getDbConnection();
         Statement stmt;
         try {
+            Connection conn = getDbConnection();
             stmt = conn.createStatement();
             // Get location info for this transaction.
             String qry1 = "SELECT CDLOCATTO,CDLOCTYPETO,CDLOCATFROM,CDLOCTYPEFRM "
@@ -1098,6 +1122,8 @@ public class DbConnect {
         }
         catch (SQLException ex) {
             log.fatal("SQL error in confirmDelivery(). ", ex);
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         return 0;
     }
@@ -1108,9 +1134,9 @@ public class DbConnect {
     
    public Employee getEmployeeWhoSigned(String nuxrsign, boolean upperCase, String userFallback) {
      String nuxrefem = "";
-     Connection conn = getDbConnection();
      Statement stmt;
      try {
+         Connection conn = getDbConnection();
           stmt = conn.createStatement();
           // Get location info for this transaction.
           String qry1 = "SELECT nuxrefem "
@@ -1127,7 +1153,9 @@ public class DbConnect {
         }
      catch (SQLException ex) {
         log.fatal("SQL error in getEmployeeWhoSigned(). ", ex);
-        }            
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
+    }            
      return getEmployee(nuxrefem, upperCase, userFallback);
    }
     
@@ -1170,6 +1198,8 @@ public class DbConnect {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             log.fatal(this.ipAddr + "|" + "SQLException in getEmployee() : " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         log.info(this.ipAddr + "|" + "getEmployee() end");
         return currentEmployee;
@@ -1185,9 +1215,9 @@ public class DbConnect {
         Transaction pickup = new Transaction();
         pickup.setPickupItemsList(delivery.getNotCheckedItems());
 
-        Connection conn = getDbConnection();
         Statement stmt;
         try {
+            Connection conn = getDbConnection();
             stmt = conn.createStatement();
             String qry = "SELECT NUXRPD,CDLOCATFROM, CDLOCTYPEFRM, CDLOCATTO,CDLOCTYPETO, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN FROM   "
                     + "  FM12INVINTRANS"
@@ -1209,6 +1239,8 @@ public class DbConnect {
         }
         catch (SQLException ex) {
             log.fatal(this.ipAddr + "|" + "Error getting pickup info in createNewDelivery(). ", ex);
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
 
         DbConnect db = new DbConnect();
@@ -1222,26 +1254,27 @@ public class DbConnect {
         password = pwd;
     }
 
-    public void cancelPickup(int nuxrpd) throws SQLException {
-        Connection conn = getDbConnection();
+    public void cancelPickup(int nuxrpd) throws SQLException, ClassNotFoundException {
         String query = "UPDATE FM12INVINTRANS "
                 + "SET CDINTRANSIT = 'C', "
                 + "DTTXNUPDATE = SYSDATE, "
                 + "NATXNUPDUSER = USER "
                 + "WHERE NUXRPD = ?";
 
+        Connection conn = getDbConnection();
         PreparedStatement ps = conn.prepareStatement(query);
         ps.setInt(1, nuxrpd);
         ps.executeUpdate();
         conn.close();
     }
 
-    public void changePickupLocation(int nuxrpd, String cdLoc) throws SQLException {
+    public void changePickupLocation(int nuxrpd, String cdLoc) throws SQLException, ClassNotFoundException {
         String query = "UPDATE FM12INVINTRANS "
                 + "SET CDLOCATFROM = ?, "
                 + "DTTXNUPDATE = SYSDATE, "
                 + "NATXNUPDUSER = USER "
                 + "WHERE NUXRPD = ?";
+        
         Connection conn = getDbConnection();
         PreparedStatement ps = conn.prepareStatement(query);
         ps.setString(1, cdLoc);
@@ -1250,7 +1283,7 @@ public class DbConnect {
         conn.close();
     }
 
-    public void changeDeliveryLocation(int nuxrpd, String cdLoc) throws SQLException {
+    public void changeDeliveryLocation(int nuxrpd, String cdLoc) throws SQLException, ClassNotFoundException {
         String query = "UPDATE FM12INVINTRANS "
                 + "SET CDLOCATTO = ?, "
                 + "DTTXNUPDATE = SYSDATE, "
@@ -1264,7 +1297,7 @@ public class DbConnect {
         conn.close();
     }
     
-    public void setLocationInfo(Location location) throws SQLException {
+    public void setLocationInfo(Location location) throws SQLException, ClassNotFoundException {
       //System.out.println ("DBCONNECT.setLocationInfo cdlocat:"+location.getCdlocat()+", cdloctype:"+location.getCdloctype());
       if  (location.getCdlocat()==null||location.getCdlocat().trim().length()==0) {
          log.info("Location has no cdlocat, setLocationInfo could not obtain location information."); 
@@ -1318,7 +1351,7 @@ public class DbConnect {
            //System.out.println ("DBCONNECT Location "+location.getCdlocat()+" SET: "+location.getAdstreet1());
     }
     
-    public Employee getEmployee(String nauser) throws SQLException {
+    public Employee getEmployee(String nauser) throws SQLException, ClassNotFoundException {
          Employee employee = new Employee();
          Connection conn = getDbConnection();
          Statement stmt;
@@ -1344,7 +1377,7 @@ public class DbConnect {
       return employee;
     }
 
-    public void removeDeliveryItems(int nuxrpd, String[] items) throws SQLException {
+    public void removeDeliveryItems(int nuxrpd, String[] items) throws SQLException, ClassNotFoundException {
         String query = "UPDATE FD12INVINTRANS "
                 + "SET CDSTATUS = 'I', "
                 + "DTTXNUPDATE = SYSDATE, "
@@ -1364,7 +1397,7 @@ public class DbConnect {
         conn.close();
     }
 
-    public String[] getEmployeeInfo(String nalast) throws SQLException {
+    public String[] getEmployeeInfo(String nalast) throws SQLException, ClassNotFoundException {
         String[] empInfo = new String[3];
         String query = "SELECT nafirst, nalast, cdrespctrhd"
                 + " FROM PM21PERSONN"

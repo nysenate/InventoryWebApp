@@ -65,6 +65,8 @@ public class DeliveryConfirmation extends HttpServlet {
                 log.info(db.ipAddr + "|" + "Database not updated");
                 log.error("SQL Exception ", e);
                 return;
+            } catch (ClassNotFoundException e) {
+                log.error("Error getting oracle jdbc driver: ", e);
             }
 
             emailDeliveryReceipt(out, "Database updated successfully", delivery, request);

@@ -38,6 +38,8 @@ public class GetEmployee extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("GetPickup: SQL Exception: ", ex);
             return;
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         String json = ("{" + "\"nafirst\":" + empInfo[0] + "," + "\"nalast\":" + empInfo[1] + "," + "\"cdrespctrhd\":" + empInfo[2] + "}");
         out.print(json);

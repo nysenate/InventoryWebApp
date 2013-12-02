@@ -244,12 +244,18 @@ public void testingModeCheck() {
       pickupAddress = pickup.getOrigin().getAdstreet1()+" "+pickup.getOrigin().getAdcity()+", "+pickup.getOrigin().getAdstate()+", "+pickup.getOrigin().getAdzipcode();
     } catch (SQLException ex) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, null, ex);
+    } catch (ClassNotFoundException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
     }
     try {
       db.setLocationInfo(pickup.getDestination());
       deliverAddress = pickup.getDestination().getAdstreet1()+" "+pickup.getDestination().getAdcity()+", "+pickup.getDestination().getAdstate()+", "+pickup.getDestination().getAdzipcode();
     } catch (SQLException ex) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, null, ex);
+    } catch (ClassNotFoundException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
     }
  
     // Get the employee who signed the Release 
@@ -266,6 +272,9 @@ public void testingModeCheck() {
       Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "***WARNING: Exception occured when trying to get Pickup Employee for (USER:"+pickup.getNapickupby()+") ("+sqle.getMessage()+")");
       pickupEmployee = new Employee();
       this.napickupbyName = "N/A";
+    } catch (ClassNotFoundException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
     }
     int emailReturnStatus = sendEmailReceipt(emailType);
     
@@ -290,6 +299,9 @@ public void testingModeCheck() {
       deliverAddress = delivery.getDestination().getAdstreet1()+" "+delivery.getDestination().getAdcity()+", "+delivery.getDestination().getAdstate()+", "+delivery.getDestination().getAdzipcode();
     } catch (SQLException ex) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, null, ex);
+    } catch (ClassNotFoundException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
     }
 
  
@@ -307,6 +319,9 @@ public void testingModeCheck() {
       Logger.getLogger(EmailMoveReceipt.class.getName()).warning(db.ipAddr + "|" + "***WARNING: Exception occured when trying to get Pickup Employee for (USER:"+pickup.getNapickupby()+") ("+sqle.getMessage()+")");
       pickupEmployee = new Employee();
       this.napickupbyName = "N/A";
+    } catch (ClassNotFoundException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
     }
     int emailReturnStatus = sendEmailReceipt(emailType);
     

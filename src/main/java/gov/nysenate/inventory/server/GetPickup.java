@@ -47,6 +47,8 @@ public class GetPickup extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("GetPickup: SQL Exception: ", ex);
             return;
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
 
         if (pickup == null) {

@@ -70,11 +70,17 @@ public class PickupServlet extends HttpServlet
       db.setLocationInfo(pickup.getOrigin());
     } catch (SQLException ex) {
       //Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, null, ex);
+    } catch (ClassNotFoundException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
     }
     try {
       db.setLocationInfo(pickup.getDestination());
     } catch (SQLException ex) {
       //Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, null, ex);
+    } catch (ClassNotFoundException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
     }
 
     userFallback = request.getParameter("userFallback");
@@ -95,6 +101,9 @@ public class PickupServlet extends HttpServlet
         dbResponse = mapper.insertPickup(db, pickup);
     } catch (SQLException e1) {
         e1.printStackTrace();
+    } catch (ClassNotFoundException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
     }
 
     pickup.setNuxrpd(dbResponse);

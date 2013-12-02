@@ -37,6 +37,8 @@ public class ChangePickupLocation extends HttpServlet {
         } catch (SQLException ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("Change Pickup Location Exception: ", ex);
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
     }
 

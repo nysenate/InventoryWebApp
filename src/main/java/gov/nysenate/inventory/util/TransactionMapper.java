@@ -32,7 +32,7 @@ public class TransactionMapper {
     private static final String oracleDateString = "'MM/DD/RR HH:MI:SSAM'";
     private static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yy hh:mm:ssa", Locale.US);
 
-    public int insertPickup(DbConnect db, Transaction trans) throws SQLException {
+    public int insertPickup(DbConnect db, Transaction trans) throws SQLException, ClassNotFoundException {
         return insertPickup(db, trans, 0);
     }
 
@@ -42,8 +42,9 @@ public class TransactionMapper {
      * @param oldNuxrpd if this pickup is auto generated from a partial delivery, this is the original deliveries unique id.
      * @return unique id of inserted row.
      * @throws SQLException 
+     * @throws ClassNotFoundException 
      */
-    public int insertPickup(DbConnect db, Transaction trans, int oldNuxrpd) throws SQLException {
+    public int insertPickup(DbConnect db, Transaction trans, int oldNuxrpd) throws SQLException, ClassNotFoundException {
         Connection conn = db.getDbConnection();
         String query = "SELECT FM12INVINTRANS_SEQN.nextval FROM dual ";
         PreparedStatement ps = conn.prepareStatement(query);
@@ -105,7 +106,7 @@ public class TransactionMapper {
     }
 
     // TODO: also query delivery info
-    public Transaction queryTransaction(DbConnect db, int nuxrpd) throws SQLException {
+    public Transaction queryTransaction(DbConnect db, int nuxrpd) throws SQLException, ClassNotFoundException {
         final String query = "SELECT invintrans.nuxrpd, TO_CHAR(invintrans.dtpickup, " + oracleDateString + " ) dtpickup, " +
                 "invintrans.napickupby, invintrans.nareleaseby, invintrans.depucomments, " +
                 "invintrans.nuxrshiptyp, shiptyp.cdshiptyp, invintrans.deshipcomments, " +
@@ -141,7 +142,7 @@ public class TransactionMapper {
         return trans;
     }
 
-    public Collection<Transaction> queryAllValidTransactions(DbConnect db) throws SQLException {
+    public Collection<Transaction> queryAllValidTransactions(DbConnect db) throws SQLException, ClassNotFoundException {
         final String query = "SELECT invintrans.nuxrpd, TO_CHAR(invintrans.dtpickup, " + oracleDateString + " ) dtpickup, " +
                 "invintrans.napickupby, invintrans.nareleaseby, invintrans.depucomments, " +
                 "invintrans.nuxrshiptyp, shiptyp.cdshiptyp, invintrans.deshipcomments, " +
@@ -178,7 +179,7 @@ public class TransactionMapper {
         return validPickups;
     }
 
-    public void completeDelivery(DbConnect db, Transaction trans) throws SQLException {
+    public void completeDelivery(DbConnect db, Transaction trans) throws SQLException, ClassNotFoundException {
         Connection conn = db.getDbConnection();
 
         // Update FM12InvInTrans
