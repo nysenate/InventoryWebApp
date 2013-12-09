@@ -1415,4 +1415,67 @@ public class DbConnect {
         conn.close();
         return empInfo;
     }
+
+   public ArrayList<Employee> getEmailSupervisors(String nauser) throws SQLException, ClassNotFoundException {
+         ArrayList<Employee> emailSupervisors = new ArrayList<Employee>();
+         Connection conn = getDbConnection();
+         Statement stmt;
+         stmt = conn.createStatement();
+          // Get location info for this transaction.
+          String qry1 = "Select C.Nuxrefem, C.Nafirst, C.Nalast, C.Namidinit, C.Nasuffix, C.Naemail, Substr(Upper(C.Naemail), 1, Decode(Instr(C.Naemail, '@'), -1, Length(C.Naemail), Instr(C.Naemail, '@')-1)) Nauser\n"
+                    + " FROM  fm12emlsup a, pm21personn b, pm21personn c  "
+                    + " WHERE SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) = '"+nauser.toUpperCase()+"' "
+                    + "   AND b.cdempstatus = 'A'"
+                    + "   AND b.nuxrefem = a.nuxrefem"
+                    + "   AND c.cdempstatus = 'A'"
+                    + "   AND b.nuxrefsv = c.nuxrefem"
+                    + "   AND a.cdstatus = 'A' "
+                    + " ORDER BY DECODE( INSTR(c.naemail, '@'), -1, 1, 0)";
+          
+          //System.out.println ("getEmployee qry1:"+qry1);
+          
+            ResultSet res1 = stmt.executeQuery(qry1);
+            while (res1.next()) {
+                Employee employee = new Employee();
+                employee.setEmployeeXref(res1.getInt(1));
+                employee.setNafirst(res1.getString(2));
+                employee.setNalast(res1.getString(3));
+                employee.setNamidinit(res1.getString(4));
+                employee.setNasuffix(res1.getString(5));
+                employee.setNaemail(res1.getString(5));
+                emailSupervisors.add(employee);
+            }            
+      return emailSupervisors;
+    }
+
+      public ArrayList<Employee> getEmailSupervisors(int nuxrefem) throws SQLException, ClassNotFoundException {
+         ArrayList<Employee> emailSupervisors = new ArrayList<Employee>();
+         Connection conn = getDbConnection();
+         Statement stmt;
+         stmt = conn.createStatement();
+          // Get location info for this transaction.
+          String qry1 = "SELECT c.nuxrefem, c.nafirst, c.nalast, c.namidinit, c.nasuffix, c.naemail, SUBSTR(UPPER(c.naemail), 1, DECODE(INSTR(c.naemail, '@'), -1, LENGTH(c.naemail), INSTR(c.naemail, '@')-1)) nauser\n"
+                    + " FROM  fm12emlsup a, pm21personn c  "
+                    + " WHERE a.nuxrefem = "+nuxrefem+" "
+                    + "   AND c.cdempstatus = 'A'"
+                    + "   AND A.Nuxrefemlsup = c.nuxrefem"
+                    + "   AND a.cdstatus = 'A' "
+                    + " ORDER BY DECODE( INSTR(c.naemail, '@'), -1, 1, 0)";
+          
+          //System.out.println ("getEmployee qry1:"+qry1);
+          
+            ResultSet res1 = stmt.executeQuery(qry1);
+            while (res1.next()) {
+                Employee employee = new Employee();
+                employee.setEmployeeXref(res1.getInt(1));
+                employee.setNafirst(res1.getString(2));
+                employee.setNalast(res1.getString(3));
+                employee.setNamidinit(res1.getString(4));
+                employee.setNasuffix(res1.getString(5));
+                employee.setNaemail(res1.getString(5));
+                emailSupervisors.add(employee);
+            }            
+      return emailSupervisors;
+    }
+
 }
