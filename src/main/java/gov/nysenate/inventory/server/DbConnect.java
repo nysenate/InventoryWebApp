@@ -1478,7 +1478,7 @@ public class DbConnect {
                     + "   AND b.cdempstatus = 'A'"
                     + "   AND b.nuxrefem = a.nuxrefem"
                     + "   AND c.cdempstatus = 'A'"
-                    + "   AND b.nuxrefsv = c.nuxrefem"
+                    + "   AND a.nuxrefemlsup = c.nuxrefem"
                     + "   AND a.cdstatus = 'A' "
                     + " ORDER BY DECODE( INSTR(c.naemail, '@'), -1, 1, 0)";
           
@@ -1492,7 +1492,7 @@ public class DbConnect {
                 employee.setNalast(res1.getString(3));
                 employee.setNamidinit(res1.getString(4));
                 employee.setNasuffix(res1.getString(5));
-                employee.setNaemail(res1.getString(5));
+                employee.setNaemail(res1.getString(6));
                 emailSupervisors.add(employee);
             }            
       return emailSupervisors;
@@ -1508,7 +1508,7 @@ public class DbConnect {
                     + " FROM  fm12emlsup a, pm21personn c  "
                     + " WHERE a.nuxrefem = "+nuxrefem+" "
                     + "   AND c.cdempstatus = 'A'"
-                    + "   AND A.Nuxrefemlsup = c.nuxrefem"
+                    + "   AND a.nuxrefemlsup = c.nuxrefem"
                     + "   AND a.cdstatus = 'A' "
                     + " ORDER BY DECODE( INSTR(c.naemail, '@'), -1, 1, 0)";
           
@@ -1522,7 +1522,7 @@ public class DbConnect {
                 employee.setNalast(res1.getString(3));
                 employee.setNamidinit(res1.getString(4));
                 employee.setNasuffix(res1.getString(5));
-                employee.setNaemail(res1.getString(5));
+                employee.setNaemail(res1.getString(6));
                 emailSupervisors.add(employee);
             }            
       return emailSupervisors;
