@@ -21,6 +21,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -605,6 +606,7 @@ public void testingModeCheck() {
       msg.setFrom(new InternetAddress(naemailFrom, naemailNameFrom));
       int recipientCount = 0;
       recipientCount = addDistributionRecipients(msg);
+      recipientCount = recipientCount + addEmailSupervisors(msg);
       if (this.emailType==PICKUP) {
           if (pickupEmployee!=null && pickupEmployee.getNaemail()!=null) {
             msg.addRecipient(Message.RecipientType.TO,
@@ -942,6 +944,44 @@ public void testingModeCheck() {
           break;
       }
   }
+  
+  private int addEmailSupervisors(MimeMessage msg) throws MessagingException, UnsupportedEncodingException {
+    int cnt = 0;
+    String curNaemailErrorTo = null;
+    String curNameErrorTo = null;
+    
+    if (this.naemailErrorTo==null) {
+      //Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "| addErrorRecipients NO RECIPIENTS");
+      return cnt;
+    }
+    
+    ArrayList<Employee> emailSupervisors = null;
+    
+    try {
+      emailSupervisors = db.getEmailSupervisors(username);
+    } catch (SQLException ex) {
+      Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (ClassNotFoundException ex) {
+      Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    
+   //Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "| addErrorRecipients "+naemailErrorTo.length+" RECIPIENTS");
+           
+    for (int x=0;x<emailSupervisors.size();x++) {
+       Employee currentEmailSupervisor = emailSupervisors.get(x);
+       currentEmailSupervisor.setEmployeeNameOrder(currentEmailSupervisor.FIRST_MI_LAST_SUFFIX);
+
+       curNaemailErrorTo = currentEmailSupervisor.getEmployeeName();
+       curNameErrorTo = currentEmailSupervisor.getNaemail();
+       
+       System.out.println(x+":"+curNaemailErrorTo+" "+curNameErrorTo);
+                   
+       msg.addRecipient(Message.RecipientType.TO,
+            new InternetAddress(curNaemailErrorTo, curNameErrorTo ));  //naemailTo, naemployeeTo
+       cnt++;
+    }
+    return cnt;
+   }    
   
   private int addDistributionRecipients(MimeMessage msg) throws MessagingException, UnsupportedEncodingException {
     int cnt = 0;
