@@ -714,7 +714,7 @@ public void testingModeCheck() {
       if (returnStatus == 0) {
         returnStatus = 10;
         try {
-          emailError(emailType, "ADDRESS EXCEPTION:+" +e.getMessage());
+          emailError(emailType, "ADDRESS EXCEPTION:+" +e.getMessage()+" ["+e.getStackTrace()[0].toString()+"]");
         }
         catch (Exception e2) {
           e2.printStackTrace();
