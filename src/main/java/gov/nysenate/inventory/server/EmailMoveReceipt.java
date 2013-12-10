@@ -959,7 +959,7 @@ public void testingModeCheck() {
       }
   }
   
-  private int addEmailSupervisors(MimeMessage msg) throws MessagingException, UnsupportedEncodingException {
+    private int addEmailSupervisors(MimeMessage msg) throws MessagingException, UnsupportedEncodingException, ClassNotFoundException {
     int cnt = 0;
     String curNaemailErrorTo = null;
     String curNameErrorTo = null;
@@ -975,8 +975,6 @@ public void testingModeCheck() {
       emailSupervisors = db.getEmailSupervisors(username);
     } catch (SQLException ex) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
-    } catch (ClassNotFoundException ex) {
-      Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
     }
     
    //Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "| addErrorRecipients "+naemailErrorTo.length+" RECIPIENTS");
@@ -985,10 +983,10 @@ public void testingModeCheck() {
        Employee currentEmailSupervisor = emailSupervisors.get(x);
        currentEmailSupervisor.setEmployeeNameOrder(currentEmailSupervisor.FIRST_MI_LAST_SUFFIX);
 
-       curNaemailErrorTo = currentEmailSupervisor.getEmployeeName();
-       curNameErrorTo = currentEmailSupervisor.getNaemail();
+       curNameErrorTo = currentEmailSupervisor.getEmployeeName();
+       curNaemailErrorTo = currentEmailSupervisor.getNaemail();
        
-       System.out.println(x+":"+curNaemailErrorTo+" "+curNameErrorTo);
+       System.out.println(x+": EMAIL:"+curNaemailErrorTo+" NAME:"+curNameErrorTo);
                    
        msg.addRecipient(Message.RecipientType.TO,
             new InternetAddress(curNaemailErrorTo, curNameErrorTo ));  //naemailTo, naemployeeTo
