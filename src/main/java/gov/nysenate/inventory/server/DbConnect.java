@@ -182,7 +182,7 @@ public class DbConnect {
           return "!!ERROR: Server needs screen name parameter to be passed correctly.("+defrmint+") is not a valid value. Please contact STSBAC.";
         }
         String commodityCode = ""; //TODO
-        String query = " SELECT 1"
+        String query = " SELECT CDSECLEVEL"
                 + " FROM im86modmenu "
                 + " WHERE nauser = ?"
                 + "   AND defrmint = ?"
@@ -211,7 +211,8 @@ public class DbConnect {
 
             while (result.next()) {
                 //System.out.println (user.trim().toUpperCase()+" HAS CLEARANCE");
-                loginStatus = "VALID";
+                loginStatus = "VALID ";
+                loginStatus += result.getString(1);
             }
         }
         catch (SQLException e) {
