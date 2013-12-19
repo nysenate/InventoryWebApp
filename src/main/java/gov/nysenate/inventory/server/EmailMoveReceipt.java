@@ -338,7 +338,7 @@ public void testingModeCheck() {
     StringBuilder sb = new StringBuilder();
     byte[] attachment = null;
     String msgBody = "";
-    receiptFilename = nuxrpd+"_"+formatDate(dtreceipt, "yyMMddhh24mmss");
+    receiptFilename = nuxrpd+"_"+formatDate(dtreceipt, "yyMMddHHmmss");
     int returnStatus = 0;    
     
     InputStream in = this.getClass().getClassLoader().getResourceAsStream("config.properties");
@@ -525,7 +525,7 @@ public void testingModeCheck() {
   
     try {
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE nuxrpd: "+ nuxrpd);
-      //System.out.println("-=-=-=-=-=-=-=-=-=TRACE FILE TO WRITE:"+receiptPath+nuxrpd+"_"+formatDate(new Date(), "yyMMddhh24mmss"));
+      //System.out.println("-=-=-=-=-=-=-=-=-=TRACE FILE TO WRITE:"+receiptPath+nuxrpd+"_"+formatDate(new Date(), "yyMMddHHmmss"));
        // If the Attachment does not return a pdf, then it will be null since it expects a PDF, so we can tag on .pdf as a filename
       attachment = bytesFromUrlWithJavaIO(receiptURL + nuxrpd + transTypeParam, receiptPath+receiptFilename); // +"&destype=CACHE&desformat=PDF
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE AFTER GETTING ATTACHMENT");
