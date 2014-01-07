@@ -122,6 +122,7 @@ public class EmailMoveReceipt implements Runnable
             }
 
             dbaUrl = properties.getProperty("dbaUrl");
+            testingModeParam = properties.getProperty("testingMode");
             testingModeCheck();
             initializeEmailTo();
         } catch (IOException ex) {
@@ -152,6 +153,7 @@ public class EmailMoveReceipt implements Runnable
               if (!receiptPath.trim().endsWith(pathDelimeter)) {
                   receiptPath = receiptPath.trim() + pathDelimeter;
               }
+              testingModeParam = properties.getProperty("testingMode");
               dbaUrl = properties.getProperty("dbaUrl");
               testingModeCheck();
               initializeEmailTo();
@@ -161,21 +163,21 @@ public class EmailMoveReceipt implements Runnable
       }
   }
 
-public void testingModeCheck() {
-      if (testingModeParam!=null && testingModeParam.trim().length()>0) {
-      if (testingModeParam.toUpperCase().indexOf("T")>-1) {
+  public void testingModeCheck()
+  {
+    //System.out.println ("TESTINGMODEPARAM:"+testingModeParam);
+    if (testingModeParam != null && testingModeParam.trim().length() > 0) {
+      if (testingModeParam.toUpperCase().indexOf("T") > -1) {
         testingMode = true;
         Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "****testingModeParam has a T, so Testing Mode is set to TRUE Pickup.processRequest ");
-      }
-      else {
+      } else {
         testingMode = false;
       }
-    }
-    else if (testingModeProperty==null || testingModeProperty.toUpperCase().contains("T")) {
+    } else if (testingModeProperty == null || testingModeProperty.toUpperCase().contains("T")) {
       testingMode = true;
       Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "***Testing Mode is set to TRUE Pickup.processRequest ");
     }
-}
+  }
 
  private void initializeEmailTo () {
        if (properties==null) {
