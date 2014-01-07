@@ -1377,7 +1377,7 @@ public class DbConnect {
                 employee.setNalast(res1.getString(3));
                 employee.setNamidinit(res1.getString(4));
                 employee.setNasuffix(res1.getString(5));
-                employee.setNaemail(res1.getString(5));
+                employee.setNaemail(res1.getString(6));
             }            
       return employee;
     }
