@@ -122,6 +122,7 @@ public class EmailMoveReceipt implements Runnable
             }
             //System.out.println ("EmailMoveReceipt Receipt Location:"+receiptPath);
             dbaUrl = properties.getProperty("dbaUrl");
+            testingModeParam = properties.getProperty("testingMode");
             testingModeCheck();
             initializeEmailTo();
         } catch (IOException ex) {
@@ -155,6 +156,7 @@ public EmailMoveReceipt(String username, String password, Delivery delivery) {
             }
             //System.out.println ("EmailMoveReceipt Receipt Location:"+receiptPath);
             dbaUrl = properties.getProperty("dbaUrl");
+            testingModeParam = properties.getProperty("testingMode");
             testingModeCheck();
             initializeEmailTo();
         } catch (IOException ex) {
