@@ -122,6 +122,7 @@ public class EmailMoveReceipt implements Runnable
             }
 
             dbaUrl = properties.getProperty("dbaUrl");
+            testingModeParam = properties.getProperty("testingMode");
             testingModeCheck();
             initializeEmailTo();
         } catch (IOException ex) {
@@ -152,6 +153,7 @@ public class EmailMoveReceipt implements Runnable
               if (!receiptPath.trim().endsWith(pathDelimeter)) {
                   receiptPath = receiptPath.trim() + pathDelimeter;
               }
+              testingModeParam = properties.getProperty("testingMode");
               dbaUrl = properties.getProperty("dbaUrl");
               testingModeCheck();
               initializeEmailTo();
@@ -161,21 +163,21 @@ public class EmailMoveReceipt implements Runnable
       }
   }
 
-public void testingModeCheck() {
-      if (testingModeParam!=null && testingModeParam.trim().length()>0) {
-      if (testingModeParam.toUpperCase().indexOf("T")>-1) {
+  public void testingModeCheck()
+  {
+    //System.out.println ("TESTINGMODEPARAM:"+testingModeParam);
+    if (testingModeParam != null && testingModeParam.trim().length() > 0) {
+      if (testingModeParam.toUpperCase().indexOf("T") > -1) {
         testingMode = true;
         Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "****testingModeParam has a T, so Testing Mode is set to TRUE Pickup.processRequest ");
-      }
-      else {
+      } else {
         testingMode = false;
       }
-    }
-    else if (testingModeProperty==null || testingModeProperty.toUpperCase().contains("T")) {
+    } else if (testingModeProperty == null || testingModeProperty.toUpperCase().contains("T")) {
       testingMode = true;
       Logger.getLogger(EmailMoveReceipt.class.getName()).info(db.ipAddr + "|" + "***Testing Mode is set to TRUE Pickup.processRequest ");
     }
-}
+  }
 
  private void initializeEmailTo () {
        if (properties==null) {
@@ -352,7 +354,7 @@ public void testingModeCheck() {
     StringBuilder sb = new StringBuilder();
     byte[] attachment = null;
     String msgBody = "";
-    receiptFilename = nuxrpd+"_"+formatDate(dtreceipt, "yyMMddhh24mmss");
+    receiptFilename = nuxrpd+"_"+formatDate(dtreceipt, "yyMMddHHmmss");
     int returnStatus = 0;    
     
     InputStream in = this.getClass().getClassLoader().getResourceAsStream("config.properties");
@@ -539,7 +541,7 @@ public void testingModeCheck() {
   
     try {
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE nuxrpd: "+ nuxrpd);
-      //System.out.println("-=-=-=-=-=-=-=-=-=TRACE FILE TO WRITE:"+receiptPath+nuxrpd+"_"+formatDate(new Date(), "yyMMddhh24mmss"));
+      //System.out.println("-=-=-=-=-=-=-=-=-=TRACE FILE TO WRITE:"+receiptPath+nuxrpd+"_"+formatDate(new Date(), "yyMMddHHmmss"));
        // If the Attachment does not return a pdf, then it will be null since it expects a PDF, so we can tag on .pdf as a filename
       attachment = bytesFromUrlWithJavaIO(receiptURL + nuxrpd + transTypeParam, receiptPath+receiptFilename); // +"&destype=CACHE&desformat=PDF
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE AFTER GETTING ATTACHMENT");
