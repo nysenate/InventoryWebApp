@@ -419,46 +419,48 @@ public class DbConnect {
         log.info(this.ipAddr + "|" + "getCommodityList() end");
         return commodityList;
     }    
-    
-    public ArrayList getLocCodes(String userFallback) {
-        log.info("getLocCodes() begin  ");
-        return getLocCodes("ALL", userFallback);
-    }
+
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to return arraylist of all the location codes 
      *----------------------------------------------------------------------------------------------------*/
-
-    public ArrayList getLocCodes(String natype, String userFallback) {
+    public ArrayList<Location> getLocCodes(String natype) {
         log.info(this.ipAddr + "|" + "getLocCodes(String natype) begin : natype= " + natype);
         if (natype.isEmpty() || natype == null) {
             throw new IllegalArgumentException("Invalid location Code");
         }
-        ArrayList<String> locCodes = new ArrayList<String>();
+        ArrayList<Location> locations = new ArrayList<Location>();
         try {
             Connection conn = getDbConnection();
             Statement stmt = conn.createStatement();
 
-            String qry = "select distinct cdlocat,adstreet1, cdloctype from sl16location a where a.cdstatus='A' ORDER BY cdlocat, cdloctype";
+            String qry = "SELECT DISTINCT cdloctype, cdlocat, adstreet1, adcity, adzipcode, adstate " +
+            		"FROM sl16location a where a.cdstatus='A' ORDER BY cdlocat, cdloctype";
             if (natype.equalsIgnoreCase("DELIVERY")) {
-                qry = "select distinct cdlocat,adstreet1, cdloctype from sl16location a where a.cdstatus='A' AND cdlocat IN (SELECT a2.cdlocatto FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A')) ORDER BY cdlocat, cdloctype";
+                qry = "SELECT DISTINCT cdloctype, cdlocat, adstreet1, adcity, adzipcode, adstate " +
+                		"FROM sl16location a where a.cdstatus='A' AND cdlocat IN " +
+                		"(SELECT a2.cdlocatto FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' " +
+                		"AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A')) " +
+                		"ORDER BY cdlocat, cdloctype";
             }
 
             ResultSet result = stmt.executeQuery(qry);
             while (result.next()) {
-
-                String locCode = result.getString(1);
-                String adstreet1 = result.getString(2);
-                String cdloctype = result.getString(3);
-                String locCodeListElement = locCode + "-" + cdloctype + ": " + adstreet1;
-                locCodes.add(locCodeListElement);
+                Location loc = new Location();
+                loc.setCdloctype(result.getString(1));
+                loc.setCdlocat(result.getString(2));
+                loc.setAdstreet1(result.getString(3));
+                loc.setAdcity(result.getString(4));
+                loc.setAdzipcode(result.getString(5));
+                loc.setAdstate(result.getString(6));
+                locations.add(loc);
             }
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            log.error("Error in getLocCodes: ", e);
         } catch (ClassNotFoundException e) {
             log.error("Error getting oracle jdbc driver: ", e);
         }
         log.info(this.ipAddr + "|" + "getLocCodes() end");
-        return locCodes;
+        return locations;
     }
 
     
