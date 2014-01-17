@@ -1148,7 +1148,8 @@ public class DbConnect extends DbManager {
             String qry = "SELECT a.nuxrefem, a.nafirst, a.nalast, a.namidinit, a.nasuffix, a.naemail"
                     + " FROM pm21personn a "
                     + " WHERE a.cdempstatus LIKE '" + cdempstatus + "'"
-                    + "  AND a.nalast LIKE'" + nalast + "%'" // TODO: nalast = null
+                    + "  AND a.nalast LIKE'" + nalast + "%'"
+                    + " AND a.naemail IS NOT null"
                     + " ORDER BY  a.nalast||DECODE(a.nasuffix, NULL, NULL, ' '||a.nasuffix)||', '||a.nafirst||DECODE(a.namidinit, NULL, NULL, ' '||a.namidinit)";
 
             //System.out.println("QRY:" + qry);
