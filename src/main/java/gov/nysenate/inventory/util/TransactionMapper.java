@@ -105,6 +105,39 @@ public class TransactionMapper {
         return trans.getNuxrpd();
     }
 
+    public void updateTransaction(DbConnect db, Transaction trans, String appUser) throws SQLException, ClassNotFoundException {
+        Connection conn = db.getDbConnection();
+        String query = "UPDATE fm12invintrans SET " +
+        "CDLOCATTO = ?, " +
+        "CDLOCATFROM = ?, " +
+        "DTTXNUPDATE = ?, " +
+        "NATXNUPDUSER = USER, " +
+        "DEPUCOMMENTS = ?, " +
+        "CDLOCTYPEFRM = ?, " +
+        "CDLOCTYPETO = ?, " +
+        "NUXRSHIPTYP = ?, " +
+        "DESHIPCOMMENTS = ? " +
+        "WHERE nuxrpd = ? ";
+
+        PreparedStatement ps = conn.prepareStatement(query);
+        ps.setString(1, trans.getDestinationCdLoc());
+        ps.setString(2, trans.getOriginCdLoc());
+        ps.setTime(3, getCurrentDate());
+        ps.setString(4, trans.getPickupComments());
+        ps.setString(5, trans.getOriginCdLocType());
+        ps.setString(6, trans.getDestinationCdLocType());
+        if (getTransShipId(conn, trans) == 0) {
+            ps.setNull(7, java.sql.Types.INTEGER);
+        } else {
+            ps.setInt(7, getTransShipId(conn, trans));
+        }
+        ps.setString(8, trans.getShipComments());
+        ps.setInt(9, trans.getNuxrpd());
+
+        ps.executeUpdate();
+        conn.close();
+    }
+
     // TODO: also query delivery info
     public Transaction queryTransaction(DbConnect db, int nuxrpd) throws SQLException, ClassNotFoundException {
         final String query = "SELECT invintrans.nuxrpd, TO_CHAR(invintrans.dtpickup, " + oracleDateString + " ) dtpickup, " +

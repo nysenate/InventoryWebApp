@@ -5,7 +5,9 @@ package gov.nysenate.inventory.server;
  * and open the template in the editor.
  */
 import com.google.gson.Gson;
-import static gov.nysenate.inventory.server.DbConnect.log;
+import gov.nysenate.inventory.model.Location;
+import gov.nysenate.inventory.util.HttpUtils;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -14,7 +16,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 
 /**
@@ -38,63 +39,30 @@ public class LocCodeList extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        Logger log = Logger.getLogger(LocCodeList.class.getName());
+        log.info(db.ipAddr+"|"+"Servlet LocCodeList : start");
         try {
-            HttpSession httpSession = request.getSession(false);
-            DbConnect db;  
-            String userFallback = null;
-            if (httpSession==null) {
-                System.out.println ("****SESSION NOT FOUND");
-                db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND LocCodeList.processRequest ");                
-                try {
-                   userFallback  = request.getParameter("userFallback");
-                }
-                catch (Exception e) {
-                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND LocCodeList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
-                }    
-                out.println("Session timed out");
-                return;                
-            }
-            else {
-                System.out.println ("SESSION FOUND!!!!");
-                String user = (String)httpSession.getAttribute("user");
-                String pwd = (String)httpSession.getAttribute("pwd");
-                System.out.println ("--------USER:"+user);
-                db = new DbConnect(user, pwd);
-                
-            }
             db.ipAddr=request.getRemoteAddr();
-            Logger.getLogger(LocCodeList.class.getName()).info(db.ipAddr+"|"+"Servlet LocCodeList : start");
-            String natype;
-            try {
-                natype = request.getParameter("NATYPE");
-            } catch (Exception e) {
-                natype = "ALL";
-                Logger.getLogger(LocCodeList.class.getName()).info(db.ipAddr+"|"+"Servlet LocCodeList : " + "NATYPE SET TO ALL DUE TO EXCEPTION");
-                System.out.println("NATYPE SET TO ALL DUE TO EXCEPTION");
-            }
+            String natype = request.getParameter("NATYPE");
+
             if (natype == null) {
                 natype = "ALL";
-                System.out.println("NATYPE SET TO ALL DUE TO NULL");
-            } else {
-                System.out.println("NATYPE=" + natype);
             }
 
-            ArrayList<String> LocCodeList = new ArrayList<String>();
-         
-            LocCodeList = db.getLocCodes(natype, userFallback);
+            ArrayList<Location> locations = new ArrayList<Location>();
+            locations = db.getLocCodes(natype);
 
-            if (LocCodeList.size() == 0) {
-                System.out.println("NO LOCATION CODES FOUND");
+            if (locations.size() == 0) {
+                log.error(db.ipAddr + "LocCodList: NO LOCATION CODES FOUND");
             }
 
-            String json = new Gson().toJson(LocCodeList);
+            String json = new Gson().toJson(locations);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
-            response.getWriter().write(json);
+            out.write(json);
 
-            out.print(json);
-            Logger.getLogger(LocCodeList.class.getName()).info(db.ipAddr+"|"+"Servlet LocCodeList : end");
+            log.info(db.ipAddr+"|"+"Servlet LocCodeList : end");
         } finally {
             out.close();
         }
