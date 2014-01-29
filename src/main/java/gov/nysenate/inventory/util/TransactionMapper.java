@@ -54,8 +54,8 @@ public class TransactionMapper {
 
         query = "INSERT INTO FM12INVINTRANS (NUXRPD, CDLOCATTO, CDLOCATFROM, CDINTRANSIT, NAPICKUPBY, NARELEASEBY, " +
                 "NUXRRELSIGN, CDSTATUS, DTTXNORIGIN, DTTXNUPDATE, NATXNORGUSER, NATXNUPDUSER, DEPUCOMMENTS, " +
-                "NUXRPDORIG, DTPICKUP, CDLOCTYPEFRM, CDLOCTYPETO, NUXRSHIPTYP" + ") " +
-                "VALUES(?,?,?,?,?,?,?,?,?,?,USER,USER,?,?,?,?,?,?)";
+                "NUXRPDORIG, DTPICKUP, CDLOCTYPEFRM, CDLOCTYPETO, NUXRSHIPTYP, CDRMTTYP" + ") " +
+                "VALUES(?,?,?,?,?,?,?,?,?,?,USER,USER,?,?,?,?,?,?,?)";
 
         ps = conn.prepareStatement(query);
 
@@ -87,6 +87,7 @@ public class TransactionMapper {
         } else {
             ps.setInt(16, getTransShipId(conn, trans));
         }
+        ps.setString(17, trans.getRemoteType());
 
         log.info(query);
         log.info(sdf.format(trans.getPickupDate()));
@@ -116,7 +117,8 @@ public class TransactionMapper {
         "CDLOCTYPEFRM = ?, " +
         "CDLOCTYPETO = ?, " +
         "NUXRSHIPTYP = ?, " +
-        "DESHIPCOMMENTS = ? " +
+        "DESHIPCOMMENTS = ?, " +
+        "CDRMTTYP = ? " +
         "WHERE nuxrpd = ? ";
 
         PreparedStatement ps = conn.prepareStatement(query);
@@ -133,6 +135,7 @@ public class TransactionMapper {
         }
         ps.setString(8, trans.getShipComments());
         ps.setInt(9, trans.getNuxrpd());
+        ps.setString(10, trans.getRemoteType());
 
         ps.executeUpdate();
         conn.close();
@@ -215,7 +218,6 @@ public class TransactionMapper {
     public void completeDelivery(DbConnect db, Transaction trans) throws SQLException, ClassNotFoundException {
         Connection conn = db.getDbConnection();
 
-        // Update FM12InvInTrans
         String query = "UPDATE fm12invintrans " +
                 "SET CDINTRANSIT='N', " +
                 "DTTXNUPDATE=SYSDATE, " +
@@ -225,7 +227,7 @@ public class TransactionMapper {
                 "NAACCEPTBY='" + trans.getNaacceptby() + "', " +
                 "DTDELIVERY=SYSDATE" + ", " + // TODO: use Transaction.deliveryDate
                 "DEDELCOMMENTS='" + trans.getDeliveryComments() + "', " +
-                "DESHIPCOMMENTS='" + trans.getShipComments() + "', " + // TODO: are ship comments done here?
+                "DESHIPCOMMENTS='" + trans.getShipComments() + "', " +
                 "DEVERCOMMENTS='" + trans.getVerificationComments() + "', " +
                 "NUXREFEM=" + getNotNullEmployeeId(trans) + ", " +
                 "NUHELPREF='" + trans.getHelpReferenceNum()  + "', " +
@@ -262,7 +264,6 @@ public class TransactionMapper {
         conn.close();
 
         if (trans.getNotCheckedItems().size() > 0) {
-            // TODO: syncronize use of InvItem and other model objects in app.
             ArrayList<InvItem> items = new ArrayList<InvItem>();
             for (String str: trans.getNotCheckedItems()) {
                 InvItem item = new InvItem();

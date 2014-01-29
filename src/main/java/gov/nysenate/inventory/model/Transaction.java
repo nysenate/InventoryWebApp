@@ -67,9 +67,18 @@ public class Transaction {
         helpReferenceNum = "";
     }
 
-    // shipType must exists for all remote transactions.
     public boolean isRemote() {
         return !shipType.equals("");
+    }
+
+    public String getRemoteType() {
+        if (this.isRemote()) {
+            if (origin.getAdcity().equalsIgnoreCase("Albany"))
+                return "D";
+
+            return "P";
+        }
+        return "";
     }
 
     public String toJson() {
