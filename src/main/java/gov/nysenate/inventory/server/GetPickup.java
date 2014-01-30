@@ -7,7 +7,6 @@ import gov.nysenate.inventory.util.TransactionMapper;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -23,7 +22,7 @@ public class GetPickup extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Logger log = Logger.getLogger(CancelPickup.class.getName());
+        Logger log = Logger.getLogger(GetPickup.class.getName());
         response.setContentType("text/html;charset=UTF-8");
 
         DbConnect db = null;

@@ -71,6 +71,13 @@ public class Transaction {
         return !shipType.equals("");
     }
 
+    public boolean isRemoteDelivery() {
+        if (this.isRemote()) {
+            return origin.getAdcity().equalsIgnoreCase("Albany");
+        }
+        return false;
+    }
+
     public String getRemoteType() {
         if (this.isRemote()) {
             if (origin.getAdcity().equalsIgnoreCase("Albany"))
@@ -269,7 +276,11 @@ public class Transaction {
     }
 
     public void setNapickupby(String napickupby) {
-        this.napickupby = napickupby.toUpperCase();
+        if (napickupby != null) {
+            this.napickupby = napickupby.toUpperCase();
+        } else {
+            this.napickupby = "";
+        }
     }
 
     public String getNareleaseby() {
@@ -277,7 +288,11 @@ public class Transaction {
     }
 
     public void setNareleaseby(String nareleaseby) {
-        this.nareleaseby = nareleaseby.toUpperCase();
+        if (nareleaseby != null) {
+            this.nareleaseby = nareleaseby.toUpperCase();
+        } else {
+            this.nareleaseby = "";
+        }
     }
 
     public String getNuxrrelsign() {
@@ -340,7 +355,11 @@ public class Transaction {
     }
 
     public void setNadeliverby(String nadeliverby) {
-        this.nadeliverby = nadeliverby.toUpperCase();
+        if (nadeliverby != null) {
+            this.nadeliverby = nadeliverby.toUpperCase();
+        } else {
+            this.nadeliverby = "";
+        }
     }
 
     public String getNaacceptby() {
@@ -348,7 +367,11 @@ public class Transaction {
     }
 
     public void setNaacceptby(String naacceptby) {
-        this.naacceptby = naacceptby.toUpperCase();
+        if (naacceptby != null) {
+            this.naacceptby = naacceptby.toUpperCase();
+        } else {
+            this.naacceptby = "";
+        }
     }
 
     public String getNuxraccptsign() {

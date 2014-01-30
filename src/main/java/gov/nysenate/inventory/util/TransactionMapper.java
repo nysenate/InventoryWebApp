@@ -222,20 +222,50 @@ public class TransactionMapper {
                 "SET CDINTRANSIT='N', " +
                 "DTTXNUPDATE=SYSDATE, " +
                 "NATXNUPDUSER=USER, " +
-                "NUXRACCPTSIGN=" + trans.getNuxraccptsign() + ", " +
-                "NADELIVERBY='" + trans.getNadeliverby() + "', " +
-                "NAACCEPTBY='" + trans.getNaacceptby() + "', " +
+                "NUXRACCPTSIGN=?, " +
+                "NADELIVERBY=?, " +
+                "NAACCEPTBY=?, " +
                 "DTDELIVERY=SYSDATE" + ", " + // TODO: use Transaction.deliveryDate
-                "DEDELCOMMENTS='" + trans.getDeliveryComments() + "', " +
-                "DESHIPCOMMENTS='" + trans.getShipComments() + "', " +
-                "DEVERCOMMENTS='" + trans.getVerificationComments() + "', " +
-                "NUXREFEM=" + getNotNullEmployeeId(trans) + ", " +
-                "NUHELPREF='" + trans.getHelpReferenceNum()  + "', " +
-                "NUXRVERMTHD=" + getTransVerId(conn, trans)  + " " +
-                "WHERE NUXRPD=" + trans.getNuxrpd();
+                "DEDELCOMMENTS=?, " +
+                "DESHIPCOMMENTS=?, " +
+                "DEVERCOMMENTS=?, " +
+                "NUXREFEM=?, " +
+                "NUHELPREF=?, " +
+                "NUXRVERMTHD=?, " +
+                "NARELEASEBY=? " +
+                "WHERE NUXRPD=?";
+
+        PreparedStatement ps = conn.prepareStatement(query);
+
+        if (trans.getNuxraccptsign().equals("")) {
+            ps.setNull(1, java.sql.Types.INTEGER);
+        } else {
+            ps.setInt(1, Integer.valueOf(trans.getNuxraccptsign()));
+        }
+        ps.setString(2, trans.getNadeliverby());
+        ps.setString(3, trans.getNaacceptby());
+        ps.setString(4, trans.getDeliveryComments());
+        ps.setString(5, trans.getShipComments());
+        ps.setString(6, trans.getVerificationComments());
+        if (trans.getEmployeeId() == 0) {
+            ps.setNull(7, java.sql.Types.INTEGER);
+        } else {
+            ps.setInt(7, trans.getEmployeeId());
+        }
+        if (trans.getHelpReferenceNum() == null || trans.getHelpReferenceNum().equals("")) {
+            ps.setNull(8, java.sql.Types.INTEGER);
+        } else {
+            ps.setInt(8, Integer.valueOf(trans.getHelpReferenceNum()));
+        }
+        if (getTransVerId(conn, trans) == 0) {
+            ps.setNull(9, java.sql.Types.INTEGER);
+        } else {
+            ps.setInt(9, getTransVerId(conn, trans));
+        }
+        ps.setString(10, trans.getNareleaseby());
+        ps.setInt(11, trans.getNuxrpd());
 
         log.info(query);
-        PreparedStatement ps = conn.prepareStatement(query);
         ps.executeUpdate();
 
         // Update FD12Issue corresponding tables for each delivered item.
@@ -272,7 +302,7 @@ public class TransactionMapper {
             }
             trans.setPickupItems(items);
             // Insert a new pickup that is the same as the original but only contains the non delivered items.
-            insertPickup(db, trans);
+            insertPickup(db, trans, trans.getNuxrpd());
         }
     }
 
@@ -331,9 +361,9 @@ public class TransactionMapper {
         return id;
     }
 
-    private String getTransVerId(Connection conn, Transaction trans) throws SQLException {
+    private int getTransVerId(Connection conn, Transaction trans) throws SQLException {
         if (trans.getVerificationMethod().equals("")) {
-            return "null";
+            return 0;
         }
 
         String query = "SELECT nuxrvermthd " +
@@ -343,8 +373,8 @@ public class TransactionMapper {
         ps.setString(1, trans.getVerificationMethod());
         ResultSet result = ps.executeQuery();
         result.next();
-        int id = result.getInt(1);
-        return Integer.toString(id);
+
+        return result.getInt(1);
     }
 
     private String getNotNullEmployeeId(Transaction trans) {
