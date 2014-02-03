@@ -19,7 +19,7 @@ import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.server.DbConnect;
 import gov.nysenate.inventory.server.InvItem;
 
-public class TransactionMapper {
+public class TransactionMapper extends DbManager {
 
     private static final String fm12invintransColumns = "NUXRPD, CDLOCATTO, CDLOCATFROM, CDINTRANSIT, NAPICKUPBY, NARELEASEBY, " +
             "NUXRRELSIGN, CDSTATUS, DTTXNORIGIN, DTTXNUPDATE, NATXNORGUSER, NATXNUPDUSER, DEPUCOMMENTS, NUXRACCPTSIGN, NADELIVERBY, " +
@@ -45,69 +45,75 @@ public class TransactionMapper {
      * @throws ClassNotFoundException 
      */
     public int insertPickup(DbConnect db, Transaction trans, int oldNuxrpd) throws SQLException, ClassNotFoundException {
-        Connection conn = db.getDbConnection();
-        String query = "SELECT FM12INVINTRANS_SEQN.nextval FROM dual ";
-        PreparedStatement ps = conn.prepareStatement(query);
-        ResultSet result = ps.executeQuery();
-        result.next();
-        trans.setNuxrpd(result.getInt(1));
+        ResultSet result = null;
+        PreparedStatement ps = null;
+        Connection conn = null;
+        try {
+            conn = db.getDbConnection();
+            String query = "SELECT FM12INVINTRANS_SEQN.nextval FROM dual ";
+            ps = conn.prepareStatement(query);
+            result = ps.executeQuery();
+            result.next();
+            trans.setNuxrpd(result.getInt(1));
 
-        query = "INSERT INTO FM12INVINTRANS (NUXRPD, CDLOCATTO, CDLOCATFROM, CDINTRANSIT, NAPICKUPBY, NARELEASEBY, " +
-                "NUXRRELSIGN, CDSTATUS, DTTXNORIGIN, DTTXNUPDATE, NATXNORGUSER, NATXNUPDUSER, DEPUCOMMENTS, " +
-                "NUXRPDORIG, DTPICKUP, CDLOCTYPEFRM, CDLOCTYPETO, NUXRSHIPTYP, CDRMTTYP" + ") " +
-                "VALUES(?,?,?,?,?,?,?,?,?,?,USER,USER,?,?,?,?,?,?,?)";
+            query = "INSERT INTO FM12INVINTRANS (NUXRPD, CDLOCATTO, CDLOCATFROM, CDINTRANSIT, NAPICKUPBY, NARELEASEBY, " +
+                    "NUXRRELSIGN, CDSTATUS, DTTXNORIGIN, DTTXNUPDATE, NATXNORGUSER, NATXNUPDUSER, DEPUCOMMENTS, " +
+                    "NUXRPDORIG, DTPICKUP, CDLOCTYPEFRM, CDLOCTYPETO, NUXRSHIPTYP, CDRMTTYP" + ") " +
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,USER,USER,?,?,?,?,?,?,?)";
 
-        ps = conn.prepareStatement(query);
+            ps = conn.prepareStatement(query);
 
-        ps.setInt(1, trans.getNuxrpd());
-        ps.setString(2, trans.getDestinationCdLoc());
-        ps.setString(3, trans.getOriginCdLoc());
-        ps.setString(4, "Y");
-        ps.setString(5, trans.getNapickupby());
-        ps.setString(6, trans.getNareleaseby());
-        if (trans.getNuxrrelsign().equals("")) {
-            ps.setNull(7, java.sql.Types.INTEGER);
-        } else {
-            ps.setInt(7, Integer.valueOf(trans.getNuxrrelsign()));
-        }
-        ps.setString(8, "A");
-        ps.setTime(9, getCurrentDate());
-        ps.setTime(10, getCurrentDate());
-        ps.setString(11, trans.getPickupComments());
-        if (oldNuxrpd == 0) {
-            ps.setNull(12, java.sql.Types.INTEGER);
-        } else {
-            ps.setInt(12, oldNuxrpd);
-        }
-        ps.setTime(13, getSqlDate(trans.getPickupDate()));
-        ps.setString(14, trans.getOriginCdLocType());
-        ps.setString(15, trans.getDestinationCdLocType());
-        if (getTransShipId(conn, trans) == 0) {
-            ps.setNull(16, java.sql.Types.INTEGER);
-        } else {
-            ps.setInt(16, getTransShipId(conn, trans));
-        }
-        ps.setString(17, trans.getRemoteType());
+            ps.setInt(1, trans.getNuxrpd());
+            ps.setString(2, trans.getDestinationCdLoc());
+            ps.setString(3, trans.getOriginCdLoc());
+            ps.setString(4, "Y");
+            ps.setString(5, trans.getNapickupby());
+            ps.setString(6, trans.getNareleaseby());
+            if (trans.getNuxrrelsign().equals("")) {
+                ps.setNull(7, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(7, Integer.valueOf(trans.getNuxrrelsign()));
+            }
+            ps.setString(8, "A");
+            ps.setTime(9, getCurrentDate());
+            ps.setTime(10, getCurrentDate());
+            ps.setString(11, trans.getPickupComments());
+            if (oldNuxrpd == 0) {
+                ps.setNull(12, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(12, oldNuxrpd);
+            }
+            ps.setTime(13, getSqlDate(trans.getPickupDate()));
+            ps.setString(14, trans.getOriginCdLocType());
+            ps.setString(15, trans.getDestinationCdLocType());
+            if (getTransShipId(conn, trans) == 0) {
+                ps.setNull(16, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(16, getTransShipId(conn, trans));
+            }
+            ps.setString(17, trans.getRemoteType());
 
-        log.info(query);
-        log.info(sdf.format(trans.getPickupDate()));
-        ps.executeUpdate();
-
-        // Also insert each picked up item.
-        for (String nusenate : trans.getPickupItemsNusenate()) {
-            String insertQry = "INSERT INTO FD12INVINTRANS ( " + fd12invintransColumns + " ) " +
-                    "VALUES( " + trans.getNuxrpd() + ", '" + nusenate + "', '" + "A" + "', " + "SYSDATE" + ", " +
-                    "SYSDATE" + ", " + "USER" + ", " + "USER" + " ) ";
-            ps = conn.prepareStatement(insertQry);
+            log.info(query);
+            log.info(sdf.format(trans.getPickupDate()));
             ps.executeUpdate();
-        }
 
-        conn.close();
+            // Also insert each picked up item.
+            for (String nusenate : trans.getPickupItemsNusenate()) {
+                String insertQry = "INSERT INTO FD12INVINTRANS ( " + fd12invintransColumns + " ) " +
+                        "VALUES( " + trans.getNuxrpd() + ", '" + nusenate + "', '" + "A" + "', " + "SYSDATE" + ", " +
+                        "SYSDATE" + ", " + "USER" + ", " + "USER" + " ) ";
+                ps = conn.prepareStatement(insertQry);
+                ps.executeUpdate();
+            }
+        } finally {
+            closeResultSet(result);
+            closeStatement(ps);
+            closeConnection(conn);
+        }
         return trans.getNuxrpd();
     }
 
     public void updateTransaction(DbConnect db, Transaction trans, String appUser) throws SQLException, ClassNotFoundException {
-        Connection conn = db.getDbConnection();
         String query = "UPDATE fm12invintrans SET " +
         "CDLOCATTO = ?, " +
         "CDLOCATFROM = ?, " +
@@ -121,24 +127,31 @@ public class TransactionMapper {
         "CDRMTTYP = ? " +
         "WHERE nuxrpd = ? ";
 
-        PreparedStatement ps = conn.prepareStatement(query);
-        ps.setString(1, trans.getDestinationCdLoc());
-        ps.setString(2, trans.getOriginCdLoc());
-        ps.setTime(3, getCurrentDate());
-        ps.setString(4, trans.getPickupComments());
-        ps.setString(5, trans.getOriginCdLocType());
-        ps.setString(6, trans.getDestinationCdLocType());
-        if (getTransShipId(conn, trans) == 0) {
-            ps.setNull(7, java.sql.Types.INTEGER);
-        } else {
-            ps.setInt(7, getTransShipId(conn, trans));
-        }
-        ps.setString(8, trans.getShipComments());
-        ps.setInt(9, trans.getNuxrpd());
-        ps.setString(10, trans.getRemoteType());
+        PreparedStatement ps = null;
+        Connection conn = null;
+        try {
+            conn = db.getDbConnection();
+            ps = conn.prepareStatement(query);
+            ps.setString(1, trans.getDestinationCdLoc());
+            ps.setString(2, trans.getOriginCdLoc());
+            ps.setTime(3, getCurrentDate());
+            ps.setString(4, trans.getPickupComments());
+            ps.setString(5, trans.getOriginCdLocType());
+            ps.setString(6, trans.getDestinationCdLocType());
+            if (getTransShipId(conn, trans) == 0) {
+                ps.setNull(7, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(7, getTransShipId(conn, trans));
+            }
+            ps.setString(8, trans.getShipComments());
+            ps.setInt(9, trans.getNuxrpd());
+            ps.setString(10, trans.getRemoteType());
 
-        ps.executeUpdate();
-        conn.close();
+            ps.executeUpdate();
+        } finally {
+            closeStatement(ps);
+            closeConnection(conn);
+        }
     }
 
     // TODO: also query delivery info
@@ -164,17 +177,26 @@ public class TransactionMapper {
                 "AND invintrans.nuxrpd = ?";
 
         Transaction trans = new Transaction();
-        Connection conn = db.getDbConnection();
-        PreparedStatement ps = conn.prepareStatement(query);
-        ps.setInt(1, nuxrpd);
-        ResultSet result = ps.executeQuery();
-        result.next();
-        trans = parseTransaction(result);
+        PreparedStatement ps = null;
+        ResultSet result = null;
+        Connection conn = null;
+        try {
+            conn = db.getDbConnection();
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, nuxrpd);
+            result = ps.executeQuery();
+            result.next();
+            trans = parseTransaction(result);
+        } finally {
+            closeResultSet(result);
+            closeStatement(ps);
+            closeConnection(conn);
+        }
 
         // Get pickup items
         ArrayList<InvItem> items = db.getDeliveryDetails(Integer.toString(nuxrpd), "");
         trans.setPickupItems(items);
-        conn.close();
+
         return trans;
     }
 
@@ -200,24 +222,31 @@ public class TransactionMapper {
                 "AND invintrans.cdintransit = 'Y'";
 
         ArrayList<Transaction> validPickups = new ArrayList<Transaction>();
-        Connection conn = db.getDbConnection();
-        PreparedStatement ps = conn.prepareStatement(query);
-        ResultSet result = ps.executeQuery();
 
-        while (result.next()) {
-            Transaction trans = parseTransaction(result);
-            trans.setCount(result.getInt(24));
+        PreparedStatement ps = null;
+        ResultSet result = null;
+        Connection conn = null;
+        try {
+            conn = db.getDbConnection();
+            ps = conn.prepareStatement(query);
+            result = ps.executeQuery();
 
-            validPickups.add(trans);
+            while (result.next()) {
+                Transaction trans = parseTransaction(result);
+                trans.setCount(result.getInt(24));
+
+                validPickups.add(trans);
+            }
+        } finally {
+            closeResultSet(result);
+            closeStatement(ps);
+            closeConnection(conn);
         }
 
-        conn.close();
         return validPickups;
     }
 
     public void completeDelivery(DbConnect db, Transaction trans) throws SQLException, ClassNotFoundException {
-        Connection conn = db.getDbConnection();
-
         String query = "UPDATE fm12invintrans " +
                 "SET CDINTRANSIT='N', " +
                 "DTTXNUPDATE=SYSDATE, " +
@@ -235,63 +264,72 @@ public class TransactionMapper {
                 "NARELEASEBY=? " +
                 "WHERE NUXRPD=?";
 
-        PreparedStatement ps = conn.prepareStatement(query);
+        PreparedStatement ps = null;
+        CallableStatement cs = null;
+        Connection conn = null;
+        try {
+            conn = db.getDbConnection();
+            ps = conn.prepareStatement(query);
 
-        if (trans.getNuxraccptsign().equals("")) {
-            ps.setNull(1, java.sql.Types.INTEGER);
-        } else {
-            ps.setInt(1, Integer.valueOf(trans.getNuxraccptsign()));
-        }
-        ps.setString(2, trans.getNadeliverby());
-        ps.setString(3, trans.getNaacceptby());
-        ps.setString(4, trans.getDeliveryComments());
-        ps.setString(5, trans.getShipComments());
-        ps.setString(6, trans.getVerificationComments());
-        if (trans.getEmployeeId() == 0) {
-            ps.setNull(7, java.sql.Types.INTEGER);
-        } else {
-            ps.setInt(7, trans.getEmployeeId());
-        }
-        if (trans.getHelpReferenceNum() == null || trans.getHelpReferenceNum().equals("")) {
-            ps.setNull(8, java.sql.Types.INTEGER);
-        } else {
-            ps.setInt(8, Integer.valueOf(trans.getHelpReferenceNum()));
-        }
-        if (getTransVerId(conn, trans) == 0) {
-            ps.setNull(9, java.sql.Types.INTEGER);
-        } else {
-            ps.setInt(9, getTransVerId(conn, trans));
-        }
-        ps.setString(10, trans.getNareleaseby());
-        ps.setInt(11, trans.getNuxrpd());
-
-        log.info(query);
-        ps.executeUpdate();
-
-        // Update FD12Issue corresponding tables for each delivered item.
-        for (String item : trans.getCheckedItems()) {
-            String nusenate = item;
-            CallableStatement cs = conn.prepareCall("{?=call inv_app.move_inventory_item(?,?,?,?,?,?)}");
-            cs.registerOutParameter(1, Types.VARCHAR);
-            cs.setString(2, nusenate);
-            cs.setString(3, trans.getOrigin().getCdlocat());
-            cs.setString(4, trans.getOrigin().getCdloctype());
-            cs.setString(5, trans.getDestination().getCdlocat());
-            cs.setString(6, trans.getDestination().getCdloctype());
-            cs.setString(7, String.valueOf(trans.getNuxrpd()));
-            cs.executeUpdate();
-        }
-
-        // Delete non delivered items from FD12InvInTrans
-        if (trans.getNotCheckedItems().size() > 0) {
-            for (String nusenate : trans.getNotCheckedItems()) {
-                String delQuery = "DELETE FROM FD12INVINTRANS WHERE nuxrpd=" + trans.getNuxrpd() + "AND nusenate = '" + nusenate + "'";
-                ps = conn.prepareStatement(delQuery);
-                log.info("FD12INVINTRANS DELETE QUERY: " + delQuery);
-                ps.executeUpdate();
+            if (trans.getNuxraccptsign().equals("")) {
+                ps.setNull(1, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(1, Integer.valueOf(trans.getNuxraccptsign()));
             }
+            ps.setString(2, trans.getNadeliverby());
+            ps.setString(3, trans.getNaacceptby());
+            ps.setString(4, trans.getDeliveryComments());
+            ps.setString(5, trans.getShipComments());
+            ps.setString(6, trans.getVerificationComments());
+            if (trans.getEmployeeId() == 0) {
+                ps.setNull(7, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(7, trans.getEmployeeId());
+            }
+            if (trans.getHelpReferenceNum() == null || trans.getHelpReferenceNum().equals("")) {
+                ps.setNull(8, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(8, Integer.valueOf(trans.getHelpReferenceNum()));
+            }
+            if (getTransVerId(conn, trans) == 0) {
+                ps.setNull(9, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(9, getTransVerId(conn, trans));
+            }
+            ps.setString(10, trans.getNareleaseby());
+            ps.setInt(11, trans.getNuxrpd());
+
+            log.info(query);
+            ps.executeUpdate();
+
+            // Update FD12Issue corresponding tables for each delivered item.
+            for (String item : trans.getCheckedItems()) {
+                String nusenate = item;
+                cs = conn.prepareCall("{?=call inv_app.move_inventory_item(?,?,?,?,?,?)}");
+                cs.registerOutParameter(1, Types.VARCHAR);
+                cs.setString(2, nusenate);
+                cs.setString(3, trans.getOrigin().getCdlocat());
+                cs.setString(4, trans.getOrigin().getCdloctype());
+                cs.setString(5, trans.getDestination().getCdlocat());
+                cs.setString(6, trans.getDestination().getCdloctype());
+                cs.setString(7, String.valueOf(trans.getNuxrpd()));
+                cs.executeUpdate();
+            }
+
+            // Delete non delivered items from FD12InvInTrans
+            if (trans.getNotCheckedItems().size() > 0) {
+                for (String nusenate : trans.getNotCheckedItems()) {
+                    String delQuery = "DELETE FROM FD12INVINTRANS WHERE nuxrpd=" + trans.getNuxrpd() + "AND nusenate = '" + nusenate + "'";
+                    ps = conn.prepareStatement(delQuery);
+                    log.info("FD12INVINTRANS DELETE QUERY: " + delQuery);
+                    ps.executeUpdate();
+                }
+            }
+        } finally {
+            closeStatement(ps);
+            closeStatement(cs);
+            closeConnection(conn);
         }
-        conn.close();
 
         if (trans.getNotCheckedItems().size() > 0) {
             ArrayList<InvItem> items = new ArrayList<InvItem>();
@@ -353,11 +391,20 @@ public class TransactionMapper {
         String query = "SELECT nuxrshiptyp " +
                 "FROM FL12SHIPTYP " +
                 "WHERE cdshiptyp = ?";
-        PreparedStatement ps = conn.prepareStatement(query);
-        ps.setString(1, trans.getShipType());
-        ResultSet result = ps.executeQuery();
-        result.next();
-        int id = result.getInt(1);
+
+        int id;
+        PreparedStatement ps = null;
+        ResultSet result = null;
+        try {
+            ps = conn.prepareStatement(query);
+            ps.setString(1, trans.getShipType());
+            result = ps.executeQuery();
+            result.next();
+            id = result.getInt(1);
+        } finally {
+            closeResultSet(result);
+            closeStatement(ps);
+        }
         return id;
     }
 
@@ -369,12 +416,21 @@ public class TransactionMapper {
         String query = "SELECT nuxrvermthd " +
                 "FROM FL12VERMTHD " +
                 "WHERE cdvermthd = ?";
-        PreparedStatement ps = conn.prepareStatement(query);
-        ps.setString(1, trans.getVerificationMethod());
-        ResultSet result = ps.executeQuery();
-        result.next();
 
-        return result.getInt(1);
+        int id;
+        PreparedStatement ps = null;
+        ResultSet result = null;
+        try {
+            ps = conn.prepareStatement(query);
+            ps.setString(1, trans.getVerificationMethod());
+            result = ps.executeQuery();
+            result.next();
+            id = result.getInt(1);
+        } finally {
+            closeResultSet(result);
+            closeStatement(ps);
+        }
+        return id;
     }
 
     private String getNotNullEmployeeId(Transaction trans) {
