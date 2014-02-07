@@ -117,21 +117,15 @@ public class DbConnect extends DbManager {
      * ---------------Function to establish and return database connection 
      *----------------------------------------------------------------------------------------------------*/
 
-    public static Connection getDbConnection() {
+    public static Connection getDbConnection() throws ClassNotFoundException, SQLException {
         log.info("getDbConnection() begin ");
         Connection conn = null;
-        try {
-            // Get the connection string, user name and password from the properties file
-            String connectionString = properties.getProperty("connectionString");
+        // Get the connection string, user name and password from the properties file
+        String connectionString = properties.getProperty("connectionString");
 
-            Class.forName("oracle.jdbc.driver.OracleDriver");
-            conn = DriverManager.getConnection(connectionString, userName, password);
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        conn = DriverManager.getConnection(connectionString, userName, password);
 
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
-        }
         log.info("getDbConnection() end");
         return conn;
     }
@@ -144,8 +138,7 @@ public class DbConnect extends DbManager {
         String loginStatus = "NOT VALID";
         Connection conn = null;
         try {
-            DbConnect db = new DbConnect();
-            conn = db.getDbConnection();
+            conn = getDbConnection();
             loginStatus = "VALID";
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
@@ -189,18 +182,6 @@ public class DbConnect extends DbManager {
                 + "   AND defrmint = ?"
                 + "   AND cdstatus = 'A'";
         
-     /*   String query = "SELECT 1 "
-                + "FROM im86modmenu "
-                + "WHERE nauser = '"+user.trim().toUpperCase()+"' "
-                + "  AND defrmint = '"+defrmint.trim().toUpperCase()+"'";*/
-        Connection conn = getDbConnection();
-//        Statement pstmt = null;
-/*      try {
-        pstmt = conn.createStatement();
-      } catch (SQLException ex) {
-        java.util.logging.Logger.getLogger(DbConnect.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-      }*/
-
         PreparedStatement pstmt = null;
         ResultSet result = null;
         Connection conn = null;
@@ -210,8 +191,6 @@ public class DbConnect extends DbManager {
             pstmt.setString(1, user.trim().toUpperCase());
             pstmt.setString(2, defrmint.trim().toUpperCase());
             result = pstmt.executeQuery();
-         /*   System.out.println("SECURTY QUERY: "+query);
-            ResultSet result = pstmt.executeQuery(query);*/
 
             while (result.next()) {
                 //System.out.println (user.trim().toUpperCase()+" HAS CLEARANCE");
@@ -221,6 +200,8 @@ public class DbConnect extends DbManager {
         }
         catch (SQLException e) {
             log.error("SQL Exception in securityAccess(): ", e);
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         finally {
             closeResultSet(result);
@@ -277,7 +258,6 @@ public class DbConnect extends DbManager {
                 + "WHERE fm12comxref.nuxrefco = fd12issue.nuxrefco "
                 + "AND fd12issue.nuxrefsn = fm12senxref.nuxrefsn "
                 + "AND fm12senxref.nusenate like ? ";
-        Connection conn = getDbConnection();
         PreparedStatement pstmt = null;
         ResultSet result = null;
         Connection conn = null;
@@ -293,6 +273,8 @@ public class DbConnect extends DbManager {
         }
         catch (SQLException e) {
             log.error("SQL Exception in getItemCommodityCode(): ", e);
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
         finally {
             closeResultSet(result);
@@ -455,6 +437,9 @@ public class DbConnect extends DbManager {
             throw new IllegalArgumentException("Invalid location Code");
         }
         ArrayList<String> locCodes = new ArrayList<String>();
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet result = null;
         try {
             conn = getDbConnection();
             stmt = conn.createStatement();
@@ -716,9 +701,11 @@ public class DbConnect extends DbManager {
      * ---------------Function to start a new pickup-delivery
      *----------------------------------------------------------------------------------------------------*/
     public int invTransit(Pickup pickup, String userFallback) {
-        Connection conn = getDbConnection();
-        Statement stmt;
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet result = null;
         try {
+            conn = getDbConnection();
             stmt = conn.createStatement();
             String qry = "SELECT FM12INVINTRANS_SEQN.nextval FROM  dual ";
             result = stmt.executeQuery(qry);
@@ -973,10 +960,6 @@ public class DbConnect extends DbManager {
         log.info(this.ipAddr + "|" + "insertSignature() begin : nuxrefem= " + nuxrefem + " &nauser=" + nauser);
         if (imageInArray == null || nuxrefem < 0 || nauser == null) {
             throw new IllegalArgumentException("Invalid imageInArray or nuxrefem or nauser");
-        }
-        Connection con = getDbConnection();
-        if (con==null) {
-            log.fatal(this.ipAddr + "|" + "Null Connection in insertSignature() after getDbConnection().");
         }
         //System.out.println("DbConnect insertSignature byte Image Length:" + imageInArray.length);
 
@@ -1370,7 +1353,6 @@ public class DbConnect extends DbManager {
     }
 
     public void cancelPickup(int nuxrpd) throws SQLException {
-        Connection conn = getDbConnection();
         String query = "UPDATE FM12INVINTRANS "
                 + "SET CDINTRANSIT = 'C', "
                 + "DTTXNUPDATE = SYSDATE, "
@@ -1384,7 +1366,11 @@ public class DbConnect extends DbManager {
             ps = conn.prepareStatement(query);
             ps.setInt(1, nuxrpd);
             ps.executeUpdate();
-        } finally {
+        }
+        catch (ClassNotFoundException e) {
+          log.error("Error getting oracle jdbc driver: ", e);
+        }
+        finally {
             closeStatement(ps);
             closeConnection(conn);
         }
@@ -1394,7 +1380,7 @@ public class DbConnect extends DbManager {
         Pickup pickup = new Pickup();
         Location origin = new Location();
         Location dest = new Location();
-        Connection conn = getDbConnection();
+        Connection conn = null;
         String query = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM- Day') dtpickup, a.napickupby, a.depucomments,"
                 + " a.cdlocatfrom, b.cdloctype, b.adstreet1 fromstreet1, b.adcity fromcity, b.adzipcode fromzip,"
                 + " a.cdlocatto, c.cdloctype, c.adstreet1 tostreet1, c.adcity tocity, c.adzipcode tozip"
@@ -1402,10 +1388,13 @@ public class DbConnect extends DbManager {
                 + " WHERE a.cdlocatfrom = b.cdlocat"
                 + " AND a.cdlocatto = c.cdlocat"
                 + " AND nuxrpd = ?";
-        PreparedStatement ps = conn.prepareStatement(query);
-        ps.setInt(1, nuxrpd);
-        ResultSet result = ps.executeQuery();
-        while (result.next()) {
+
+        try {
+          conn = getDbConnection();
+          PreparedStatement ps = conn.prepareStatement(query);
+          ps.setInt(1, nuxrpd);
+          ResultSet result = ps.executeQuery();
+          while (result.next()) {
             pickup.setNuxrpd(Integer.parseInt(result.getString(1)));
             pickup.setDate(result.getString(2));
             pickup.setNapickupby(result.getString(3));
@@ -1420,10 +1409,16 @@ public class DbConnect extends DbManager {
             dest.setAdstreet1(result.getString(12));
             dest.setAdcity(result.getString(13));
             dest.setAdzipcode(result.getString(14));
+          }
+          pickup.setOrigin(origin);
+          pickup.setDestination(dest);
         }
-        conn.close();
-        pickup.setOrigin(origin);
-        pickup.setDestination(dest);
+        catch (ClassNotFoundException e) {
+          log.error("Error getting oracle jdbc driver: ", e);
+        }
+        finally {
+          closeConnection(conn);
+        }
         return pickup;
     }
 
@@ -1441,7 +1436,11 @@ public class DbConnect extends DbManager {
             ps.setString(1, cdLoc);
             ps.setInt(2, nuxrpd);
             ps.executeUpdate();
-        } finally {
+        }
+        catch (ClassNotFoundException e) {
+          log.error("Error getting oracle jdbc driver: ", e);
+        }
+        finally {
             closeStatement(ps);
             closeConnection(conn);
         }
@@ -1461,7 +1460,11 @@ public class DbConnect extends DbManager {
             ps.setString(1, cdLoc);
             ps.setInt(2, nuxrpd);
             ps.executeUpdate();
-        } finally {
+        }
+        catch (ClassNotFoundException e) {
+          log.error("Error getting oracle jdbc driver: ", e);
+        }
+        finally {
             closeStatement(ps);
             closeConnection(conn);
         }
@@ -1521,7 +1524,11 @@ public class DbConnect extends DbManager {
               location.setAdstate(res1.getString(3));
               location.setAdzipcode(res1.getString(4));
           }
-      } finally {
+      }
+      catch (ClassNotFoundException e) {
+        log.error("Error getting oracle jdbc driver: ", e);
+      }
+      finally {
           closeResultSet(res1);
           closeResultSet(res0);
           closeStatement(stmt);
@@ -1530,7 +1537,7 @@ public class DbConnect extends DbManager {
            //System.out.println ("DBCONNECT Location "+location.getCdlocat()+" SET: "+location.getAdstreet1());
     }
 
-    public Employee getEmployee(String nauser) throws SQLException, ClassNotFoundException {
+    public Employee getEmployee(String nauser) throws SQLException {
         Employee employee = new Employee();
 
         Statement stmt = null;
@@ -1557,7 +1564,11 @@ public class DbConnect extends DbManager {
                 employee.setNasuffix(res1.getString(5));
                 employee.setNaemail(res1.getString(6));
             }
-        } finally {
+        }
+        catch (ClassNotFoundException e) {
+          log.error("Error getting oracle jdbc driver: ", e);
+        }
+        finally {
             closeResultSet(res1);
             closeStatement(stmt);
             closeConnection(conn);
@@ -1585,7 +1596,11 @@ public class DbConnect extends DbManager {
                 ps.addBatch();
             }
             ps.executeBatch();
-        } finally {
+        }
+        catch (ClassNotFoundException e) {
+          log.error("Error getting oracle jdbc driver: ", e);
+        }
+        finally {
             closeStatement(ps);
             closeConnection(conn);
         }
@@ -1603,11 +1618,15 @@ public class DbConnect extends DbManager {
                 + " AND a.cdlocatto = c.cdlocat"
                 + " AND a.cdstatus = 'A'"
                 + " AND a.cdintransit = 'Y'";
-        Connection conn = getDbConnection();
-        PreparedStatement ps = conn.prepareStatement(query);
-        ResultSet result = ps.executeQuery();
 
-        while (result.next()) {
+        Connection conn = null;
+
+        try {
+          conn = getDbConnection();
+          PreparedStatement ps = conn.prepareStatement(query);
+          ResultSet result = ps.executeQuery();
+
+          while (result.next()) {
             Pickup pickup = new Pickup();
             Location origin = new Location();
             Location dest = new Location();
@@ -1631,9 +1650,14 @@ public class DbConnect extends DbManager {
             pickup.setOrigin(origin);
             pickup.setDestination(dest);
             validPickups.add(pickup);
+          }
         }
-
-        conn.close();
+        catch (ClassNotFoundException e) {
+          log.error("Error getting oracle jdbc driver: ", e);
+        }
+        finally {
+          closeConnection(conn);
+        }
         return validPickups;
     }
 
@@ -1657,7 +1681,11 @@ public class DbConnect extends DbManager {
                 empInfo[1] = rs.getString(2);
                 empInfo[2] = rs.getString(3);
             }
-        } finally {
+        }
+        catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
+        }
+        finally {
             closeResultSet(rs);
             closeStatement(ps);
             closeConnection(conn);
