@@ -697,10 +697,14 @@ public class DbConnect extends DbManager {
         return result;
     }
 
+    public int invTransit(Pickup pickup, String userFallback) {
+        return invTransit(pickup, userFallback, 0);
+    }
+
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to start a new pickup-delivery
      *----------------------------------------------------------------------------------------------------*/
-    public int invTransit(Pickup pickup, String userFallback) {
+    public int invTransit(Pickup pickup, String userFallback, int oldnuxrpd) {
         Connection conn = null;
         Statement stmt = null;
         ResultSet result = null;
@@ -714,12 +718,12 @@ public class DbConnect extends DbManager {
             }
             String updQry = "INSERT INTO FM12INVINTRANS (NUXRPD,CDLOCATTO, cdloctypeto, CDLOCATFROM, cdloctypefrm, CDINTRANSIT,"
                     + "NAPICKUPBY, NARELEASEBY,NUXRRELSIGN,NADELIVERBY,NAACCEPTBY,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,"
-                    + "NATXNUPDUSER,DEPUCOMMENTS, DTPICKUP) "
+                    + "NATXNUPDUSER,DEPUCOMMENTS, DTPICKUP, NUXRPDORIG) "
                     + "VALUES(" + pickup.getNuxrpd() + ",'" + pickup.getDestination().getCdlocat() + "','" + pickup.getDestination().getCdloctype()
                     + "','" + pickup.getOrigin().getCdlocat() + "','" + pickup.getOrigin().getCdloctype() + "','" + "Y" + "','"
                     + pickup.getNapickupby() + "','" + pickup.getNareleaseby() + "'," + pickup.getNuxrrelsign() + ",'" + "" + "','" + ""
                     + "','" + "A" + "',SYSDATE,SYSDATE,'" + pickup.getNapickupby() + "','" + pickup.getNapickupby() + "','"
-                    + pickup.getComments() + "',SYSDATE)";
+                    + pickup.getComments() + "',SYSDATE," + getOldNuxrpdValue(oldnuxrpd) + ")";
             stmt.executeQuery(updQry);
             log.info("** updQry *** : " + updQry);
             log.info("****PICKUPITEMS: " + pickup.getPickupItems());
@@ -744,7 +748,14 @@ public class DbConnect extends DbManager {
         return pickup.getNuxrpd();
     }
     
-   /*-------------------------------------------------------------------------------------------------------
+    private String getOldNuxrpdValue(int num) {
+        if (num == 0) {
+            return "''";
+        }
+        return Integer.toString(num);
+    }
+
+    /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to return all the in transit deliveries to the given location
      *----------------------------------------------------------------------------------------------------*/
 
@@ -1315,7 +1326,7 @@ public class DbConnect extends DbManager {
         try {
             conn = getDbConnection();
             stmt = conn.createStatement();
-            String qry = "SELECT NUXRPD,CDLOCATFROM, CDLOCTYPEFRM, CDLOCATTO,CDLOCTYPETO, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN FROM   "
+            String qry = "SELECT NUXRPD,CDLOCATFROM, CDLOCTYPEFRM, CDLOCATTO,CDLOCTYPETO, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, DEPUCOMMENTS FROM   "
                     + "  FM12INVINTRANS"
                     + " WHERE CDSTATUS='A'"
                     + " and nuxrpd=" + delivery.getNuxrpd();
@@ -1330,6 +1341,7 @@ public class DbConnect extends DbManager {
                 pickup.setNapickupby(result.getString(6));
                 pickup.setNareleaseby(result.getString(7));
                 pickup.setNuxrrelsign(result.getString(8));
+                pickup.setComments(result.getString(9));
             }
         }
         catch (SQLException ex) {
@@ -1342,7 +1354,7 @@ public class DbConnect extends DbManager {
             closeConnection(conn);
         }
         DbConnect db = new DbConnect();
-        db.invTransit(pickup, userFallback);
+        db.invTransit(pickup, userFallback, delivery.getNuxrpd());
         log.info(this.ipAddr + "|" + "createNewDelivery() end ");
         return 0;
     }
