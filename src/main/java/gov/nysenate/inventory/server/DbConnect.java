@@ -55,6 +55,7 @@ public class DbConnect extends DbManager {
     private InputStream in;
     private String userName,  password;
     final int RELEASESIGNATURE = 3001, ACCEPTBYSIGNATURE = 3002;
+    private String dbaName = "";
    
     public DbConnect() {
         properties = new Properties();
@@ -122,6 +123,11 @@ public class DbConnect extends DbManager {
         Connection conn = null;
         // Get the connection string, user name and password from the properties file
         String connectionString = properties.getProperty("connectionString");
+        
+        if (connectionString!=null && connectionString.contains(":")) {
+            String[] connectStrings = connectionString.split(":");
+            this.dbaName = connectStrings[connectStrings.length-1];
+        }
 
         Class.forName("oracle.jdbc.driver.OracleDriver");
         conn = DriverManager.getConnection(connectionString, userName, password);
@@ -198,8 +204,8 @@ public class DbConnect extends DbManager {
         ResultSet result = null;
         Connection conn = null;
        try {
-           conn = getDbConnection();
-             pstmt = conn.prepareStatement(query);
+            conn = getDbConnection();
+            pstmt = conn.prepareStatement(query);
             pstmt.setString(1, user.trim().toUpperCase());
             pstmt.setString(2, defrmint.trim().toUpperCase());
             result = pstmt.executeQuery();
@@ -1680,5 +1686,15 @@ public class DbConnect extends DbManager {
         }
         return emailSupervisors;
     }
+    
+    public String getDatabaseName() {
+        String connectionString = properties.getProperty("connectionString");
+        
+        if (connectionString!=null && connectionString.contains(":")) {
+            String[] connectStrings = connectionString.split(":");
+            this.dbaName = connectStrings[connectStrings.length-1];
+        }
+      return connectionString;
 
+    }
 }
