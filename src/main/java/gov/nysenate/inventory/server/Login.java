@@ -36,17 +36,16 @@ public class Login extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
-            /* TODO output your page here. You may use following sample code. */
-            DbConnect db = new DbConnect();
-          
-            db.ipAddr=request.getRemoteAddr();         //Logger.getLogger(Login.class.getName()).info("Servlet Login : start");
-            db.log.info(db.ipAddr+"|"+"Servlet Login : start");
             String name = request.getMethod().toString();
             String user = request.getParameter("user");
             String pwd = request.getParameter("pwd");
-            
+
+            DbConnect db = new DbConnect(user, pwd);
+            db.ipAddr=request.getRemoteAddr();         //Logger.getLogger(Login.class.getName()).info("Servlet Login : start");
+            db.log.info(db.ipAddr+"|"+"Servlet Login : start");
+
             String defrmint = "";
-            
+
             try {
                defrmint = request.getParameter("defrmint");
             }
@@ -61,7 +60,7 @@ public class Login extends HttpServlet {
             //  Use this code if we decide to create a new table for user name and password and 
             // validate it from database function
           
-            status = db.validateUser(user, pwd);
+            status = db.validateUser();
 
 
             if (status.equalsIgnoreCase("VALID")) {

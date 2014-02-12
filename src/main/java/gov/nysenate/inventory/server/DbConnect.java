@@ -50,29 +50,32 @@ public class DbConnect extends DbManager {
 
     public String ipAddr = "";
     static Logger log = Logger.getLogger(DbConnect.class.getName());
-    static private Properties properties = new Properties();
-    private InputStream in;
+    static private Properties properties;
     private String userName,  password;
     final int RELEASESIGNATURE = 3001, ACCEPTBYSIGNATURE = 3002;
    
     public DbConnect() {
-        properties = new Properties();
-        in = getClass().getClassLoader().getResourceAsStream("config.properties");
-        try {
-            properties.load(in);
-            userName = properties.getProperty("user");
-            password = properties.getProperty("password");
-
-        } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(DbConnect.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-
+        loadProperties();
+        userName = properties.getProperty("user");
+        password = properties.getProperty("password");
     }
 
     public DbConnect(String user, String pwd) {
+        loadProperties();
         userName = user;
         password = pwd;
-        //System.out.println("NEW DBCONNECT userName:"+userName);
+    }
+
+    private void loadProperties() {
+        if (properties == null) {
+            properties = new Properties();
+            InputStream in = getClass().getClassLoader().getResourceAsStream("config.properties");
+            try {
+                properties.load(in);
+            } catch (IOException e) {
+                log.error("Error loading properties: ", e);
+            }
+        }
     }
 
     /*-------------------------------------------------------------------------------------------------------
@@ -132,13 +135,12 @@ public class DbConnect extends DbManager {
      * ---------------Function to check if user name and password matches
      *----------------------------------------------------------------------------------------------------*/
 
-    public String validateUser(String user, String pwd) {
-        log.info(this.ipAddr + "|" + "validateUser() begin : user= " + user + " & pwd= " + pwd);
+    public String validateUser() {
+        log.info(this.ipAddr + "|" + "validateUser() begin : user= " + userName + " & pwd= " + password);
         String loginStatus = "NOT VALID";
         Connection conn = null;
         try {
-            DbConnect db = new DbConnect();
-            conn = db.getDbConnection();
+            conn = getDbConnection();
             loginStatus = "VALID";
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
