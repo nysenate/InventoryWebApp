@@ -448,11 +448,12 @@ public class DbConnect extends DbManager {
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to return arraylist of all the location codes 
      *----------------------------------------------------------------------------------------------------*/
-    public ArrayList<Location> getLocCodes(String natype) {
-        log.info(this.ipAddr + "|" + "getLocCodes(String natype) begin : natype= " + natype);
-        if (natype.isEmpty() || natype == null) {
-            throw new IllegalArgumentException("Invalid location Code");
-        }
+    public ArrayList<Location> getLocCodes() {
+        log.info(this.ipAddr + "|" + "getLocCodes(String natype) begin)");
+
+        String qry = "SELECT DISTINCT cdloctype, cdlocat, adstreet1, adcity, adzipcode, adstate " +
+                "FROM sl16location a where a.cdstatus='A' ORDER BY cdlocat, cdloctype";
+
         ArrayList<Location> locations = new ArrayList<Location>();
         Statement stmt = null;
         ResultSet result = null;
@@ -460,17 +461,6 @@ public class DbConnect extends DbManager {
         try {
             conn = getDbConnection();
             stmt = conn.createStatement();
-
-            String qry = "SELECT DISTINCT cdloctype, cdlocat, adstreet1, adcity, adzipcode, adstate " +
-            		"FROM sl16location a where a.cdstatus='A' ORDER BY cdlocat, cdloctype";
-            if (natype.equalsIgnoreCase("DELIVERY")) {
-                qry = "SELECT DISTINCT cdloctype, cdlocat, adstreet1, adcity, adzipcode, adstate " +
-                		"FROM sl16location a where a.cdstatus='A' AND cdlocat IN " +
-                		"(SELECT a2.cdlocatto FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' " +
-                		"AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A')) " +
-                		"ORDER BY cdlocat, cdloctype";
-            }
-
             result = stmt.executeQuery(qry);
             while (result.next()) {
                 Location loc = new Location();
@@ -796,68 +786,6 @@ public class DbConnect extends DbManager {
         }
         return Integer.toString(num);
     }
-
-    /*-------------------------------------------------------------------------------------------------------
-     * ---------------Function to return all the in transit deliveries to the given location
-     *----------------------------------------------------------------------------------------------------*/
-
-    public List<PickupGroup> getDeliveryList(String locCode, String userFallback) {
-        log.info(this.ipAddr + "|" + "getDeliveryList() begin : locCode= " + locCode);
-        if (locCode.isEmpty()) {
-            throw new IllegalArgumentException("Invalid locCode");
-        }
-        java.lang.reflect.Type listOfTestObject = new TypeToken<List<PickupGroup>>() {
-        }.getType();
-        List<PickupGroup> pickupList = Collections.synchronizedList(new ArrayList<PickupGroup>());
-        Statement stmt = null;
-        ResultSet result = null;
-        Connection conn = null;
-        try {
-            conn = getDbConnection();
-            stmt = conn.createStatement();
-            //  String loc_code;
-            String qry = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM') dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode, COUNT(b.nuxrpd) nucount, a.nuxrshiptyp "
-                    + " FROM FM12INVINTRANS a, FD12INVINTRANS b, sl16location c"
-                    + " WHERE a.CDSTATUS='A'"
-                    + " AND a.CDINTRANSIT='Y'"
-                    + " AND a.CDLOCATTO='" + locCode + "'"
-                    + " AND b.nuxrpd = a.nuxrpd"
-                    + " AND b.cdstatus = 'A'"
-                    + " AND c.cdlocat = a.cdlocatfrom"
-                    + " GROUP BY a.nuxrpd, a.dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode, a.nuxrshiptyp"
-                    + " ORDER BY a.dtpickup NULLS LAST";
-            //System.out.println(qry);
-            result = stmt.executeQuery(qry);
-            while (result.next()) {
-                int nuxrpd = result.getInt(1);
-                String dtpickup = result.getString(2);
-                String cdlocatfrom = result.getString(3);
-                String napickupby = result.getString(4);
-                String nareleaseby = result.getString(5);
-                String adstreet1 = result.getString(6);
-                String adcity = result.getString(7);
-                String adstate = result.getString(8);
-                String adzipcode = result.getString(9);
-                int nucount = result.getInt(10);
-                int nuxrshiptyp = result.getInt(11);
-                //String pickupDetails = NUXRPD + " : From " + CDLOCATFROM + "\n To " + CDLOCATTO + "\n Pickup by : " + NAPICKUPBY;
-                pickupList.add(new PickupGroup(nuxrpd, dtpickup, napickupby, nareleaseby, cdlocatfrom, adstreet1, adcity, adstate, adzipcode, nucount, nuxrshiptyp));
-            }
-
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            log.fatal(this.ipAddr + "|" + "SQLException in getDeliveryList() : " + e.getMessage());
-        } catch (ClassNotFoundException e) {
-            log.error("Error getting oracle jdbc driver: ", e);
-        } finally {
-            closeResultSet(result);
-            closeStatement(stmt);
-            closeConnection(conn);
-        }
-        log.info(this.ipAddr + "|" + "getDeliveryList() end");
-        return pickupList;
-
-    }    
 
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to return all the in transit pickups for the given values

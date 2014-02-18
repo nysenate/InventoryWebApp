@@ -21,18 +21,28 @@ import com.google.gson.Gson;
 @WebServlet(name = "GetAllPickups", urlPatterns = { "/GetAllPickups" })
 public class GetAllPickups extends HttpServlet {
 
+    Logger log = Logger.getLogger(GetAllPickups.class.getName());
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Logger log = Logger.getLogger(GetAllPickups.class.getName());
-
         DbConnect db = null;
         PrintWriter out = response.getWriter();
         db = HttpUtils.getHttpSession(request, response, out);
 
-        TransactionMapper transMap = new TransactionMapper();
+        boolean wantIncompleteRemotes = false;
+        String incRemotes = request.getParameter("incompleteRemote");
+        if (incRemotes != null) {
+            wantIncompleteRemotes = Boolean.valueOf(incRemotes);
+        }
+
         Collection<Transaction> trans = null;
+        TransactionMapper transMap = new TransactionMapper();
         try {
-            trans = transMap.queryAllValidTransactions(db);
+            if (wantIncompleteRemotes) {
+                trans = transMap.queryDeliveriesMissingRemoteInfo(db);
+            } else {
+                trans = transMap.queryAllValidTransactions(db);
+            }
         } catch (SQLException ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("GetAllPickups Exception: ", ex);

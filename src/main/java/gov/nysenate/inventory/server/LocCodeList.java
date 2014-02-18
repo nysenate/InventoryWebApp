@@ -51,7 +51,7 @@ public class LocCodeList extends HttpServlet {
             }
 
             ArrayList<Location> locations = new ArrayList<Location>();
-            locations = db.getLocCodes(natype);
+            locations = db.getLocCodes();
 
             if (locations.size() == 0) {
                 log.error(db.ipAddr + "LocCodList: NO LOCATION CODES FOUND");

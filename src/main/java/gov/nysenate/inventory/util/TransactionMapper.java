@@ -154,15 +154,15 @@ public class TransactionMapper extends DbManager {
         }
     }
 
-    // TODO: also query delivery info
     public Transaction queryTransaction(DbConnect db, int nuxrpd) throws SQLException, ClassNotFoundException {
         final String query = "SELECT invintrans.nuxrpd, TO_CHAR(invintrans.dtpickup, " + oracleDateString + " ) dtpickup, " +
-                "invintrans.napickupby, invintrans.nareleaseby, invintrans.depucomments, " +
+                "invintrans.napickupby, invintrans.nareleaseby, invintrans.nadeliverby, invintrans.naacceptby, invintrans.depucomments, " +
                 "invintrans.nuxrshiptyp, shiptyp.cdshiptyp, invintrans.deshipcomments, " +
                 "invintrans.nuxrvermthd, vermthd.cdvermthd, invintrans.devercomments, " +
                 "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adzipcode fromzip, " +
                 "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adzipcode tozip, " +
-                "invintrans.nuxrefem, invintrans.nuxrrelsign " +
+                "invintrans.nuxrefem, invintrans.nuxrrelsign, " +
+                "(SELECT count(nusenate) from fd12invintrans d where d.nuxrpd = invintrans.nuxrpd and d.cdstatus = 'A') cnt " +
                 "FROM fm12invintrans invintrans " +
                 "LEFT OUTER JOIN fl12shiptyp shiptyp " +
                 "ON invintrans.nuxrshiptyp = shiptyp.nuxrshiptyp " +
@@ -173,7 +173,7 @@ public class TransactionMapper extends DbManager {
                 "LEFT OUTER JOIN sl16location loc2 " +
                 "ON invintrans.cdlocatto = loc2.cdlocat " +
                 "WHERE invintrans.cdstatus = 'A' " +
-                "AND invintrans.cdintransit = 'Y' " +
+                "AND (invintrans.cdintransit = 'Y' OR invintrans.cdintransit = 'O') " +
                 "AND invintrans.nuxrpd = ?";
 
         Transaction trans = new Transaction();
@@ -202,7 +202,7 @@ public class TransactionMapper extends DbManager {
 
     public Collection<Transaction> queryAllValidTransactions(DbConnect db) throws SQLException, ClassNotFoundException {
         final String query = "SELECT invintrans.nuxrpd, TO_CHAR(invintrans.dtpickup, " + oracleDateString + " ) dtpickup, " +
-                "invintrans.napickupby, invintrans.nareleaseby, invintrans.depucomments, " +
+                "invintrans.napickupby, invintrans.nareleaseby, invintrans.nadeliverby, invintrans.naacceptby, invintrans.depucomments, " +
                 "invintrans.nuxrshiptyp, shiptyp.cdshiptyp, invintrans.deshipcomments, " +
                 "invintrans.nuxrvermthd, vermthd.cdvermthd, invintrans.devercomments, " +
                 "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adzipcode fromzip, " +
@@ -233,8 +233,6 @@ public class TransactionMapper extends DbManager {
 
             while (result.next()) {
                 Transaction trans = parseTransaction(result);
-                trans.setCount(result.getInt(24));
-
                 validPickups.add(trans);
             }
         } finally {
@@ -248,7 +246,7 @@ public class TransactionMapper extends DbManager {
 
     public void completeDelivery(DbConnect db, Transaction trans) throws SQLException, ClassNotFoundException {
         String query = "UPDATE fm12invintrans " +
-                "SET CDINTRANSIT='N', " +
+                "SET CDINTRANSIT=?, " +
                 "DTTXNUPDATE=SYSDATE, " +
                 "NATXNUPDUSER=USER, " +
                 "NUXRACCPTSIGN=?, " +
@@ -271,33 +269,34 @@ public class TransactionMapper extends DbManager {
             conn = db.getDbConnection();
             ps = conn.prepareStatement(query);
 
+            ps.setString(1, getCdintransit(trans));
             if (trans.getNuxraccptsign().equals("")) {
-                ps.setNull(1, java.sql.Types.INTEGER);
+                ps.setNull(2, java.sql.Types.INTEGER);
             } else {
-                ps.setInt(1, Integer.valueOf(trans.getNuxraccptsign()));
+                ps.setInt(2, Integer.valueOf(trans.getNuxraccptsign()));
             }
-            ps.setString(2, trans.getNadeliverby());
-            ps.setString(3, trans.getNaacceptby());
-            ps.setString(4, trans.getDeliveryComments());
-            ps.setString(5, trans.getShipComments());
-            ps.setString(6, trans.getVerificationComments());
-            if (trans.getEmployeeId() == 0) {
-                ps.setNull(7, java.sql.Types.INTEGER);
-            } else {
-                ps.setInt(7, trans.getEmployeeId());
-            }
-            if (trans.getHelpReferenceNum() == null || trans.getHelpReferenceNum().equals("")) {
+            ps.setString(3, trans.getNadeliverby());
+            ps.setString(4, trans.getNaacceptby());
+            ps.setString(5, trans.getDeliveryComments());
+            ps.setString(6, trans.getShipComments());
+            ps.setString(7, trans.getVerificationComments());
+            if (trans.getEmployeeId() <= 0) {
                 ps.setNull(8, java.sql.Types.INTEGER);
             } else {
-                ps.setInt(8, Integer.valueOf(trans.getHelpReferenceNum()));
+                ps.setInt(8, trans.getEmployeeId());
             }
-            if (getTransVerId(conn, trans) == 0) {
+            if (trans.getHelpReferenceNum() == null || trans.getHelpReferenceNum().equals("")) {
                 ps.setNull(9, java.sql.Types.INTEGER);
             } else {
-                ps.setInt(9, getTransVerId(conn, trans));
+                ps.setInt(9, Integer.valueOf(trans.getHelpReferenceNum()));
             }
-            ps.setString(10, trans.getNareleaseby());
-            ps.setInt(11, trans.getNuxrpd());
+            if (getTransVerId(conn, trans) == 0) {
+                ps.setNull(10, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(10, getTransVerId(conn, trans));
+            }
+            ps.setString(11, trans.getNareleaseby());
+            ps.setInt(12, trans.getNuxrpd());
 
             log.info(query);
             ps.executeUpdate();
@@ -344,6 +343,96 @@ public class TransactionMapper extends DbManager {
         }
     }
 
+    public void insertRemotePickupRemoteUserInfo(DbConnect db, Transaction trans) throws SQLException, ClassNotFoundException {
+        String query = "UPDATE FM12INVINTRANS SET " +
+                "NARELEASEBY = ?, " +
+                "NADELIVERBY = ? " +
+                "WHERE NUXRPD = ?";
+
+        PreparedStatement ps = null;
+        Connection conn = null;
+        try {
+            conn = db.getDbConnection();
+            ps = conn.prepareStatement(query);
+            ps.setString(1, trans.getNareleaseby());
+            ps.setString(2, trans.getNadeliverby());
+            ps.setInt(3, trans.getNuxrpd());
+
+            ps.executeUpdate();
+
+        } finally {
+            closeStatement(ps);
+            closeConnection(conn);
+        }
+    }
+
+    public void insertRemoteDeliveryRemoteUserInfo(DbConnect db, Transaction trans) throws ClassNotFoundException, SQLException {
+        String query = "UPDATE FM12INVINTRANS SET " +
+                "NAACCEPTBY = ? " +
+                "WHERE NUXRPD = ?";
+
+        PreparedStatement ps = null;
+        Connection conn = null;
+        try {
+            conn = db.getDbConnection();
+            ps = conn.prepareStatement(query);
+            ps.setString(1, trans.getNaacceptby());
+            ps.setInt(2, trans.getNuxrpd());
+
+            ps.executeUpdate();
+
+        } finally {
+            closeStatement(ps);
+            closeConnection(conn);
+        }
+    }
+
+    public void insertRemoteInfo(DbConnect db, Transaction trans) throws ClassNotFoundException, SQLException {
+        String query = "UPDATE FM12INVINTRANS SET " +
+                "NUXREFEM = ?, " +
+                "NUXRVERMTHD = ?, " +
+                "NUHELPREF = ?, " +
+                "DEVERCOMMENTS = ? " +
+                "WHERE NUXRPD = ?";
+
+        PreparedStatement ps = null;
+        Connection conn = null;
+        try {
+            conn = db.getDbConnection();
+            ps = conn.prepareStatement(query);
+            if (trans.getEmployeeId() <= 0) {
+                ps.setNull(1, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(1, trans.getEmployeeId());
+            }
+            if (getTransVerId(conn, trans) == 0) {
+                ps.setNull(2, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(2, getTransVerId(conn, trans));
+            }
+            if (trans.getHelpReferenceNum() == null || trans.getHelpReferenceNum().equals("")) {
+                ps.setNull(3, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(3, Integer.valueOf(trans.getHelpReferenceNum()));
+            }
+            ps.setString(4, trans.getVerificationComments());
+            ps.setInt(5, trans.getNuxrpd());
+
+            ps.executeUpdate();
+
+        } finally {
+            closeStatement(ps);
+            closeConnection(conn);
+        }
+    }
+
+    private String getCdintransit(Transaction trans) {
+        if (trans.getNadeliverby().length() < 1 || trans.getNaacceptby().length() < 1)
+            return "O";
+
+        return "N";
+    }
+
     private Transaction parseTransaction(ResultSet result) throws SQLException {
         Transaction trans = new Transaction();
         Location origin = new Location();
@@ -357,25 +446,30 @@ public class TransactionMapper extends DbManager {
         }
         trans.setNapickupby(result.getString(3));
         trans.setNareleaseby(result.getString(4));
-        trans.setPickupComments(result.getString(5));
-        trans.setShipId(result.getInt(6));
-        trans.setShipType(result.getString(7));
-        trans.setShipComments(result.getString(8));
-        trans.setVerificationId(result.getInt(9));
-        trans.setVerificationMethod(result.getString(10));
-        trans.setVerificationComments(result.getString(11));
-        origin.setCdlocat(result.getString(12));
-        origin.setCdloctype(result.getString(13));
-        origin.setAdstreet1(result.getString(14));
-        origin.setAdcity(result.getString(15));
-        origin.setAdzipcode(result.getString(16));
-        dest.setCdlocat(result.getString(17));
-        dest.setCdloctype(result.getString(18));
-        dest.setAdstreet1(result.getString(19));
-        dest.setAdcity(result.getString(20));
-        dest.setAdzipcode(result.getString(21));
-        trans.setEmployeeId(result.getInt(22));
-        trans.setNuxrrelsign(result.getString(23));
+
+        trans.setNadeliverby(result.getString(5));
+        trans.setNaacceptby(result.getString(6));
+
+        trans.setPickupComments(result.getString(7));
+        trans.setShipId(result.getInt(8));
+        trans.setShipType(result.getString(9));
+        trans.setShipComments(result.getString(10));
+        trans.setVerificationId(result.getInt(11));
+        trans.setVerificationMethod(result.getString(12));
+        trans.setVerificationComments(result.getString(13));
+        origin.setCdlocat(result.getString(14));
+        origin.setCdloctype(result.getString(15));
+        origin.setAdstreet1(result.getString(16));
+        origin.setAdcity(result.getString(17));
+        origin.setAdzipcode(result.getString(18));
+        dest.setCdlocat(result.getString(19));
+        dest.setCdloctype(result.getString(20));
+        dest.setAdstreet1(result.getString(21));
+        dest.setAdcity(result.getString(22));
+        dest.setAdzipcode(result.getString(23));
+        trans.setEmployeeId(result.getInt(24));
+        trans.setNuxrrelsign(result.getString(25));
+        trans.setCount(result.getInt(26));
 
         trans.setOrigin(origin);
         trans.setDestination(dest);
@@ -448,6 +542,50 @@ public class TransactionMapper extends DbManager {
 
     private java.sql.Time getSqlDate(java.util.Date date) {
         return new java.sql.Time(date.getTime());
+    }
+
+    public Collection<Transaction> queryDeliveriesMissingRemoteInfo(DbConnect db) throws ClassNotFoundException, SQLException {
+        final String query = "SELECT invintrans.nuxrpd, TO_CHAR(invintrans.dtpickup, " + oracleDateString + " ) dtpickup, " +
+                "invintrans.napickupby, invintrans.nareleaseby, invintrans.nadeliverby, invintrans.naacceptby, invintrans.depucomments, " +
+                "invintrans.nuxrshiptyp, shiptyp.cdshiptyp, invintrans.deshipcomments, " +
+                "invintrans.nuxrvermthd, vermthd.cdvermthd, invintrans.devercomments, " +
+                "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adzipcode fromzip, " +
+                "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adzipcode tozip, " +
+                "invintrans.nuxrefem, invintrans.nuxrrelsign, " +
+                "(SELECT count(nusenate) from fd12invintrans d where d.nuxrpd = invintrans.nuxrpd and d.cdstatus = 'A') cnt " +
+                "FROM fm12invintrans invintrans " +
+                "LEFT OUTER JOIN fl12shiptyp shiptyp " +
+                "ON invintrans.nuxrshiptyp = shiptyp.nuxrshiptyp " +
+                "LEFT OUTER JOIN fl12vermthd vermthd " +
+                "ON invintrans.nuxrvermthd = vermthd.nuxrvermthd " +
+                "INNER JOIN sl16location loc1 " +
+                "ON invintrans.cdlocatfrom = loc1.cdlocat " +
+                "LEFT OUTER JOIN sl16location loc2 " +
+                "ON invintrans.cdlocatto = loc2.cdlocat " +
+                "WHERE invintrans.cdstatus = 'A' " +
+                "AND invintrans.cdintransit = 'O'";
+
+        ArrayList<Transaction> deliveries = new ArrayList<Transaction>();
+
+        PreparedStatement ps = null;
+        ResultSet result = null;
+        Connection conn = null;
+        try {
+            conn = db.getDbConnection();
+            ps = conn.prepareStatement(query);
+            result = ps.executeQuery();
+
+            while (result.next()) {
+                Transaction trans = parseTransaction(result);
+                deliveries.add(trans);
+            }
+        } finally {
+            closeResultSet(result);
+            closeStatement(ps);
+            closeConnection(conn);
+        }
+
+        return deliveries;
     }
 
 }
