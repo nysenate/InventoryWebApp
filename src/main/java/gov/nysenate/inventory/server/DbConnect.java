@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.imageio.ImageIO;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 
 import oracle.sql.BLOB;
 
@@ -1091,13 +1093,12 @@ public class DbConnect extends DbManager {
                 nalast = "";
             }
             //  String loc_code;
-            String qry = "SELECT a.nuxrefem, a.nafirst, a.nalast, a.namidinit, a.nasuffix"
+            String qry = "SELECT a.nuxrefem, a.nafirst, a.nalast, a.namidinit, a.nasuffix, a.naemail"
                     + " FROM pm21personn a "
                     + " WHERE a.cdempstatus LIKE '" + cdempstatus + "'"
                     + "  AND a.nalast LIKE'" + nalast + "%'"
                     + " AND a.naemail IS NOT null"
                     + " ORDER BY  a.nalast||DECODE(a.nasuffix, NULL, NULL, ' '||a.nasuffix)||', '||a.nafirst||DECODE(a.namidinit, NULL, NULL, ' '||a.namidinit)";
-
 
             //System.out.println("QRY:" + qry);
             result = stmt.executeQuery(qry);
@@ -1105,7 +1106,9 @@ public class DbConnect extends DbManager {
 
                 Employee employee = new Employee();
                 employee.setEmployeeData(result.getInt(1), result.getString(2), result.getString(3), result.getString(4), result.getString(5));
-                employeeList.add(employee);
+                if (emailIsValid(result.getString(6))) {
+                    employeeList.add(employee);
+                }
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -1119,6 +1122,17 @@ public class DbConnect extends DbManager {
         }
         log.info(this.ipAddr + "|" + "getEmployeeList() end");
         return employeeList;
+    }
+
+    public boolean emailIsValid(String email) {
+        boolean isValid = true;
+        try {
+            InternetAddress address = new InternetAddress(email);
+            address.validate();
+        } catch (AddressException ex) {
+            isValid = false;
+        }
+        return isValid;
     }
 
     /*-------------------------------------------------------------------------------------------------------
