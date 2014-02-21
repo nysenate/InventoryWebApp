@@ -1028,7 +1028,7 @@ public class DbConnect extends DbManager {
             } else {
                 System.out.println("handelSaveAskTree(): BLOB object could not be found...");
             }
-            outStream = writeBlob.getBinaryOutputStream();
+            outStream = writeBlob.setBinaryStream(0);
             outStream.write(imageInArray);
             outStream.flush();
             outStream.close(); // OutputStream Must be closed before committing when writing Blob.
