@@ -427,7 +427,7 @@ public class TransactionMapper extends DbManager {
     }
 
     private String getCdintransit(Transaction trans) {
-        if (trans.getNadeliverby().length() < 1 || trans.getNaacceptby().length() < 1)
+        if (trans.getNareleaseby().length() < 1 || trans.getNaacceptby().length() < 1)
             return "O";
 
         return "N";
