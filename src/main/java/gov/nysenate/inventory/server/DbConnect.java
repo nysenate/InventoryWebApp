@@ -43,6 +43,7 @@ import gov.nysenate.inventory.model.SimpleListItem;
 import gov.nysenate.inventory.util.DbManager;
 
 import java.awt.Graphics2D;
+import java.math.BigDecimal;
 import java.util.Arrays;
 
 /**
@@ -637,6 +638,7 @@ public class DbConnect extends DbManager {
         Statement stmt = null;
         ResultSet result2 = null;
         Connection conn = null;
+        BigDecimal nuxrmoappver = new BigDecimal(0);
         try {
             conn = getDbConnection();
             stmt = conn.createStatement();
@@ -645,6 +647,17 @@ public class DbConnect extends DbManager {
             String qry = "delete from SASS15018 where CDLOCAT='" + cdlocat + "'";
 
             result2 = stmt.executeQuery(qry);
+            
+            //log.info("-=-=-=-=-=-=-=-=-=-=-=-verification_xref:"+cdlocat+"-"+cdloctype);
+            //System.out.println ("-=-=-=-=-=-=-=-=-=-=-=-verification_xref:"+cdlocat+"-"+cdloctype);
+            CallableStatement csXref = conn.prepareCall("{?=call inv_app.verification_xref(?,?)}");                  
+            csXref.registerOutParameter(1, Types.NUMERIC);
+            csXref.setString(2, cdlocat);
+            csXref.setString(3, cdloctype);
+            csXref.executeUpdate();
+            nuxrmoappver = csXref.getBigDecimal(1);
+            //log.info("-=-=-=-=-=-=-=-=-=-=-=-verification_xref:"+cdlocat+"-"+cdloctype+"="+nuxrmoappver);
+            //System.out.println ("-=-=-=-=-=-=-=-=-=-=-=-verification_xref:"+cdlocat+"-"+cdloctype+"="+nuxrmoappver);
 
             for (int i = 0; i < invItems.size(); i++) {
                InvItem curInvItem =  invItems.get(i);
@@ -652,7 +665,8 @@ public class DbConnect extends DbManager {
                // left padding 0 to string 
                String barcodeStr = String.format("%6s", curInvItem.getNusenate()).replace(' ', '0');
                if (curInvItem.getType().equalsIgnoreCase("NEW")||curInvItem.getType().equalsIgnoreCase("INACTIVE")) {
-                  CallableStatement cs = conn.prepareCall("{?=call inv_app.store_new_inv_item(?,?, ?, ?, ?, ?)}");                  
+                   System.out.println ("-=-=-=-=-=-=-=-=-=-=-=-store_new_inv_item:"+curInvItem.getNusenate()+"="+nuxrmoappver);
+                  CallableStatement cs = conn.prepareCall("{?=call inv_app.store_new_inv_item(?,?, ?, ?, ?, ?, ?)}");                  
                   cs.registerOutParameter(1, Types.VARCHAR);
                   cs.setString(2, cdlocat);
                   cs.setString(3, curInvItem.getNusenate());
@@ -660,15 +674,19 @@ public class DbConnect extends DbManager {
                   cs.setString(5, curInvItem.getCdcommodity());
                   cs.setString(6, curInvItem.getDecomments());
                   cs.setString(7, "VERIFICATION");
+                  cs.setBigDecimal(8, nuxrmoappver);
                   cs.executeUpdate();
                   r = cs.getString(1);
                }
                else {
-                  CallableStatement cs = conn.prepareCall("{?=call INV_APP.copy_data(?,?, ?)}");
+                  //log.info("-=-=-=-=-=-=-=-=-=-=-=-copy_data:"+barcodeStr+"="+nuxrmoappver);                 
+                  //System.out.println ("-=-=-=-=-=-=-=-=-=-=-=-copy_data:"+barcodeStr+"="+nuxrmoappver);
+                  CallableStatement cs = conn.prepareCall("{?=call INV_APP.copy_data(?,?,?,?)}");
                   cs.registerOutParameter(1, Types.VARCHAR);
                   cs.setString(2, cdlocat);
                   cs.setString(3, barcodeStr);
                   cs.setString(4, cdloctype);
+                  cs.setBigDecimal(5, nuxrmoappver);
                   cs.executeUpdate();
                   r = cs.getString(1);
                }
@@ -688,6 +706,8 @@ public class DbConnect extends DbManager {
         }
         catch (SQLException ex) {
             result = 2;
+            ex.printStackTrace();
+            log.info(this.ipAddr + "|" + "setBarcodesInDatabase() end");
             Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, this.ipAddr + "|" + ex.getMessage());
         } catch (ClassNotFoundException e) {
             log.error("Error getting oracle jdbc driver: ", e);
