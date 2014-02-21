@@ -1061,7 +1061,8 @@ public class DbConnect extends DbManager {
             }
             outStream = writeBlob.getBinaryOutputStream();
             outStream.write(imageInArray);
-            outStream = null;
+            outStream.flush();
+            outStream.close(); // OutputStream Must be closed before committing when writing Blob.
             con.commit();
 
         } catch (SQLException ex) {
