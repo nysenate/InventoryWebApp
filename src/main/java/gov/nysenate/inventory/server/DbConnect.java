@@ -674,7 +674,7 @@ public class DbConnect extends DbManager {
                // left padding 0 to string 
                String barcodeStr = String.format("%6s", curInvItem.getNusenate()).replace(' ', '0');
                if (curInvItem.getType().equalsIgnoreCase("NEW")||curInvItem.getType().equalsIgnoreCase("INACTIVE")) {
-                   System.out.println ("-=-=-=-=-=-=-=-=-=-=-=-store_new_inv_item:"+curInvItem.getNusenate()+"="+nuxrmoappver);
+                   //System.out.println ("-=-=-=-=-=-=-=-=-=-=-=-store_new_inv_item:"+curInvItem.getNusenate()+"="+nuxrmoappver);
                   CallableStatement cs = conn.prepareCall("{?=call inv_app.store_new_inv_item(?,?, ?, ?, ?, ?, ?)}");                  
                   cs.registerOutParameter(1, Types.VARCHAR);
                   cs.setString(2, cdlocat);
