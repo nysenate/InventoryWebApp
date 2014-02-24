@@ -331,16 +331,24 @@ public class TransactionMapper extends DbManager {
         }
 
         if (trans.getNotCheckedItems().size() > 0) {
-            ArrayList<InvItem> items = new ArrayList<InvItem>();
-            for (String str: trans.getNotCheckedItems()) {
-                InvItem item = new InvItem();
-                item.setNusenate(str);
-                items.add(item);
-            }
+            ArrayList<InvItem> items = getNotDeliveredItems(trans);
             trans.setPickupItems(items);
+            if (trans.isRemotePickup()) {
+                trans.setNareleaseby("");
+            }
             // Insert a new pickup that is the same as the original but only contains the non delivered items.
             insertPickup(db, trans, trans.getNuxrpd());
         }
+    }
+
+    private ArrayList<InvItem> getNotDeliveredItems(Transaction trans) {
+        ArrayList<InvItem> items = new ArrayList<InvItem>();
+        for (String str: trans.getNotCheckedItems()) {
+            InvItem item = new InvItem();
+            item.setNusenate(str);
+            items.add(item);
+        }
+        return items;
     }
 
     public void insertRemotePickupRemoteUserInfo(DbConnect db, Transaction trans) throws SQLException, ClassNotFoundException {
