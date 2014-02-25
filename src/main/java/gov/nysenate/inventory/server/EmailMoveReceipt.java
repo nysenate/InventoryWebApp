@@ -6,7 +6,6 @@ package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.model.Employee;
 import gov.nysenate.inventory.model.ReportNotGeneratedException;
-import gov.nysenate.inventory.model.EmailInformation;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.model.EmailRecord;
 
@@ -1289,29 +1288,29 @@ public class EmailMoveReceipt implements Runnable
   }    
   
   public void addProblemEmailAddr(String naemail, String naemailName, StackTraceElement[] errorStackTrace, String errorMessage) {
-    EmailRecord emailInformation = new EmailRecord();
-    emailInformation.setNaemail(naemail);
-    emailInformation.setNaemailName(naemailName);
-    emailInformation.setErrorStackTrace(errorStackTrace);
-    emailInformation.setErrorMessage(errorMessage);
-    problemEmailAddrs.add(emailInformation);
+    EmailRecord emailRecord = new EmailRecord();
+    emailRecord.setNaemail(naemail);
+    emailRecord.setNaemailName(naemailName);
+    emailRecord.setErrorStackTrace(errorStackTrace);
+    emailRecord.setErrorMessage(errorMessage);
+    problemEmailAddrs.add(emailRecord);
   }
   
   public String getProblemEmailString() {
-    StringBuffer returnString = new StringBuffer();
-      if (problemEmailAddrs==null||problemEmailAddrs.size()==0) {
+    StringBuilder returnString = new StringBuilder();
+      if (problemEmailAddrs==null||problemEmailAddrs.isEmpty()) {
         return null;
       }
       else {
         for (int x=0;x<problemEmailAddrs.size();x++) {
-            EmailRecord emailInformation = problemEmailAddrs.get(x);
+            EmailRecord emailRecord = problemEmailAddrs.get(x);
             returnString.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Email:</b> ");
-            returnString.append(emailInformation.getNaemail());
+            returnString.append(emailRecord.getNaemail());
             returnString.append("&nbsp;&nbsp;&nbsp<b>Name:</b> ");
-            returnString.append(emailInformation.getNaemailName());
+            returnString.append(emailRecord.getNaemailName());
             returnString.append("&nbsp;&nbsp;&nbsp<b>Error Message:</b> ");
-            returnString.append(emailInformation.getErrorMessage());
-            StackTraceElement[] errorStackTrace = emailInformation.getErrorStackTrace();
+            returnString.append(emailRecord.getErrorMessage());
+            StackTraceElement[] errorStackTrace = emailRecord.getErrorStackTrace();
             if (errorStackTrace!=null) {
                 for (int y=0;y<errorStackTrace.length;y++) {
                      returnString.append("&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp");
