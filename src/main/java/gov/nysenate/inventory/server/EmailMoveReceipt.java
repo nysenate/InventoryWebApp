@@ -8,6 +8,7 @@ import gov.nysenate.inventory.model.Employee;
 import gov.nysenate.inventory.model.ReportNotGeneratedException;
 import gov.nysenate.inventory.model.EmailInformation;
 import gov.nysenate.inventory.model.Transaction;
+import gov.nysenate.inventory.model.EmailRecord;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -95,7 +96,7 @@ public class EmailMoveReceipt implements Runnable
   private MimeBodyPart attachmentPart;
   private String receiptURL = null;
   private String transTypeParam;
-  private ArrayList<EmailInformation> problemEmailAddrs = new ArrayList<EmailInformation>();
+  private ArrayList<EmailRecord> problemEmailAddrs = new ArrayList<EmailRecord>();
   
   public EmailMoveReceipt(String username, String password, String type, Transaction trans) {
       if (type.equals("pickup")) {
@@ -1288,7 +1289,7 @@ public class EmailMoveReceipt implements Runnable
   }    
   
   public void addProblemEmailAddr(String naemail, String naemailName, StackTraceElement[] errorStackTrace, String errorMessage) {
-    EmailInformation emailInformation = new EmailInformation();
+    EmailRecord emailInformation = new EmailRecord();
     emailInformation.setNaemail(naemail);
     emailInformation.setNaemailName(naemailName);
     emailInformation.setErrorStackTrace(errorStackTrace);
@@ -1303,7 +1304,7 @@ public class EmailMoveReceipt implements Runnable
       }
       else {
         for (int x=0;x<problemEmailAddrs.size();x++) {
-            EmailInformation emailInformation = problemEmailAddrs.get(x);
+            EmailRecord emailInformation = problemEmailAddrs.get(x);
             returnString.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Email:</b> ");
             returnString.append(emailInformation.getNaemail());
             returnString.append("&nbsp;&nbsp;&nbsp<b>Name:</b> ");
@@ -1321,7 +1322,5 @@ public class EmailMoveReceipt implements Runnable
         }
       }
       return returnString.toString();
-  }
-  
-  
+  }  
 }
