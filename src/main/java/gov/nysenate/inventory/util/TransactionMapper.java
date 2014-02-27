@@ -400,7 +400,10 @@ public class TransactionMapper extends DbManager {
                 "NUXREFEM = ?, " +
                 "NUXRVERMTHD = ?, " +
                 "NUHELPREF = ?, " +
-                "DEVERCOMMENTS = ? " +
+                "DEVERCOMMENTS = ?, " +
+                "DTTXNUPDATE = SYSDATE, " +
+                "NATXNUPDUSER=USER, " +
+                "CDINTRANSIT = 'N' " +
                 "WHERE NUXRPD = ?";
 
         PreparedStatement ps = null;
@@ -418,11 +421,7 @@ public class TransactionMapper extends DbManager {
             } else {
                 ps.setInt(2, getTransVerId(conn, trans));
             }
-            if (trans.getHelpReferenceNum() == null || trans.getHelpReferenceNum().equals("")) {
-                ps.setNull(3, java.sql.Types.INTEGER);
-            } else {
-                ps.setInt(3, Integer.valueOf(trans.getHelpReferenceNum()));
-            }
+            ps.setString(3, trans.getHelpReferenceNum());
             ps.setString(4, trans.getVerificationComments());
             ps.setInt(5, trans.getNuxrpd());
 
