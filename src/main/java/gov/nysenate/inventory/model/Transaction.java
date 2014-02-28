@@ -78,6 +78,13 @@ public class Transaction {
         return false;
     }
 
+    public boolean isRemotePickup() {
+        if (this.isRemote()) {
+            return destination.getAdcity().equalsIgnoreCase("Albany");
+        }
+        return false;
+    }
+
     public String getRemoteType() {
         if (this.isRemote()) {
             if (origin.getAdcity().equalsIgnoreCase("Albany"))
