@@ -44,6 +44,8 @@ import gov.nysenate.inventory.util.DbManager;
 import java.awt.Graphics2D;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  *
@@ -87,36 +89,6 @@ public class DbConnect extends DbManager {
      *----------------------------------------------------------------------------------------------------*/
     public static void main(String args[]) {
         log.info("main function ");
-        /*    String barcode_num = "77030";
-         //   int barcode = Integer.valueOf(barcode_num);
-         DbConnect db = new DbConnect();
-         String cdlocat = "abcd";
-         String barcodes[] = {"077896", "078567", "0268955"};
-  
-         String barcode="071030";
-         //   int result=db.setBarcodesInDatabase(cdlocat, barcodes);
-         // int result = db.invTransit("A42FB", "A411A", barcodes, "vikram", "10", "Brian", "11");
-         //  int result = db.createNewDelivery("267", barcodes);
-         //   System.out.println(result);
-         //db.execQuery("hey");
-         // String res=db.getDetails(barcode);
-         //  System.out.println(new File("").getAbsolutePath());  
-         //  ArrayList<String> a = new ArrayList<String>();//= new ArrayList<String>();
-         //  int   b= db.confirmDelivery("83", "1234", "vvv", "accpt", a, a);
-         //  int   b= db.confirmDelivery("83", "1234", "vvv", "accpt", a, a);
-         //    getDbConnection();
-         // System.out.println(b);
-       
-         // prop.load(DbConnect.class.getClassLoader().getResourceAsStream("config.properties");)); 
-
-
-         log.trace("This is main function");
-         log.error(" testing for error");
-         log.fatal("testing for fatal");
-         log.debug("testing 123456");
-         log.info("main function ");
-         */
-        //   System.out.println("Execution is continued "+res);
     }
 
     /*-------------------------------------------------------------------------------------------------------
@@ -168,12 +140,28 @@ public class DbConnect extends DbManager {
         } finally {
             closeConnection(conn);
         }
+               
         log.info(this.ipAddr + "|" + "validateUser() loginStatus= " + loginStatus);
         log.info(this.ipAddr + "|" + "validateUser() end ");
         return loginStatus;
     }
     
-    /*-------------------------------------------------------------------------------------------------------
+  private Date getOnlyDate(Date fecha) {
+    Date res = fecha;
+    Calendar calendar = Calendar.getInstance();
+
+    calendar.setTime( fecha );
+    calendar.set(Calendar.HOUR_OF_DAY, 0);
+    calendar.set(Calendar.MINUTE, 0);
+    calendar.set(Calendar.SECOND, 0);
+    calendar.set(Calendar.MILLISECOND, 0);
+
+    res = calendar.getTime();
+
+    return res;
+  }    
+       
+ /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to check user access
      *----------------------------------------------------------------------------------------------------*/
 
@@ -186,24 +174,14 @@ public class DbConnect extends DbManager {
         if (defrmint==null||defrmint.trim().length()==0) {
           return "!!ERROR: Server needs screen name parameter to be passed correctly.("+defrmint+") is not a valid value. Please contact STSBAC.";
         }
+        Date dtpasswdexp = null;
         String commodityCode = ""; //TODO
-        String query = " SELECT CDSECLEVEL"
+        String query = " SELECT CDSECLEVEL, dtpasswdexp"
                 + " FROM im86modmenu "
                 + " WHERE nauser = ?"
                 + "   AND defrmint = ?"
                 + "   AND cdstatus = 'A'";
         
-     /*   String query = "SELECT 1 "
-                + "FROM im86modmenu "
-                + "WHERE nauser = '"+user.trim().toUpperCase()+"' "
-                + "  AND defrmint = '"+defrmint.trim().toUpperCase()+"'";*/
-//        Statement pstmt = null;
-/*      try {
-        pstmt = conn.createStatement();
-      } catch (SQLException ex) {
-        java.util.logging.Logger.getLogger(DbConnect.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-      }*/
-
         PreparedStatement pstmt = null;
         ResultSet result = null;
         Connection conn = null;
@@ -215,11 +193,21 @@ public class DbConnect extends DbManager {
             result = pstmt.executeQuery();
          /*   System.out.println("SECURTY QUERY: "+query);
             ResultSet result = pstmt.executeQuery(query);*/
+            Date dtToday = this.getOnlyDate(new Date());
+            int passwordExpireWarning = 7;
 
             while (result.next()) {
                 //System.out.println (user.trim().toUpperCase()+" HAS CLEARANCE");
                 loginStatus = "VALID ";
                 loginStatus += result.getString(1);
+                dtpasswdexp = this.getOnlyDate(result.getDate(2));
+            }
+            if (dtpasswdexp.before(dtToday)) {
+              loginStatus = "!!ERROR: the password has expired in SFMS.";
+            }
+            else if (dtpasswdexp.before(new Date(dtToday.getTime() + (passwordExpireWarning * 24 * 3600 * 1000))) ) {
+                int daysLeft = (int)((dtpasswdexp.getTime() - dtToday.getTime())/ (24 * 3600 * 1000));
+                loginStatus = "***WARNING: Your password will expire within " +daysLeft+ " days. Do you want to change it ?";           
             }
         }
         catch (SQLException e) {
@@ -235,7 +223,7 @@ public class DbConnect extends DbManager {
 
         //System.out.println ("SECURITY RETURNS "+loginStatus+" FOR DEFRMINT "+defrmint);
         return loginStatus;
-    }    
+    }        
     
     /*-------------------------------------------------------------------------------------------------------
      * ---------------Function to return details of given barcode (item details)
@@ -1653,5 +1641,88 @@ public class DbConnect extends DbManager {
         }
       return connectionString;
 
+    }
+    
+    public String changePassword( String password) throws SQLException, ClassNotFoundException {
+      return changePassword(this.userName, password);
+    }
+    
+    public String changePassword(String user, String password) throws SQLException, ClassNotFoundException {
+        String results = null;
+        
+        String[] dbaURL = properties.getProperty("dbaURL").split(":");
+        
+        String serverName = dbaURL[0].replaceAll("http://", "");
+        String ldapUserbase = "dc=senate,dc=state,dc=ny,dc=us";
+
+        /*String query = "SELECT nafirst, nalast, cdrespctrhd"
+                + " FROM PM21PERSONN"
+                + " WHERE nalast = ?"
+                + " AND SUBSTR(naemail, 0, REGEXP_INSTR(naemail, '@') - 1) = lower(nalast)";*/
+                
+        PreparedStatement ps = null;
+        CallableStatement cs = null;
+        ResultSet rs = null;
+        Connection conn = null;
+        int passwordValidity = 90;
+        
+        try {
+            conn = getDbConnection();
+            cs = conn.prepareCall("{?=call change_password(?,?)}");
+            cs.registerOutParameter(1, Types.VARCHAR);
+            cs.setString(2, user);
+            cs.setString(3, password);
+            cs.executeUpdate();
+            results  = cs.getString(1);
+            cs.close();
+            System.out.println("{?=call change_password("+user+","+password+")}");
+            
+            if (!results.isEmpty()) {
+              return results;
+            }
+            
+            ps = conn.prepareStatement("SELECT To_Number(paramval) FROM sass_parameters WHERE cdparameter = 'PASSWD_VALIDITY'");
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                passwordValidity = rs.getInt(1);
+                System.out.println("passwordValidity:"+passwordValidity);
+            }
+            
+            ps.close();
+            
+            System.out.println("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + "+passwordValidity+" WHERE nauser = '"+user+"'");
+            ps = conn.prepareStatement("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + ? WHERE nauser = ?");
+            ps.setInt(1, passwordValidity);
+            ps.setString(2, user);
+            cs.executeUpdate();
+            cs.close();
+            
+            System.out.println("call changeSSOPassword ('389', '"+serverName+"', '"+ldapUserbase+"', '"+user+"', '"+password+"'}");
+            cs = conn.prepareCall("{call changeSSOPassword ('389', ?, ?, ?, ?}");
+            cs.setString(1, serverName);
+            cs.setString(2, ldapUserbase);
+            cs.setString(3, user);
+            cs.setString(4, password);
+            cs.executeUpdate();
+            cs.close();
+
+            System.out.println("call updateSSOUserResource ('"+user+"', '"+password+"', '"+this.dbaName+"||con', 'OracleDB', '389', '"+serverName+"', '"+ldapUserbase+"', , 'cn=Extended Properties,cn=OracleContext,"+ldapUserbase+"')}");
+            cs = conn.prepareCall("{call updateSSOUserResource (?, ?, ?||'con', 'OracleDB', '389', ?, ?, 'cn=Extended Properties,cn=OracleContext,||?)}");
+            cs.setString(1, user);
+            cs.setString(2, password);
+            cs.setString(3, this.dbaName);
+            cs.setString(4, serverName);
+            cs.setString(5, ldapUserbase);
+            cs.setString(6, ldapUserbase);
+            cs.executeUpdate();
+            cs.close();
+            
+        } finally {
+            closeResultSet(rs);
+            closeStatement(cs);
+            closeConnection(conn);
+        }        
+        return results;
     }
 }
