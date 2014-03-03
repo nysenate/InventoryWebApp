@@ -13,9 +13,13 @@ import javax.servlet.http.HttpSession;
 public class HttpUtils {
 
     public static final int SC_SESSION_TIMEOUT = 599;
-
-    // TODO: Temporary refactoring to consolidate session checking code.
+    public static final int SC_SESSION_OK = 200;
+    
     public static DbConnect getHttpSession(HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
+        return getHttpSession(request, response, out, SC_SESSION_TIMEOUT);
+    }
+    
+    public static DbConnect getHttpSession(HttpServletRequest request, HttpServletResponse response, PrintWriter out, int noSessionStatus) {
         HttpSession httpSession = request.getSession(false);
         DbConnect db;
         String userFallback = "";
@@ -25,13 +29,20 @@ public class HttpUtils {
             Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");
             userFallback = request.getParameter("userFallback");
             out.println("Session timed out");
-            response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
+            response.setStatus(noSessionStatus);
         } else {
             long lastAccess = (System.currentTimeMillis() - httpSession.getLastAccessedTime());
             System.out.println("SESSION FOUND!!!! LAST ACCESSED:" + convertTime(lastAccess));
             String user = (String) httpSession.getAttribute("user");
             String pwd = (String) httpSession.getAttribute("pwd");
-            db = new DbConnect(user, pwd);
+            if (user==null||user.trim().length()==0||pwd==null||pwd.trim().length()==0) {
+                System.out.println("SESSION FOUND!!!! WITH MISSING USER/PASSWORD WILL BE TREATED AS IF SESSION WAS NOT FOUND" );
+                db = new DbConnect();
+                response.setStatus(noSessionStatus);
+            }
+            else {
+                db = new DbConnect(user, pwd);
+            }
         }
         return db;
     }

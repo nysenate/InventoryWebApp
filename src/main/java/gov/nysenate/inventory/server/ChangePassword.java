@@ -4,8 +4,11 @@
  */
 package gov.nysenate.inventory.server;
 
+import gov.nysenate.inventory.util.HttpUtils;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
+import java.util.logging.Level;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -36,45 +39,25 @@ public class ChangePassword extends HttpServlet
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+        System.out.println();
+        DbConnect db = HttpUtils.getHttpSession(request, response, out, HttpUtils.SC_SESSION_OK);
         try {
             String name = request.getMethod().toString();
             String user = request.getParameter("user");
-            String pwd = request.getParameter("pwd");
-
-            DbConnect db = new DbConnect(user, pwd);
-            db.ipAddr=request.getRemoteAddr();         //Logger.getLogger(Login.class.getName()).info("Servlet Login : start");
-            db.log.info(db.ipAddr+"|"+"Servlet Login : start");
-
-            String defrmint = "";
-
-            try {
-               defrmint = request.getParameter("defrmint");
+            String newPassword = request.getParameter("newPassword");
+            db.ipAddr=request.getRemoteAddr();         
+            db.log.info(db.ipAddr+"|"+"Servlet ChangePassword : start");
+            String status = "OK";
+          try {
+            status = db.changePassword(user, newPassword);
+            if (status==null||status.trim().length()==0) {
+                status = "OK";
             }
-            catch (Exception e) {
-                // Do nothing if we fail to get defrmint;
-            }
-                    
-            HttpSession httpSession = request.getSession(true);
-            String status = "N";
-
-            // create an object of the db class and pass user name and password to it   
-            //  Use this code if we decide to create a new table for user name and password and 
-            // validate it from database function
-          
-            status = db.validateUser();
-
-
-            if (status.equalsIgnoreCase("VALID")) {
-                httpSession.setAttribute("user", user);
-                httpSession.setAttribute("pwd", pwd);
-                status = db.securityAccess(user, defrmint);
-            }
-            else {
-                httpSession.setAttribute("user", null);
-                httpSession.setAttribute("pwd", null);
-                
-            }
-            // pass the status to the app
+          } catch (SQLException ex) {
+            java.util.logging.Logger.getLogger(ChangePassword.class.getName()).log(Level.SEVERE, null, ex);
+          } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(ChangePassword.class.getName()).log(Level.SEVERE, null, ex);
+          }
             out.println(status);
             Logger.getLogger(Login.class.getName()).info(db.ipAddr+"|"+"Servlet Login : end");
         } finally {
