@@ -1654,4 +1654,28 @@ public class DbConnect extends DbManager {
       return connectionString;
 
     }
+
+    public int getOriginalTransaction(int nuxrpd) throws SQLException, ClassNotFoundException {
+        int orig = 0;
+        String query = "Select nuxrpdorig from fm12invintrans " +
+                "where nuxrpd = ?";
+
+        PreparedStatement ps = null;
+        Connection conn = null;
+        ResultSet rs = null;
+        try {
+            conn = this.getDbConnection();
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, nuxrpd);
+            rs = ps.executeQuery();
+            rs.next();
+            orig = rs.getInt(1);
+        } finally {
+            closeResultSet(rs);
+            closeStatement(ps);
+            closeConnection(conn);
+        }
+
+        return orig;
+    }
 }

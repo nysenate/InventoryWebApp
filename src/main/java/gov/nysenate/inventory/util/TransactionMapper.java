@@ -173,7 +173,6 @@ public class TransactionMapper extends DbManager {
                 "LEFT OUTER JOIN sl16location loc2 " +
                 "ON invintrans.cdlocatto = loc2.cdlocat " +
                 "WHERE invintrans.cdstatus = 'A' " +
-                "AND (invintrans.cdintransit = 'Y' OR invintrans.cdintransit = 'O') " +
                 "AND invintrans.nuxrpd = ?";
 
         Transaction trans = new Transaction();
