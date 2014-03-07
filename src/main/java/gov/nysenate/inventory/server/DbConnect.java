@@ -137,11 +137,17 @@ public class DbConnect extends DbManager {
             log.info(this.ipAddr + "|" + "validateUser() loginStatus= " + loginStatus);
             log.info(this.ipAddr + "|" + "validateUser() end ");
             int sqlErr = ex.getErrorCode();
+            System.out.println("sqlErr:"+sqlErr);
+            log.info(this.ipAddr + "|" + "sqlErr:"+sqlErr);
             loginStatus.setSQLErrorCode(sqlErr);
             if (sqlErr == 1017) {  // Invalid Username/Password
                 loginStatus.setNustatus(loginStatus.INVALID_USERNAME_OR_PASSWORD);
                 loginStatus.setDestatus("!!ERROR: Invalid Username and/or password.");
-            } else {
+            } else if (sqlErr == 20002) {
+                loginStatus.setNustatus(loginStatus.PASSWORD_RULE_FAILURE);
+                loginStatus.setDestatus("!!ERROR: Password rule failure.");
+            } 
+            else {
                 loginStatus.setNustatus(loginStatus.INVALID);
                 loginStatus.setDestatus("!!ERROR: " + ex.getMessage() + ". PLEASE CONTACT STS/BAC.");
             }
@@ -1673,13 +1679,10 @@ public class DbConnect extends DbManager {
     public String changePassword(String user, String password) throws SQLException, ClassNotFoundException {
         String results = null;
         
-        System.out.println("changePassword loadProperties()");
         
         loadProperties();
-        System.out.println("changePassword loadProperties() DONE dbaUrl:"+properties.getProperty("dbaURL"));
         
         String[] dbaUrl = properties.getProperty("dbaUrl").replaceAll("http://", "").split(":");
-        System.out.println("changePassword dbaURL[0]:"+dbaUrl[0]);
         
         String serverName = dbaUrl[0];
         String ldapUserbase = "dc=senate,dc=state,dc=ny,dc=us";
@@ -1703,10 +1706,11 @@ public class DbConnect extends DbManager {
             cs.setString(3, password);
             cs.executeUpdate();
             results  = cs.getString(1);
-            System.out.println("{?=call change_password("+user+","+password+")}");
-            log.info("{?=call change_password("+user+","+password+")}");
+            //System.out.println("{?=call change_password("+user+","+password+")}");
+            //log.info("{?=call change_password("+user+","+password+")}");
            
             if (results !=null && !results.isEmpty()) {
+              //log.info("{?=call change_password results 1:"+results);
               return results;
             }
             
@@ -1715,19 +1719,19 @@ public class DbConnect extends DbManager {
 
             while (rs.next()) {
                 passwordValidity = rs.getInt(1);
-                System.out.println("passwordValidity:"+passwordValidity);
-                log.info("passwordValidity:"+passwordValidity);
+                //System.out.println("passwordValidity:"+passwordValidity);
+                //log.info("passwordValidity:"+passwordValidity);
             }
             
-            System.out.println("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + "+passwordValidity+" WHERE nauser = '"+user+"'");
-            log.info("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + "+passwordValidity+" WHERE nauser = '"+user+"'");
+            //System.out.println("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + "+passwordValidity+" WHERE nauser = '"+user+"'");
+            //log.info("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + "+passwordValidity+" WHERE nauser = '"+user+"'");
             ps = conn.prepareStatement("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + ? WHERE nauser = ?");
             ps.setInt(1, passwordValidity);
             ps.setString(2, user.trim().toUpperCase());
             ps.executeUpdate();
             
-            System.out.println("call changeSSOPassword ('389', '"+serverName+"', '"+ldapUserbase+"', '"+user+"', '"+password+"'}");
-            log.info("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + "+passwordValidity+" WHERE nauser = '"+user+"'");
+            //System.out.println("call changeSSOPassword ('389', '"+serverName+"', '"+ldapUserbase+"', '"+user+"', '"+password+"'}");
+            //log.info("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + "+passwordValidity+" WHERE nauser = '"+user+"'");
             cs = conn.prepareCall("{call changeSSOPassword ('389', ?, ?, ?, ?)}");
             cs.setString(1, serverName);
             cs.setString(2, ldapUserbase);
@@ -1735,7 +1739,7 @@ public class DbConnect extends DbManager {
             cs.setString(4, password.trim().toLowerCase());
             cs.executeUpdate();
  
-            System.out.println("call updateSSOUserResource ('"+user+"', '"+password+"', '"+this.dbaName+"||con', 'OracleDB', '389', '"+serverName+"', '"+ldapUserbase+"', , 'cn=Extended Properties,cn=OracleContext,"+ldapUserbase+"')}");
+            //System.out.println("call updateSSOUserResource ('"+user+"', '"+password+"', '"+this.dbaName+"||con', 'OracleDB', '389', '"+serverName+"', '"+ldapUserbase+"', , 'cn=Extended Properties,cn=OracleContext,"+ldapUserbase+"')}");
             cs = conn.prepareCall("{call updateSSOUserResource (?, ?, ?, 'OracleDB', '389', ?, ?, ?)}");
             cs.setString(1, user);
             cs.setString(2, password);
