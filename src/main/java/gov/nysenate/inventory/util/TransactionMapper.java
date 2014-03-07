@@ -144,8 +144,8 @@ public class TransactionMapper extends DbManager {
                 ps.setInt(7, getTransShipId(conn, trans));
             }
             ps.setString(8, trans.getShipComments());
-            ps.setInt(9, trans.getNuxrpd());
-            ps.setString(10, trans.getRemoteType());
+            ps.setString(9, trans.getRemoteType());
+            ps.setInt(10, trans.getNuxrpd());
 
             ps.executeUpdate();
         } finally {
