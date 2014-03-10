@@ -229,7 +229,7 @@ public class DbConnect extends DbManager {
                System.out.println("dtpasswdexp:"+dtpasswdexp);
             }
             
-            if (dtpasswdexp.before(dtToday)) {
+            if (dtpasswdexp.equals(dtToday)||dtpasswdexp.before(dtToday)) {
               loginStatus.setNustatus(loginStatus.PASSWORD_EXPIRED);
               loginStatus.setDestatus("!!ERROR: the password has expired in SFMS.");
             }
