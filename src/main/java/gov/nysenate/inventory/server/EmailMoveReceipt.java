@@ -161,7 +161,7 @@ public class EmailMoveReceipt implements Runnable
             testingModeCheck();
             initializeEmailTo();
         } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(EmailMoveReceipt.class.getName()).log(java.util.logging.Level.SEVERE, null, "("+this.dbaUrl+") "+ex);
+            java.util.logging.Logger.getLogger(EmailMoveReceipt.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         break;
     }
