@@ -55,13 +55,15 @@ public class TransactionMapper extends DbManager {
             result = ps.executeQuery();
             result.next();
             trans.setNuxrpd(result.getInt(1));
-
+            
             query = "INSERT INTO FM12INVINTRANS (NUXRPD, CDLOCATTO, CDLOCATFROM, CDINTRANSIT, NAPICKUPBY, NARELEASEBY, " +
                     "NUXRRELSIGN, CDSTATUS, DTTXNORIGIN, DTTXNUPDATE, NATXNORGUSER, NATXNUPDUSER, DEPUCOMMENTS, " +
                     "NUXRPDORIG, DTPICKUP, CDLOCTYPEFRM, CDLOCTYPETO, NUXRSHIPTYP, CDRMTTYP" + ") " +
                     "VALUES(?,?,?,?,?,?,?,?,?,?,USER,USER,?,?,?,?,?,?,?)";
 
             ps = conn.prepareStatement(query);
+            log.info("insertPickup: nuxrpd:"+ trans.getNuxrpd()+" nuxrrelsign:"+trans.getNuxrrelsign()+", ");
+            System.out.println("insertPickup: nuxrpd:"+ trans.getNuxrpd()+" nuxrrelsign:"+trans.getNuxrrelsign()+", ");
 
             ps.setInt(1, trans.getNuxrpd());
             ps.setString(2, trans.getDestinationCdLoc());
