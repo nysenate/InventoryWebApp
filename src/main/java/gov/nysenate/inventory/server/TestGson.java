@@ -32,6 +32,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 
 import gov.nysenate.inventory.model.SimpleListItem;
+import gov.nysenate.inventory.util.EmailValidator;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -44,6 +45,19 @@ import java.util.Date;
 public class TestGson {
     
     public static void main (String[] args) throws ParserConfigurationException {
+      EmailValidator emailValidator = new EmailValidator();
+      String[] emailAddresses = {null, "test", "test@senate.state.ny.us", "test", "test@", "@senate.state.ny.us", "wow.com", "test@senate", "test@nysenate.gov", "test@gmail.com", "TEST@YAHOO.COM"};
+      for (int x=0;x<emailAddresses.length;x++) {
+            String emailAddress = emailAddresses[x];
+            if (emailValidator.validate(emailAddress)) {
+               System.out.println(emailAddress+" is valid e-mail");
+             }
+            else {
+              System.out.println("***"+emailAddress+" is INVALID e-mail");
+            }
+      }     
+      
+      /*
         Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
         LoginStatus loginStatus = new LoginStatus();
         loginStatus.setCdseclevel("01");
@@ -54,7 +68,7 @@ public class TestGson {
         loginStatus.setSQLErrorCode(102);
         String json = gson.toJson(loginStatus);
         System.out.println(json);
-      
+      */
 /*        System.out.println (convertTime((long)((3*60*60*1000)+(32*60*1000)+(18*1000)+383)));
         System.out.println (convertTime((long)1533));
         System.out.println (convertTime((long)434));
