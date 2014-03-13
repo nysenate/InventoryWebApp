@@ -66,6 +66,7 @@ public class Login extends HttpServlet {
             loginStatus = db.validateUser();
             Logger.getLogger(Login.class.getName()).info(db.ipAddr+"|"+"Servlet Login : defrmint:"+defrmint+", status:"+loginStatus.getDestatus());
             if (loginStatus.getNustatus() == loginStatus.VALID) {
+                System.out.println("VALID LOGIN:"+loginStatus.getDestatus());
                 httpSession.setAttribute("user", user);
                 httpSession.setAttribute("pwd", pwd);
                 loginStatus = db.securityAccess(user, defrmint, loginStatus);
@@ -77,6 +78,7 @@ public class Login extends HttpServlet {
             Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
             String json = gson.toJson(loginStatus);
+            System.out.println("loginStatus:"+json);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(json);

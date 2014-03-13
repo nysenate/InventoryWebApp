@@ -540,6 +540,7 @@ public class EmailMoveReceipt implements Runnable
         returnStatus = 2;
       }
       emailError(emailType, "<html><body>Email Error URL was MALFORMED: <b>" + receiptURL + nuxrpd + transTypeParam + "</b><br/><br/></body></html>");
+      
       return returnStatus;
     } catch (IOException ex) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
@@ -729,6 +730,7 @@ public class EmailMoveReceipt implements Runnable
             Transport.send(msg);
             //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT AFTER SENDING E-MAIL");
           }
+          emailWarning(emailType);
         }
       }
       System.out.println("(" + this.dbaUrl + ") E-mail sent with no errors.");
@@ -738,6 +740,7 @@ public class EmailMoveReceipt implements Runnable
         returnStatus = 10;
         try {
           emailError(emailType, "(" + this.dbaUrl + ") ADDRESS EXCEPTION:+" + e.getMessage() + " [" + e.getStackTrace()[0].toString() + "]");
+          emailWarning(emailType);
         } catch (Exception e2) {
           e2.printStackTrace();
         }
@@ -750,6 +753,7 @@ public class EmailMoveReceipt implements Runnable
         returnStatus = 11;
         try {
           emailError(emailType, "(" + this.dbaUrl + ") MESSAGING EXCEPTION:+" + e.getMessage());
+          emailWarning(emailType);
         } catch (Exception e2) {
           e2.printStackTrace();
         }
@@ -761,6 +765,7 @@ public class EmailMoveReceipt implements Runnable
         returnStatus = 20;
         try {
           emailError(emailType, "(" + this.dbaUrl + ") GENERAL EXCEPTION:+" + e.getMessage());
+          emailWarning(emailType);
         } catch (Exception e2) {
           e2.printStackTrace();
         }

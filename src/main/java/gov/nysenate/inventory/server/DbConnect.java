@@ -61,6 +61,7 @@ public class DbConnect extends DbManager
   private String userName, password;
   final int RELEASESIGNATURE = 3001, ACCEPTBYSIGNATURE = 3002;
   private String dbaName = "";
+  private int passwordExpireWarning = 10;
 
   public DbConnect()
   {
@@ -139,12 +140,7 @@ public class DbConnect extends DbManager
     } catch (SQLException ex) {
       Logger.getLogger(DbConnect.class.getName()).log(Level.ERROR, "Handled Error " + ex.getMessage());
 
-      System.out.println(ex.getMessage());
-      log.info(this.ipAddr + "|" + "validateUser() loginStatus= " + loginStatus);
-      log.info(this.ipAddr + "|" + "validateUser() end ");
       int sqlErr = ex.getErrorCode();
-      System.out.println("sqlErr:" + sqlErr);
-      log.info(this.ipAddr + "|" + "sqlErr:" + sqlErr);
       loginStatus.setSQLErrorCode(sqlErr);
       if (sqlErr == 1017) {  // Invalid Username/Password
         loginStatus.setNustatus(loginStatus.INVALID_USERNAME_OR_PASSWORD);
@@ -209,7 +205,9 @@ public class DbConnect extends DbManager
             + "   AND cdstatus = 'A'";
 
     PreparedStatement pstmt = null;
+    PreparedStatement pstmt2 = null;
     ResultSet result = null;
+    ResultSet result2 = null;
     Connection conn = null;
     try {
       conn = getDbConnection();
@@ -218,7 +216,6 @@ public class DbConnect extends DbManager
       pstmt.setString(2, defrmint.trim().toUpperCase());
       result = pstmt.executeQuery();
       Date dtToday = this.getOnlyDate(new Date());
-      int passwordExpireWarning = 7;
 
       while (result.next()) {
         System.out.println(user.trim().toUpperCase() + " HAS CLEARANCE");
@@ -226,23 +223,34 @@ public class DbConnect extends DbManager
         loginStatus.setCdseclevel(result.getString(1));
       }
       query = "Select dtpasswdexp From Im86orgid where nauser = ?";
-      log.info("Select dtpasswdexp From Im86orgid where nauser = ?");
-      System.out.println("Select dtpasswdexp From Im86orgid where nauser = ?");
       pstmt = conn.prepareStatement(query);
       pstmt.setString(1, user.trim().toUpperCase());
       result = pstmt.executeQuery();
       while (result.next()) {
         dtpasswdexp = this.getOnlyDate(result.getDate(1));
         loginStatus.setDtpasswdexp(dtpasswdexp);
-        log.info("dtpasswdexp:" + dtpasswdexp);
-        System.out.println("dtpasswdexp:" + dtpasswdexp);
+      }
+      
+      pstmt2 = conn.prepareStatement("SELECT To_Number(paramval) FROM sass_parameters WHERE cdparameter = 'PASSWD_WARNING'");
+      result2 = pstmt2.executeQuery();
+
+      while (result2.next()) {
+        passwordExpireWarning = result2.getInt(1);
+        //log.info("dba passwordExpireWarning:" + passwordExpireWarning);
+        //System.out.println("dba passwordExpireWarning:" + passwordExpireWarning);
       }
 
       if (dtpasswdexp != null && dtToday != null) {
-        if (dtpasswdexp.equals(dtToday) || dtpasswdexp.before(dtToday)) {
+          /*
+           * In SFMS, Password Expires Warning on the Day of the Password Expiration...
+           * "***WARNING: Your password will expire within 0 days. Do you want to change it?"
+           *          Password Expired Error Message comes up if it is past the day of the expiration.
+           * 
+           */          
+        if (dtpasswdexp.before(dtToday)) {
           loginStatus.setNustatus(loginStatus.PASSWORD_EXPIRED);
           loginStatus.setDestatus("!!ERROR: the password has expired in SFMS.");
-        } else if (dtpasswdexp.before(new Date(dtToday.getTime() + (passwordExpireWarning * 24 * 3600 * 1000)))) {
+        } else if (dtpasswdexp.before(new Date(dtToday.getTime() + (passwordExpireWarning * 24 * 3600 * 1000)))||dtpasswdexp.equals(new Date(dtToday.getTime() + (passwordExpireWarning * 24 * 3600 * 1000)))) {
           int daysLeft = (int) ((dtpasswdexp.getTime() - dtToday.getTime()) / (24 * 3600 * 1000));
           loginStatus.setNustatus(loginStatus.PASSWORD_EXPIRES_SOON);
           loginStatus.setDestatus("***WARNING: Your password will expire within " + daysLeft + " days. Do you want to change it?");
@@ -254,7 +262,9 @@ public class DbConnect extends DbManager
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
       closeResultSet(result);
+      closeResultSet(result2);
       closeStatement(pstmt);
+      closeStatement(pstmt2);
       closeConnection(conn);
     }
 
@@ -1749,10 +1759,10 @@ public class DbConnect extends DbManager
         //System.out.println("passwordValidity:"+passwordValidity);
         //log.info("passwordValidity:"+passwordValidity);
       }
-
+      
       //System.out.println("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + "+passwordValidity+" WHERE nauser = '"+user+"'");
       //log.info("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + "+passwordValidity+" WHERE nauser = '"+user+"'");
-      ps = conn.prepareStatement("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + ? WHERE nauser = ?");
+      ps = conn.prepareStatement("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + ?, natxnupduser = USER, dttxnupdate = SYSDATE WHERE nauser = ?");
       ps.setInt(1, passwordValidity);
       ps.setString(2, user.trim().toUpperCase());
       ps.executeUpdate();
