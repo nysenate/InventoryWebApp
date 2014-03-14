@@ -996,13 +996,13 @@ public class EmailMoveReceipt implements Runnable
         recipientCount = addErrorRecipients(message);
       }
 
-      if (recipientCount == 0) {
+      /*if (recipientCount == 0) {
         Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, "{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: There were no e-mail recipients for a Report Genration error. No warning e-mail will be sent!!!", db.ipAddr);
         if (this.problemEmailAddrs != null && this.problemEmailAddrs.size() > 0) {
           this.emailWarning(emailType);
         }
         return;
-      }
+      }*/
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, "{0}" + "|" + "(" + this.dbaUrl + ") !!!!EMAILWARNING BEFORE SUBJECT", db.ipAddr);
       // Set Subject: header field
 
@@ -1033,9 +1033,9 @@ public class EmailMoveReceipt implements Runnable
       }
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, "{0}" + "|" + "(" + this.dbaUrl + ") !!!!EMAILWARNING AFTER SET MESSAGE", db.ipAddr);
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.INFO, "{0}|(" + this.dbaUrl + ")  EMAIL WARNING MSG:{1}", new Object[]{db.ipAddr, message});
-      if (this.problemEmailAddrs != null && this.problemEmailAddrs.size() > 0) {
+      /*if (this.problemEmailAddrs != null && this.problemEmailAddrs.size() > 0) {
         this.emailWarning(emailType);
-      }
+      }*/
       // Send message
       Transport.send(message);
       System.out.println("(" + this.dbaUrl + ") Sent warning message successfully....");
