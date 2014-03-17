@@ -60,7 +60,7 @@ public class PickupServlet extends HttpServlet
     PrintWriter out = response.getWriter();
     db = HttpUtils.getHttpSession(request, response, out);
     log.info(db.ipAddr + "|" + "Servlet Pickup : start");
-    String pickupTest = request.getParameter("pickup");
+    //String pickupTest = request.getParameter("pickup");
     String pickupJson = URLDecoder.decode(request.getParameter("pickup"), "UTF-8");
     
     pickup = TransactionParser.parseTransaction(pickupJson);
