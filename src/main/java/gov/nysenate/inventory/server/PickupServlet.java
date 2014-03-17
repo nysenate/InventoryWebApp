@@ -49,9 +49,9 @@ public class PickupServlet extends HttpServlet
   protected void processRequest(HttpServletRequest request, HttpServletResponse response)
           throws ServletException, IOException
   {
-    response.setContentType("text/html;charset=UTF-8");
     Logger log = Logger.getLogger(PickupServlet.class.getName());
-
+    response.setContentType("text/html;charset=UTF-8");
+    
     String userFallback = null;
     Transaction pickup = new Transaction();
     String testingModeParam = null;
@@ -59,11 +59,13 @@ public class PickupServlet extends HttpServlet
 
     PrintWriter out = response.getWriter();
     db = HttpUtils.getHttpSession(request, response, out);
-
-    db.ipAddr = request.getRemoteAddr();
     log.info(db.ipAddr + "|" + "Servlet Pickup : start");
-
-    pickup = TransactionParser.parseTransaction(URLDecoder.decode(request.getParameter("pickup"), "UTF-8"));
+    String pickupTest = request.getParameter("pickup");
+    String pickupJson = URLDecoder.decode(request.getParameter("pickup"), "UTF-8");
+    
+    pickup = TransactionParser.parseTransaction(pickupJson);
+    
+    InvItem invItem = pickup.getPickupItems().get(0);
 
     // TODO: what are these for?
     try {

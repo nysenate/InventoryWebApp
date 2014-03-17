@@ -37,7 +37,9 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Time;
 import java.util.Date;
+import java.sql.Timestamp;
 
 /*
  * @author senateuser
@@ -45,7 +47,15 @@ import java.util.Date;
 public class TestGson {
     
     public static void main (String[] args) throws ParserConfigurationException {
-      EmailValidator emailValidator = new EmailValidator();
+       /* String test = "EMPLOYEE";
+        System.out.println (test.substring(0, 1));
+        java.util.Date date = new java.util.Date();
+        System.out.println ("DATE:"+date);
+        Time time = new Time(date.getTime());
+        System.out.println ("SQL TIME:"+time);*/
+        
+        
+  /*    EmailValidator emailValidator = new EmailValidator();
       String[] emailAddresses = {null, "test", "test@senate.state.ny.us", "test", "test@", "@senate.state.ny.us", "wow.com", "test@senate", "test@nysenate.gov", "test@gmail.com", "TEST@YAHOO.COM"};
       for (int x=0;x<emailAddresses.length;x++) {
             String emailAddress = emailAddresses[x];

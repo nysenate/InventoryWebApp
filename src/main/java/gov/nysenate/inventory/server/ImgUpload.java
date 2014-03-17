@@ -21,7 +21,8 @@ import org.apache.log4j.Logger;
  * @author jonhoffman
  */
 @WebServlet(name = "ImgUpload", urlPatterns = {"/ImgUpload"})
-public class ImgUpload extends HttpServlet {
+public class ImgUpload extends HttpServlet
+{
 
     /**
      * Processes requests for both HTTP GET and POST methods.
@@ -32,41 +33,41 @@ public class ImgUpload extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException
+    {
 
         //Set Response Type
         response.setContentType("text/html;charset=UTF-8");
+        //System.out.println ("*****************************TESTServlet ImageUpload START!!!");
 
         //Use out to send content to the user's browser
         PrintWriter out = response.getWriter();
         try {
             HttpSession httpSession = request.getSession(false);
-            DbConnect db;         
+            DbConnect db;
             String userFallback = null;
-            if (httpSession==null) {
-                System.out.println ("**** IMGUPLOAD SESSION NOT FOUND");
+            if (httpSession == null) {
+                System.out.println("**** IMGUPLOAD SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****IMGUPLOAD SESSION NOT FOUND ImgUpload.processRequest ");                
+                log.info(db.ipAddr + "|" + "****IMGUPLOAD SESSION NOT FOUND ImgUpload.processRequest ");
                 try {
-                   userFallback  = request.getParameter("userFallback");
+                    userFallback = request.getParameter("userFallback");
+                } catch (Exception e) {
+                    log.info(db.ipAddr + "|" + "****IMGUPLOAD SESSION NOT FOUND ImgUpload.processRequest could not process Fallback Username. Generic Username will be used instead.");
                 }
-                catch (Exception e) {
-                    log.info(db.ipAddr + "|" + "****IMGUPLOAD SESSION NOT FOUND ImgUpload.processRequest could not process Fallback Username. Generic Username will be used instead.");                
-                } 
                 // Seems like ImgUpload can never find a SESSION. Possibly due to Client POSTING instead of using GET???
 //                out.println("");  // If sessions is not working, tablet will bomb for now with this
 //                return;
-            }
-            else {
-                System.out.println ("IMGUPLOAD SESSION FOUND!!!!");
-                String user = (String)httpSession.getAttribute("user");
-                String pwd = (String)httpSession.getAttribute("pwd");
-                System.out.println ("--------USER:"+user);
+            } else {
+                System.out.println("IMGUPLOAD SESSION FOUND!!!!");
+                String user = (String) httpSession.getAttribute("user");
+                String pwd = (String) httpSession.getAttribute("pwd");
+                System.out.println("--------USER:" + user);
                 db = new DbConnect(user, pwd);
-                
+
             }
-            db.ipAddr=request.getRemoteAddr();
-            Logger.getLogger(ImgUpload.class.getName()).info(db.ipAddr+"|"+"Servlet ImgUpload : start");
+            db.ipAddr = request.getRemoteAddr();
+            Logger.getLogger(ImgUpload.class.getName()).info(db.ipAddr + "|" + "Servlet ImgUpload : start");
             //Get the name of the file from the URL string
             String nauser = request.getParameter("nauser");
             if (nauser != null) {
@@ -79,10 +80,10 @@ public class ImgUpload extends HttpServlet {
             int nuxrsign = -1;
             if (nauser == null || nauser.length() < 1) {
                 out.println("Failure: No Username given");
-                System.out.println ("ImgUpload Failure: No Username given");
+                System.out.println("ImgUpload Failure: No Username given");
             } else if (nuxrefemString == null || nuxrefemString.length() < 1) {
                 out.println("Failure: No Employee Xref given");
-                System.out.println ("ImgUpload Failure: No Employee Xref given");
+                System.out.println("ImgUpload Failure: No Employee Xref given");
             } else {
                 boolean nuxrefemIsNumber = false;
 
@@ -90,7 +91,7 @@ public class ImgUpload extends HttpServlet {
                     nuxrefem = Integer.parseInt(nuxrefemString);
                     nuxrefemIsNumber = true;
                 } catch (Exception e) {
-                    Logger.getLogger(ImgUpload.class.getName()).fatal(db.ipAddr+"|"+"Exception at Servlet ImgUpload : " + e.getMessage());
+                    Logger.getLogger(ImgUpload.class.getName()).fatal(db.ipAddr + "|" + "Exception at Servlet ImgUpload : " + e.getMessage());
                     nuxrefemIsNumber = false;
                 }
 
@@ -113,8 +114,8 @@ public class ImgUpload extends HttpServlet {
                         data = newData;
                     }
                     //System.out.println("IMGUPLOAD insertSignature({"+data.length+"},"+nuxrefem+","+nauser+","+userFallback+")");
-                            
-                 
+
+
                     nuxrsign = db.insertSignature(data, nuxrefem, nauser, userFallback);
                     //define the path to save the file using the file name from the URL.
                     //String path = "c:\\Datafiles\\"+name+".png";
@@ -126,23 +127,29 @@ public class ImgUpload extends HttpServlet {
                     //out.println("Success");
                     if (nuxrsign < 0) {
                         out.println("Failure: NUXRSIGN:" + nuxrsign);
-                        System.out.println ("ImgUpload Return: Failure: NUXRSIGN:" + nuxrsign);
+                        System.out.println("ImgUpload Return: Failure: NUXRSIGN:" + nuxrsign);
                     } else {
                         out.println("NUXRSIGN:" + nuxrsign);
                         //System.out.println ("ImgUpload Return: NUXRSIGN:" + nuxrsign);
                     }
                 } else {
                     out.println("Failure: Employee Xref must be a number. RECEIVED:" + nuxrefemString);
-                    System.out.println ("ImgUpload Return: NUXRSIGN:" + nuxrsign);                    
+                    System.out.println("ImgUpload Return: NUXRSIGN:" + nuxrsign);
                 }
             }
-            Logger.getLogger(ImgUpload.class.getName()).info(db.ipAddr+"|"+"Servlet ImgUpload : end");
+            //System.out.println ("*****************************TESTServlet ImageUpload END!!!");
+            //log.info("*****************************TESTServlet ImageUpload END!!!");
+
+            Logger.getLogger(ImgUpload.class.getName()).info(db.ipAddr + "|" + "Servlet ImgUpload : end");
         } catch (Exception e) {
             e.printStackTrace();
-            Logger.getLogger(ImgUpload.class.getName()).fatal(request.getRemoteAddr()+"|"+"Exception at Servlet ImgUpload : " + e.getMessage());
-            System.out.println("Failure: "+ e.getMessage()+" "+e.getStackTrace()[0].toString());
-            out.println("Failure: "+ e.getMessage()+" "+e.getStackTrace()[0].toString());
+            Logger.getLogger(ImgUpload.class.getName()).fatal(request.getRemoteAddr() + "|" + "Exception at Servlet ImgUpload : " + e.getMessage());
+            System.out.println("Failure: " + e.getMessage() + " " + e.getStackTrace()[0].toString());
+            out.println("Failure: " + e.getMessage() + " " + e.getStackTrace()[0].toString());
         } finally {
+            //System.out.println ("*****************************TESTServlet ImageUpload END/CLOSE!!!");
+            //log.info ("*****************************TESTServlet ImageUpload END/CLOSE!!!");
+
             out.close();
         }
     }
@@ -157,7 +164,8 @@ public class ImgUpload extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException
+    {
         processRequest(request, response);
     }
 
@@ -171,7 +179,8 @@ public class ImgUpload extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException
+    {
         processRequest(request, response);
     }
 
@@ -181,7 +190,8 @@ public class ImgUpload extends HttpServlet {
      * @return a String containing servlet description
      */
     @Override
-    public String getServletInfo() {
+    public String getServletInfo()
+    {
         return "PNG Image upload servlet";
     }
 }

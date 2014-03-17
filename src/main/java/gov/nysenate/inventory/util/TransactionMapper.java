@@ -18,6 +18,8 @@ import gov.nysenate.inventory.model.Location;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.server.DbConnect;
 import gov.nysenate.inventory.server.InvItem;
+import java.sql.Timestamp;
+import java.util.Date;
 
 public class TransactionMapper extends DbManager {
 
@@ -59,11 +61,9 @@ public class TransactionMapper extends DbManager {
             query = "INSERT INTO FM12INVINTRANS (NUXRPD, CDLOCATTO, CDLOCATFROM, CDINTRANSIT, NAPICKUPBY, NARELEASEBY, " +
                     "NUXRRELSIGN, CDSTATUS, DTTXNORIGIN, DTTXNUPDATE, NATXNORGUSER, NATXNUPDUSER, DEPUCOMMENTS, " +
                     "NUXRPDORIG, DTPICKUP, CDLOCTYPEFRM, CDLOCTYPETO, NUXRSHIPTYP, CDRMTTYP" + ") " +
-                    "VALUES(?,?,?,?,?,?,?,?,?,?,USER,USER,?,?,?,?,?,?,?)";
+                    "VALUES(?,?,?,?,?,?,?,?,SYSDATE,SYSDATE,USER,USER,?,?,?,?,?,?,?)";
 
             ps = conn.prepareStatement(query);
-            log.info("insertPickup: nuxrpd:"+ trans.getNuxrpd()+" nuxrrelsign:"+trans.getNuxrrelsign()+", ");
-            System.out.println("insertPickup: nuxrpd:"+ trans.getNuxrpd()+" nuxrrelsign:"+trans.getNuxrrelsign()+", ");
 
             ps.setInt(1, trans.getNuxrpd());
             ps.setString(2, trans.getDestinationCdLoc());
@@ -77,23 +77,26 @@ public class TransactionMapper extends DbManager {
                 ps.setInt(7, Integer.valueOf(trans.getNuxrrelsign()));
             }
             ps.setString(8, "A");
-            ps.setTime(9, getCurrentDate());
-            ps.setTime(10, getCurrentDate());
-            ps.setString(11, trans.getPickupComments());
+            /*
+             *   Date not always entered correctly, so use SYSDATE for the INSERT instead
+             */
+ //           ps.setTime(9, getCurrentDate());
+ //           ps.setTime(10, getCurrentDate());
+            ps.setString(9, trans.getPickupComments());
             if (oldNuxrpd == 0) {
-                ps.setNull(12, java.sql.Types.INTEGER);
+                ps.setNull(10, java.sql.Types.INTEGER);
             } else {
-                ps.setInt(12, oldNuxrpd);
+                ps.setInt(10, oldNuxrpd);
             }
-            ps.setTime(13, getSqlDate(trans.getPickupDate()));
-            ps.setString(14, trans.getOriginCdLocType());
-            ps.setString(15, trans.getDestinationCdLocType());
+            ps.setTimestamp(11, getSqlDate(trans.getPickupDate()));
+            ps.setString(12, trans.getOriginCdLocType());
+            ps.setString(13, trans.getDestinationCdLocType());
             if (getTransShipId(conn, trans) == 0) {
-                ps.setNull(16, java.sql.Types.INTEGER);
+                ps.setNull(14, java.sql.Types.INTEGER);
             } else {
-                ps.setInt(16, getTransShipId(conn, trans));
+                ps.setInt(14, getTransShipId(conn, trans));
             }
-            ps.setString(17, trans.getRemoteType());
+            ps.setString(15, trans.getRemoteType());
 
             log.info(query);
             log.info(sdf.format(trans.getPickupDate()));
@@ -119,7 +122,7 @@ public class TransactionMapper extends DbManager {
         String query = "UPDATE fm12invintrans SET " +
         "CDLOCATTO = ?, " +
         "CDLOCATFROM = ?, " +
-        "DTTXNUPDATE = ?, " +
+        "DTTXNUPDATE = SYSDATE, " +
         "NATXNUPDUSER = USER, " +
         "DEPUCOMMENTS = ?, " +
         "CDLOCTYPEFRM = ?, " +
@@ -136,18 +139,18 @@ public class TransactionMapper extends DbManager {
             ps = conn.prepareStatement(query);
             ps.setString(1, trans.getDestinationCdLoc());
             ps.setString(2, trans.getOriginCdLoc());
-            ps.setTime(3, getCurrentDate());
-            ps.setString(4, trans.getPickupComments());
-            ps.setString(5, trans.getOriginCdLocType());
-            ps.setString(6, trans.getDestinationCdLocType());
+            //ps.setTimestamp(3, getCurrentDate());
+            ps.setString(3, trans.getPickupComments());
+            ps.setString(4, trans.getOriginCdLocType());
+            ps.setString(5, trans.getDestinationCdLocType());
             if (getTransShipId(conn, trans) == 0) {
-                ps.setNull(7, java.sql.Types.INTEGER);
+                ps.setNull(6, java.sql.Types.INTEGER);
             } else {
-                ps.setInt(7, getTransShipId(conn, trans));
+                ps.setInt(6, getTransShipId(conn, trans));
             }
-            ps.setString(8, trans.getShipComments());
-            ps.setString(9, trans.getRemoteType());
-            ps.setInt(10, trans.getNuxrpd());
+            ps.setString(7, trans.getShipComments());
+            ps.setString(8, trans.getRemoteType());
+            ps.setInt(9, trans.getNuxrpd());
 
             ps.executeUpdate();
         } finally {
@@ -543,13 +546,13 @@ public class TransactionMapper extends DbManager {
         return Integer.toString(id);
     }
 
-    private java.sql.Time getCurrentDate() {
-        java.util.Date date = new java.util.Date();
-        return new java.sql.Time(date.getTime());
+    private Timestamp getCurrentDate() {
+        Date date = new Date();
+        return new Timestamp(date.getTime());
     }
 
-    private java.sql.Time getSqlDate(java.util.Date date) {
-        return new java.sql.Time(date.getTime());
+    private Timestamp getSqlDate(Date date) {
+        return new Timestamp(date.getTime());
     }
 
     public Collection<Transaction> queryDeliveriesMissingRemoteInfo(DbConnect db) throws ClassNotFoundException, SQLException {
