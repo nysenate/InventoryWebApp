@@ -1,5 +1,6 @@
 package gov.nysenate.inventory.server;
 
+import com.google.gson.JsonSyntaxException;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
 import gov.nysenate.inventory.util.TransactionMapper;
@@ -55,10 +56,10 @@ public class DeliveryConfirmation extends HttpServlet {
             log.info(db.ipAddr + "|" + "Servlet DeliveryConfirmation : Start");
 
             String deliveryJson = URLDecoder.decode(request.getParameter("Delivery"), "UTF-8");
-            delivery = TransactionParser.parseTransaction(deliveryJson);
 
             TransactionMapper mapper = new TransactionMapper();
             try {
+                delivery = TransactionParser.parseTransaction(deliveryJson);
                 mapper.completeDelivery(db, delivery);
             } catch (SQLException e) {
                 out.println("Database not updated");
@@ -67,6 +68,9 @@ public class DeliveryConfirmation extends HttpServlet {
                 return;
             } catch (ClassNotFoundException e) {
                 log.error("Error getting oracle jdbc driver: ", e);
+            } catch (JsonSyntaxException e) {
+                log.error("DeliveryConfirmation Json Syntax Exception: ", e);
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
 
             emailDeliveryReceipt(out, "Database updated successfully", delivery, request);

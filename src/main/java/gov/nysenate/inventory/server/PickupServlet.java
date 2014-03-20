@@ -1,9 +1,11 @@
 package gov.nysenate.inventory.server;
 
+import com.google.gson.JsonSyntaxException;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
 import gov.nysenate.inventory.util.TransactionMapper;
 import gov.nysenate.inventory.util.TransactionParser;
+import org.apache.log4j.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,7 +18,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.sql.SQLException;
-import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -67,15 +68,18 @@ public class PickupServlet extends HttpServlet
     
     InvItem invItem = pickup.getPickupItems().get(0);
 
-    // TODO: what are these for?
     try {
-      db.setLocationInfo(pickup.getOrigin());
+        pickup = TransactionParser.parseTransaction(request.getParameter("pickup"));
+        db.setLocationInfo(pickup.getOrigin());
     } catch (SQLException ex) {
       //Logger.getLogger(PickupServlet.class.getName()).log(Level.WARNING, null, ex);
     } catch (ClassNotFoundException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
+    } catch (JsonSyntaxException e) {
+        log.error("PickupServlet Json Syntax Exception: ", e);
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
+
     try {
       db.setLocationInfo(pickup.getDestination());
     } catch (SQLException ex) {

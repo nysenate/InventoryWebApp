@@ -1,5 +1,6 @@
 package gov.nysenate.inventory.server;
 
+import com.google.gson.JsonSyntaxException;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
 import gov.nysenate.inventory.util.TransactionMapper;
@@ -37,11 +38,14 @@ public class ChangeRemoteStatus extends HttpServlet{
         TransactionMapper mapper = new TransactionMapper();
 
         if (transJson != null && appUser != null) {
-            trans = TransactionParser.parseTransaction(URLDecoder.decode(transJson, "UTF-8"));
             try {
+                trans = TransactionParser.parseTransaction(transJson);
                 mapper.updateTransaction(db, trans, appUser);
             } catch (ClassNotFoundException | SQLException e) {
                 log.error("Error updating transaction: ", e);
+            } catch (JsonSyntaxException e) {
+                log.error("ChangeRemote Json Syntax Exception: ", e);
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
         } else {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

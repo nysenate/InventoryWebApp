@@ -1,5 +1,6 @@
 package gov.nysenate.inventory.server;
 
+import com.google.gson.JsonSyntaxException;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
 import gov.nysenate.inventory.util.TransactionMapper;
@@ -36,8 +37,8 @@ public class EnterRemoteInfo extends HttpServlet {
             return;
         }
 
-        trans = TransactionParser.parseTransaction(URLDecoder.decode(transJson, "UTF-8"));
         try {
+            trans = TransactionParser.parseTransaction(transJson);
             mapper.insertRemoteInfo(db, trans);
             if (trans.isRemoteDelivery()) {
                 mapper.insertRemoteDeliveryRemoteUserInfo(db, trans);
@@ -47,6 +48,9 @@ public class EnterRemoteInfo extends HttpServlet {
         } catch (ClassNotFoundException | SQLException e) {
             log.error("Error Inserting Remote Info: ", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } catch (JsonSyntaxException e) {
+            log.error("EnterRemote Json Syntax Exception: ", e);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 
