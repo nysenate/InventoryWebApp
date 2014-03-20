@@ -1819,4 +1819,58 @@ public class DbConnect extends DbManager
 
     return orig;
   }
+
+    public String pullEmailMessage(String cdemlmsg) throws ClassNotFoundException, SQLException
+    {
+        String deemlmsg = null;
+        boolean foundInDBA = false;
+        Connection conn = getDbConnection();
+
+        String qry1 = "Select deemlmsg\n" +
+                "From Sl16emlmsg\n" +
+                "Where Cdemlmsg = ? \n" +
+                "  AND cdstatus = 'A'";
+
+        PreparedStatement ps = conn.prepareStatement(qry1);
+        ps.setString(1, cdemlmsg);
+        ResultSet res1 = ps.executeQuery();
+        System.out.println ("DBCONNECT EMAIL MESSAGE CODE:"+cdemlmsg);
+
+        while (res1.next()) {
+            deemlmsg = res1.getString("deemlmsg");
+            System.out.println ("    DBCONNECT EMAIL MSG:"+deemlmsg);
+            foundInDBA = true;
+        }
+
+        res1.close();
+        ps.close();
+
+        return deemlmsg;
+    }
+
+    public ArrayList<String>  pullEmailParams() throws ClassNotFoundException, SQLException
+    {
+        boolean foundInDBA = false;
+        ArrayList<String> validEmailParams = new ArrayList<String>();
+        Connection conn = getDbConnection();
+        Statement stmt;
+        stmt = conn.createStatement();
+        String qry1 = "Select cdemailparam\n"
+                + "FROM Sl16emlparam \n"
+                + "WHERE cdstatus = 'A' ";
+
+
+        ResultSet res1 = stmt.executeQuery(qry1);
+        while (res1.next()) {
+            String emailParam;
+            emailParam = res1.getString("cdemailparam");
+            validEmailParams.add(emailParam);
+        }
+
+        res1.close();
+        stmt.close();
+
+        return validEmailParams;
+    }
+
 }
