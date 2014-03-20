@@ -3,10 +3,7 @@ package gov.nysenate.inventory.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 
 import gov.nysenate.inventory.model.Location;
 import gov.nysenate.inventory.model.Transaction;
@@ -15,7 +12,7 @@ public class TransactionParser {
 
     private static final Gson gson = new Gson();
 
-    public static Transaction parseTransaction(String json) {
+    public static Transaction parseTransaction(String json) throws JsonSyntaxException {
         Transaction pickup = new Transaction();
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(json).getAsJsonObject();
@@ -23,7 +20,7 @@ public class TransactionParser {
         return pickup;
     }
 
-    public static List<Transaction> parseMultiplePickups(String json) {
+    public static List<Transaction> parseMultiplePickups(String json) throws JsonSyntaxException  {
         List<Transaction> pickups = new ArrayList<Transaction>();
         JsonParser parser = new JsonParser();
         JsonArray obj = parser.parse(json).getAsJsonArray();
@@ -33,7 +30,7 @@ public class TransactionParser {
         return pickups;
     }
 
-    public static List<Transaction> parseMultiplePickups(ArrayList<String> json) {
+    public static List<Transaction> parseMultiplePickups(ArrayList<String> json) throws JsonSyntaxException  {
         List<Transaction> pickups = new ArrayList<Transaction>();
         for (int i = 0; i < json.size(); i++) {
             pickups.add(parseTransaction(json.get(i)));
@@ -41,7 +38,7 @@ public class TransactionParser {
         return pickups;
     }
 
-    public static List<Location> parseMultipleLocations(String json) {
+    public static List<Location> parseMultipleLocations(String json) throws JsonSyntaxException  {
         List<Location> locations = new ArrayList<Location>();
         JsonParser parser = new JsonParser();
         JsonArray obj = parser.parse(json).getAsJsonArray();
@@ -51,7 +48,7 @@ public class TransactionParser {
         return locations;
     }
 
-    public static Location parseLocation(String json) {
+    public static Location parseLocation(String json) throws JsonSyntaxException  {
         Location loc = new Location();
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(json).getAsJsonObject();
