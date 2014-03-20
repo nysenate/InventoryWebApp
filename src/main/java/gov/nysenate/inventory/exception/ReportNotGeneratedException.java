@@ -1,4 +1,4 @@
-package gov.nysenate.inventory.model;
+package gov.nysenate.inventory.exception;
 
 /**
  *

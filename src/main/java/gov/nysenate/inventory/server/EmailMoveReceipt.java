@@ -9,10 +9,11 @@ import gov.nysenate.inventory.exception.InvalidParameterException;
 import gov.nysenate.inventory.exception.ParameterNotUsedException;
 import gov.nysenate.inventory.model.EmailData;
 import gov.nysenate.inventory.model.Employee;
-import gov.nysenate.inventory.model.ReportNotGeneratedException;
+import gov.nysenate.inventory.exception.ReportNotGeneratedException;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.model.EmailRecord;
 import gov.nysenate.inventory.util.EmailValidator;
+import gov.nysenate.inventory.util.InvUtil;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -103,6 +104,7 @@ public class EmailMoveReceipt implements Runnable
   private String transTypeParam;
   private ArrayList<EmailRecord> problemEmailAddrs = new ArrayList<>();
   EmailValidator emailValidator = new EmailValidator();
+  InvUtil invUtil = new InvUtil();
 
   public EmailMoveReceipt(String username, String password, String type, Transaction trans)
   {
@@ -601,7 +603,9 @@ public class EmailMoveReceipt implements Runnable
       }
           System.out.println("call email error (1)");
           Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.INFO, "call email error (1A)");
-
+      error = invUtil.stackTraceAsMsg(ex);
+      emailError(emailType, "<html><body>Email Error URL was MALFORMED: <b>" + receiptURL + nuxrpd + transTypeParam + "</b><br/><br/></body></html>");
+      
       return returnStatus;
     } catch (IOException ex) {
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
@@ -611,6 +615,9 @@ public class EmailMoveReceipt implements Runnable
       }
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, "There was an issue with Oracle Reports Server. Please contact STS/BAC.", ex);
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ERROR ReportNotGeneratedException1");
+          System.out.println("call email error (2)");
+          Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.INFO, "call email error (2A)");
+      error = invUtil.stackTraceAsMsg(ex);
       
       emailError(emailType);
       return returnStatus;
@@ -624,6 +631,9 @@ public class EmailMoveReceipt implements Runnable
       }
           System.out.println("call email error (3)");
           Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.INFO, "call email error (3A)");
+      error = "<br/> Error: Null Attachment";
+      emailError(emailType);
+      return returnStatus;
 
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ERROR attachment == null 2");
     } else if (attachment.length == 0) {
@@ -632,7 +642,10 @@ public class EmailMoveReceipt implements Runnable
       if (returnStatus == 0) {
         returnStatus = 5;
       }
-
+      error = "<br/> Error: Attachment with a length of 0";
+          System.out.println("call email error (4)");
+          Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.INFO, "call email error (4A)");
+      
       emailError(emailType);
       return returnStatus;
       //System.out.println("-=-=-=-=-=-=-=-=-=TRACE AFTER E-MAIL ERROR attachment.length==0 1");
@@ -804,6 +817,9 @@ public class EmailMoveReceipt implements Runnable
       if (returnStatus == 0) {
         returnStatus = 10;
         try {
+          error = invUtil.stackTraceAsMsg(e);
+          System.out.println("call email error (5)");
+          Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.INFO, "call email error (5A)");
           emailError(emailType, "(" + this.dbaUrl + ") ADDRESS EXCEPTION:+" + e.getMessage() + " [" + e.getStackTrace()[0].toString() + "]");
           emailWarning(emailType);
         } catch (Exception e2) {
@@ -817,6 +833,9 @@ public class EmailMoveReceipt implements Runnable
       if (returnStatus == 0) {
         returnStatus = 11;
         try {
+          error = invUtil.stackTraceAsMsg(e);
+          //System.out.println("call email error (6)");
+          //Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.INFO, "call email error (6A)");
           emailError(emailType, "(" + this.dbaUrl + ") MESSAGING EXCEPTION:+" + e.getMessage());
           emailWarning(emailType);
         } catch (Exception e2) {
@@ -829,6 +848,9 @@ public class EmailMoveReceipt implements Runnable
       if (returnStatus == 0) {
         returnStatus = 20;
         try {
+          error = invUtil.stackTraceAsMsg(e); 
+          System.out.println("call email error (7)");
+          Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.INFO, "call email error (7A)");
           emailError(emailType, "(" + this.dbaUrl + ") GENERAL EXCEPTION:+" + e.getMessage());
           emailWarning(emailType);
         } catch (Exception e2) {
@@ -1015,7 +1037,7 @@ public class EmailMoveReceipt implements Runnable
          msgHeader = errorEmailData.getFormattedMessage();
       
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, "(B)!!!!EMAILERROR BEFORE SET MESSAGE:"+msgHeader);
-      System.out.println("(A)!!!!!!!!!!!!!EMAILERROR BEFORE SET MESSAGE:"+msgHeader);
+      System.out.println("(A)!!!!!!!!!!!!!EMAILERROR BEFORE SET MESSAGE:" + msgHeader);
       // Now set the actual message
       if (msgOverride == null) {
         message.setText(msgHeader, "utf-8", "html");
@@ -1135,7 +1157,7 @@ public class EmailMoveReceipt implements Runnable
       String msgHeader = warningEmailData.getFormattedMessage();
            
       Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.WARNING, "{0}" + "|" + "(" + this.dbaUrl + ") !!!!EMAILWARNING BEFORE SET MESSAGE:{1}", new Object[]{db.ipAddr, msgHeader});
-      System.out.println("!!!!!!!!!!!!!EMAILWARNING BEFORE SET MESSAGE:"+msgHeader);
+      System.out.println("!!!!!!!!!!!!!EMAILWARNING BEFORE SET MESSAGE:" + msgHeader);
       // Now set the actual message
       if (msgOverride == null) {
         message.setText(msgHeader, "utf-8", "html");
