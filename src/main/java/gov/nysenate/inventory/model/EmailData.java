@@ -4,6 +4,7 @@
  */
 package gov.nysenate.inventory.model;
 
+import gov.nysenate.inventory.exception.BlankMessageException;
 import gov.nysenate.inventory.server.DbConnect;
 import gov.nysenate.inventory.util.MapFormat;
 import java.sql.SQLException;
@@ -23,7 +24,9 @@ import gov.nysenate.inventory.exception.ParameterNotUsedException;
 public class EmailData
 {
 
- private String message;
+ private String preMessage = null;
+ private String message = null;
+ private String postMessage = null; 
  private ArrayList<InternetAddress> recipients;
  private Map map = new HashMap(); 
  private DbConnect db;
@@ -47,6 +50,18 @@ public class EmailData
    this.cdemail = cdemail;
    this.pullEmailInfoFromDatabase();
  }
+ 
+  public void setPreMessage(String preMessage) {
+    this.preMessage = preMessage;
+  }
+  
+  public void clearPreMessage() {
+    setPreMessage(null);
+  }
+
+  public String getPreMessage() {
+    return this.preMessage;
+  }
   
   public void setMessage(String message) {
     this.message = message;
@@ -56,9 +71,50 @@ public class EmailData
     return this.message;
   }
 
+  public void setPostMessage(String postMessage) {
+    this.postMessage = postMessage;
+  }
+
+  public void clearPostMessage() {
+    setPostMessage(null);
+  }
+
+  public String getPostMessage() {
+    return this.postMessage;
+  }
+  
+  public boolean allParametersPopulated() {
+    boolean allParametersPopulated = true;
+    String formatedMessage = this.getFormattedMessage();
+    
+    if (formatedMessage==null||formatedMessage.trim().length()==0) {
+      return allParametersPopulated;
+    }
+    
+    for (int x = 0;x<validEmailParams.size();x++) {
+      String currentParameter = "{"+validEmailParams.get(x)+"}";
+      if (formatedMessage.indexOf(currentParameter)>-1) {
+        allParametersPopulated = false;
+        break;
+      }
+    }
+    return allParametersPopulated;
+  }
+
   public String getFormattedMessage() {
     System.out.println("MAP SIZE:"+map.size());
-    return MapFormat.format(this.message, map);
+    if (this.preMessage==null && this.postMessage==null) {
+        return MapFormat.format(this.message, map);
+    }
+    else if (this.postMessage==null) {
+       return  MapFormat.format(this.preMessage, map) + MapFormat.format(this.message, map);
+    }
+    else if (this.preMessage==null) {
+        return MapFormat.format(this.message, map) + MapFormat.format(this.postMessage, map);
+    }
+    else {
+       return  MapFormat.format(this.preMessage, map) + MapFormat.format(this.message, map) + MapFormat.format(this.postMessage, map);
+    }
   }
   
   public void addRecipient(InternetAddress recipient) {
@@ -100,12 +156,12 @@ public class EmailData
       return this.validEmailParams;
   }
   
-  public void put(Object key, Object value) throws InvalidParameterException, ParameterNotUsedException {
+  public void put(Object key, Object value) throws InvalidParameterException, ParameterNotUsedException,BlankMessageException {
       if (this.validEmailParams == null || this.validEmailParams.indexOf(key)==-1) {
           throw new InvalidParameterException((String)key);
       }
       if (message==null) {
-          throw new ParameterNotUsedException((String)key);
+          throw new BlankMessageException("adding parameter "+(String)key);
       }
       else {
         String skey = "{"+(String)key+"}";
