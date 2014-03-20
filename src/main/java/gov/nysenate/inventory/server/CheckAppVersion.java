@@ -148,7 +148,7 @@ public class CheckAppVersion extends HttpServlet {
             try {
                 is = zip.getInputStream(mft);
             } catch (IOException ex) {
-                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
+                Logger.getLogger(CheckAppVersion.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
                 return "";
             }
                        
@@ -156,7 +156,7 @@ public class CheckAppVersion extends HttpServlet {
             try {
                 is = new FileInputStream(fileName);
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
+                Logger.getLogger(CheckAppVersion.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
                 return "";
             }
                 }
@@ -165,20 +165,20 @@ public class CheckAppVersion extends HttpServlet {
             try {
                  int bytesRead = is.read(buf);
                 } catch (IOException ex) {
-                    Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
+                    Logger.getLogger(CheckAppVersion.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
                     return "";
             }
             try {
                  is.close();
                 } catch (IOException ex) {
-                    Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
+                    Logger.getLogger(CheckAppVersion.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
                     return "";
                }
                 if (zip != null) {
                     try {
                         zip.close();
                     } catch (IOException ex) {
-                        Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
+                        Logger.getLogger(CheckAppVersion.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
                         return "";
                 }
                 }
@@ -198,7 +198,7 @@ public class CheckAppVersion extends HttpServlet {
             return version;       
         }
         catch (Exception e) {
-            Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, e.getMessage(), e);
+            Logger.getLogger(CheckAppVersion.class.getName()).log(Level.WARNING, e.getMessage(), e);
             return -1;
         }
     }
@@ -215,7 +215,7 @@ public class CheckAppVersion extends HttpServlet {
             return versionName;     
          }
         catch (Exception e) {
-            Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, e.getMessage(), e);
+            Logger.getLogger(CheckAppVersion.class.getName()).log(Level.WARNING, e.getMessage(), e);
             return "";
         }        
     }
