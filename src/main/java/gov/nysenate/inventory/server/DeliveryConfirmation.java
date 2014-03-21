@@ -55,7 +55,7 @@ public class DeliveryConfirmation extends HttpServlet {
             db.clientIpAddr = request.getRemoteAddr();
             log.info(db.clientIpAddr + "|" + "Servlet DeliveryConfirmation : Start");
 
-            String deliveryJson = URLDecoder.decode(request.getParameter("Delivery"), "UTF-8");
+            String deliveryJson = request.getParameter("Delivery");
 
             TransactionMapper mapper = new TransactionMapper();
             try {

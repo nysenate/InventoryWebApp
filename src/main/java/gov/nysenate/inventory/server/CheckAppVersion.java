@@ -141,7 +141,6 @@ public class CheckAppVersion extends HttpServlet {
                 zip = new ZipFile(fileName);
             } catch (IOException ex) {
                   log.info(db.clientIpAddr + "|" + "***WARNING: "+fileName+" not found on Server. The Server cannot check for the latest version of the App or allow the App to be downloaded without the file on the server.");                
-//                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
                 return "";
             }
             ZipEntry mft = zip.getEntry(zipEntry);

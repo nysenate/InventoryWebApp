@@ -32,7 +32,7 @@ public class TransactionMapper extends DbManager {
 
     private static final Logger log = Logger.getLogger(TransactionMapper.class.getName());
     private static final String oracleDateString = "'MM/DD/RR HH:MI:SSAM'";
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yy hh:mm:ssa", Locale.US);
+    private final SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yy hh:mm:ssa", Locale.US);
 
     public int insertPickup(DbConnect db, Transaction trans) throws SQLException, ClassNotFoundException {
         return insertPickup(db, trans, 0);
