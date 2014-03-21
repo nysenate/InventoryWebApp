@@ -44,12 +44,12 @@ public class ItemDetails extends HttpServlet {
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ItemDetails.processRequest ");                
+                log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND ItemDetails.processRequest ");                
                 try {
                    userFallback  = request.getParameter("userFallback");
                 }
                 catch (Exception e) {
-                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ItemDetails.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND ItemDetails.processRequest could not process Fallback Username. Generic Username will be used instead.");                
                 } 
                 out.println("Session timed out");
                 return;
@@ -62,8 +62,8 @@ public class ItemDetails extends HttpServlet {
                 db = new DbConnect(user, pwd);
                 
             }
-            db.ipAddr=request.getRemoteAddr();
-            Logger.getLogger(ItemDetails.class.getName()).info(db.ipAddr+"|"+"Servlet ItemDetails : start");
+            db.clientIpAddr=request.getRemoteAddr();
+            Logger.getLogger(ItemDetails.class.getName()).info(db.clientIpAddr+"|"+"Servlet ItemDetails : start");
             String barcode_num = request.getParameter("barcode_num");
             String details = db.getDetails(barcode_num, userFallback);
 
@@ -75,7 +75,7 @@ public class ItemDetails extends HttpServlet {
 
                 //Psuedo JSON for now
                 out.println("{\"nusenate\":\"" + model[0] + "\",\"nuxrefsn\":\"" + model[1] + "\",\"dtissue\":\"" + model[3] + "\",\"cdlocatto\":\"" + model[4] + "\",\"cdloctypeto\":\"" + model[5] + "\",\"cdcategory\":\"" + model[6] + "\",\"adstreet1to\":\"" + model[7].replaceAll("\"", "&#34;") + "\",\"decommodityf\":\"" + model[8].replaceAll("\"", "&#34;")  + "\",\"cdlocatfrom\":\"" + model[9] + "\",\"cdstatus\":\"" + model[10] + "\",\"cdintransit\":\"" + model[12] + "\"}");
-                Logger.getLogger(ItemDetails.class.getName()).info(db.ipAddr+"|"+"Servlet ItemDetails : end");
+                Logger.getLogger(ItemDetails.class.getName()).info(db.clientIpAddr+"|"+"Servlet ItemDetails : end");
             }
 
         } finally {

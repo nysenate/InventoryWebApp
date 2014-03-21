@@ -13,7 +13,11 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import gov.nysenate.inventory.exception.BlankMessageException;
+import gov.nysenate.inventory.exception.InvalidParameterException;
+import gov.nysenate.inventory.exception.ParameterNotUsedException;
 import gov.nysenate.inventory.model.Commodity;
+import gov.nysenate.inventory.model.EmailData;
 import gov.nysenate.inventory.model.LoginStatus;
 import gov.nysenate.inventory.model.SimpleListItem;
 import java.io.File;
@@ -47,6 +51,28 @@ import java.sql.Timestamp;
 public class TestGson {
     
     public static void main (String[] args) throws ParserConfigurationException {
+        DbConnect db = new DbConnect();
+        EmailData warningEmailData = new EmailData(db, "EMAILWARNING");
+        try {
+           /*if (testingMode) {
+              emailData.setPreMessage(sbTestMsg.toString());
+           }*/
+           warningEmailData.put("EmailType", "FAKE EMAIL TYPE");
+           warningEmailData.put("ReceiptURL", "http://www.google.com?test=1022");
+           //warningEmailData.put("ReceiptURL", "http://www.google.com?test=1022" );
+           warningEmailData.put("ProblemRecipients", "PROBLEM RECIPIENTS!!!");
+           
+           System.out.println (warningEmailData.getMessage());
+           System.out.println (warningEmailData.getFormattedMessage());
+            
+         } catch (InvalidParameterException ex) {
+            Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
+         } catch (ParameterNotUsedException ex) {
+            Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
+         } catch (BlankMessageException ex) {
+            Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
+         }        
+        
        /* String test = "EMPLOYEE";
         System.out.println (test.substring(0, 1));
         java.util.Date date = new java.util.Date();

@@ -45,12 +45,12 @@ public class ItemsList extends HttpServlet {
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ItemsList.processRequest ");  
+                log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND ItemsList.processRequest ");  
                 try {
                    userFallback  = request.getParameter("userFallback");
                 }
                 catch (Exception e) {
-                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND ItemsList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND ItemsList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
                 } 
                 out.println("Session timed out");  // If sessions is not working, tablet will bomb for now with this
                 return;
@@ -63,23 +63,23 @@ public class ItemsList extends HttpServlet {
                 db = new DbConnect(user, pwd);
                 
             }
-            db.ipAddr=request.getRemoteAddr();
-            Logger.getLogger(ItemsList.class.getName()).info(db.ipAddr+"|"+"Servlet ItemsList : start");
+            db.clientIpAddr=request.getRemoteAddr();
+            Logger.getLogger(ItemsList.class.getName()).info(db.clientIpAddr+"|"+"Servlet ItemsList : start");
             String loc_code = request.getParameter("loc_code");
             ArrayList<VerList> itemList = new ArrayList<VerList>();
             
             itemList = db.getLocationItemList(loc_code, userFallback);
             
             String json = new Gson().toJson(itemList);
-            Logger.getLogger(ItemsList.class.getName()).info(db.ipAddr+"|"+"ItemsList:"+json);
-             System.out.println (db.ipAddr+"|"+"ItemsList:"+json);
+            Logger.getLogger(ItemsList.class.getName()).info(db.clientIpAddr+"|"+"ItemsList:"+json);
+             System.out.println (db.clientIpAddr+"|"+"ItemsList:"+json);
             
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(json);
 
             out.print(json);
-            Logger.getLogger(ItemsList.class.getName()).info(db.ipAddr+"|"+"Servlet ItemsList : end");
+            Logger.getLogger(ItemsList.class.getName()).info(db.clientIpAddr+"|"+"Servlet ItemsList : end");
         } finally {
             out.close();
         }

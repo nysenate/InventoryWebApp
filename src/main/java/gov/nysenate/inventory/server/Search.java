@@ -40,12 +40,12 @@ public class Search extends HttpServlet
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND Search.processRequest ");                 
+                log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND Search.processRequest ");                 
                 try {
                    userFallback  = request.getParameter("userFallback");
                 }
                 catch (Exception e) {
-                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND Search.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND Search.processRequest could not process Fallback Username. Generic Username will be used instead.");                
                 } 
                 out.println("Session timed out");
                 return;
@@ -59,8 +59,8 @@ public class Search extends HttpServlet
                 db = new DbConnect(user, pwd);
                 
             }
-            db.ipAddr=request.getRemoteAddr();
-            Logger.getLogger(Search.class.getName()).info(db.ipAddr+"|"+"Servlet Search : start");
+            db.clientIpAddr=request.getRemoteAddr();
+            Logger.getLogger(Search.class.getName()).info(db.clientIpAddr+"|"+"Servlet Search : start");
             String barcode_num = request.getParameter("barcode_num");
             System.out.println("Search Servlet  barcode_num " + barcode_num);
             
@@ -92,7 +92,7 @@ public class Search extends HttpServlet
              }
 
 
-            Logger.getLogger(Search.class.getName()).info(db.ipAddr+"|"+"Servlet Search : end");
+            Logger.getLogger(Search.class.getName()).info(db.clientIpAddr+"|"+"Servlet Search : end");
 
         } finally {
             out.close();
