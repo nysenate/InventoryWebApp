@@ -4,6 +4,7 @@ import gov.nysenate.inventory.util.HttpUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.Arrays;
 
@@ -41,7 +42,11 @@ public class RemovePickupItems extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("Cancel Pickup Exception: ", ex);
         } catch (ClassNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("Error getting oracle jdbc driver: ", e);
+        } catch (InvalidParameterException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            log.error("Invalid Param, remove delivery item.", e);
         }
         log.info("RemovePickupItems end.");
     }

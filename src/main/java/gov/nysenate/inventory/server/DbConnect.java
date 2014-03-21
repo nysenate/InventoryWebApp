@@ -1,5 +1,6 @@
 package gov.nysenate.inventory.server;
 
+import java.security.InvalidParameterException;
 import gov.nysenate.inventory.model.Employee;
 import gov.nysenate.inventory.model.Location;
 import gov.nysenate.inventory.model.Transaction;
@@ -1557,7 +1558,7 @@ public class DbConnect extends DbManager
     return employee;
   }
 
-  public void removeDeliveryItems(int nuxrpd, String[] items) throws SQLException, ClassNotFoundException
+  public void removeDeliveryItems(int nuxrpd, String[] items) throws SQLException, ClassNotFoundException, InvalidParameterException
   {
     String query = "UPDATE FD12INVINTRANS "
             + "SET CDSTATUS = 'I', "
@@ -1573,6 +1574,10 @@ public class DbConnect extends DbManager
       ps = conn.prepareStatement(query);
 
       for (String item : items) {
+          if (isNotNumber(item)) {
+            log.warn("Invalid number sent as nuxrpd while removing delivery item: " + item);
+            throw new InvalidParameterException();
+          }
         ps.setString(1, item);
         ps.setInt(2, nuxrpd);
         ps.addBatch();
@@ -1584,7 +1589,16 @@ public class DbConnect extends DbManager
     }
   }
 
-  public String[] getEmployeeInfo(String nalast) throws SQLException, ClassNotFoundException
+    private boolean isNotNumber(String item) {
+        try {
+            Integer.valueOf(item);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    public String[] getEmployeeInfo(String nalast) throws SQLException, ClassNotFoundException
   {
     String[] empInfo = new String[3];
     String query = "SELECT nafirst, nalast, cdrespctrhd"
