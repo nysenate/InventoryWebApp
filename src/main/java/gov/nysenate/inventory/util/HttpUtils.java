@@ -26,7 +26,7 @@ public class HttpUtils {
         if (httpSession == null) {
             System.out.println("****SESSION NOT FOUND");
             db = new DbConnect();
-            Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");
+            Logger.getLogger(PickupServlet.class.getName()).info(db.clientIpAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");
             userFallback = request.getParameter("userFallback");
             out.println("Session timed out");
             response.setStatus(noSessionStatus);

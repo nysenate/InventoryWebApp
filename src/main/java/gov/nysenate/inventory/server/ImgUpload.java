@@ -49,11 +49,11 @@ public class ImgUpload extends HttpServlet
             if (httpSession == null) {
                 System.out.println("**** IMGUPLOAD SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****IMGUPLOAD SESSION NOT FOUND ImgUpload.processRequest ");
+                log.info(db.clientIpAddr + "|" + "****IMGUPLOAD SESSION NOT FOUND ImgUpload.processRequest ");
                 try {
                     userFallback = request.getParameter("userFallback");
                 } catch (Exception e) {
-                    log.info(db.ipAddr + "|" + "****IMGUPLOAD SESSION NOT FOUND ImgUpload.processRequest could not process Fallback Username. Generic Username will be used instead.");
+                    log.info(db.clientIpAddr + "|" + "****IMGUPLOAD SESSION NOT FOUND ImgUpload.processRequest could not process Fallback Username. Generic Username will be used instead.");
                 }
                 // Seems like ImgUpload can never find a SESSION. Possibly due to Client POSTING instead of using GET???
 //                out.println("");  // If sessions is not working, tablet will bomb for now with this
@@ -66,8 +66,8 @@ public class ImgUpload extends HttpServlet
                 db = new DbConnect(user, pwd);
 
             }
-            db.ipAddr = request.getRemoteAddr();
-            Logger.getLogger(ImgUpload.class.getName()).info(db.ipAddr + "|" + "Servlet ImgUpload : start");
+            db.clientIpAddr = request.getRemoteAddr();
+            Logger.getLogger(ImgUpload.class.getName()).info(db.clientIpAddr + "|" + "Servlet ImgUpload : start");
             //Get the name of the file from the URL string
             String nauser = request.getParameter("nauser");
             if (nauser != null) {
@@ -91,7 +91,7 @@ public class ImgUpload extends HttpServlet
                     nuxrefem = Integer.parseInt(nuxrefemString);
                     nuxrefemIsNumber = true;
                 } catch (Exception e) {
-                    Logger.getLogger(ImgUpload.class.getName()).fatal(db.ipAddr + "|" + "Exception at Servlet ImgUpload : " + e.getMessage());
+                    Logger.getLogger(ImgUpload.class.getName()).fatal(db.clientIpAddr + "|" + "Exception at Servlet ImgUpload : " + e.getMessage());
                     nuxrefemIsNumber = false;
                 }
 
@@ -140,7 +140,7 @@ public class ImgUpload extends HttpServlet
             //System.out.println ("*****************************TESTServlet ImageUpload END!!!");
             //log.info("*****************************TESTServlet ImageUpload END!!!");
 
-            Logger.getLogger(ImgUpload.class.getName()).info(db.ipAddr + "|" + "Servlet ImgUpload : end");
+            Logger.getLogger(ImgUpload.class.getName()).info(db.clientIpAddr + "|" + "Servlet ImgUpload : end");
         } catch (Exception e) {
             e.printStackTrace();
             Logger.getLogger(ImgUpload.class.getName()).fatal(request.getRemoteAddr() + "|" + "Exception at Servlet ImgUpload : " + e.getMessage());

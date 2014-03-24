@@ -44,8 +44,8 @@ public class Login extends HttpServlet {
             String pwd = request.getParameter("pwd");
 
             DbConnect db = new DbConnect(user, pwd);
-            db.ipAddr=request.getRemoteAddr();         //Logger.getLogger(Login.class.getName()).info("Servlet Login : start");
-            db.log.info(db.ipAddr+"|"+"Servlet Login : start");
+            db.clientIpAddr=request.getRemoteAddr();         //Logger.getLogger(Login.class.getName()).info("Servlet Login : start");
+            db.log.info(db.clientIpAddr+"|"+"Servlet Login : start");
 
             String defrmint = "";
 
@@ -64,7 +64,7 @@ public class Login extends HttpServlet {
             // validate it from database function
           
             loginStatus = db.validateUser();
-            Logger.getLogger(Login.class.getName()).info(db.ipAddr+"|"+"Servlet Login : defrmint:"+defrmint+", status:"+loginStatus.getDestatus());
+            Logger.getLogger(Login.class.getName()).info(db.clientIpAddr+"|"+"Servlet Login : defrmint:"+defrmint+", status:"+loginStatus.getDestatus());
             if (loginStatus.getNustatus() == loginStatus.VALID) {
                 System.out.println("VALID LOGIN:"+loginStatus.getDestatus());
                 httpSession.setAttribute("user", user);
@@ -83,7 +83,7 @@ public class Login extends HttpServlet {
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(json);
             out.print(json);
-            Logger.getLogger(Login.class.getName()).info(db.ipAddr+"|"+"Servlet Login : end");
+            Logger.getLogger(Login.class.getName()).info(db.clientIpAddr+"|"+"Servlet Login : end");
         } finally {
             out.close();
         }

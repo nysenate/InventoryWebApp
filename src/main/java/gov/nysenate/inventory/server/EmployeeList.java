@@ -46,12 +46,12 @@ public class EmployeeList extends HttpServlet {
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.ipAddr + "|" + "****SESSION NOT FOUND EmployeeList.processRequest ");
+                log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND EmployeeList.processRequest ");
                 try {
                    userFallback  = request.getParameter("userFallback");
                 }
                 catch (Exception e) {
-                    log.info(db.ipAddr + "|" + "****SESSION NOT FOUND EmployeeList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND EmployeeList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
                 } 
                 out.println("Session timed out");
                 return;                
@@ -63,8 +63,8 @@ public class EmployeeList extends HttpServlet {
                 System.out.println ("--------USER:"+user);
                 db = new DbConnect(user, pwd);
             }
-            db.ipAddr=request.getRemoteAddr();
-            Logger.getLogger(EmployeeList.class.getName()).info(db.ipAddr+"|"+"Servlet EmployeeList : start");
+            db.clientIpAddr=request.getRemoteAddr();
+            Logger.getLogger(EmployeeList.class.getName()).info(db.clientIpAddr+"|"+"Servlet EmployeeList : start");
             String employeeName = request.getParameter("employeeName");
             String cdempstatus = request.getParameter("cdempstatus");
             // Only show Active Employees if no Employee Status is passed.
@@ -75,7 +75,7 @@ public class EmployeeList extends HttpServlet {
             ArrayList<Employee> employeeList = db.getEmployeeList(employeeName, cdempstatus, userFallback);
             String json = new Gson().toJson(employeeList);
             out.println(json);
-            Logger.getLogger(EmployeeList.class.getName()).info(db.ipAddr+"|"+"Servlet EmployeeList : end");
+            Logger.getLogger(EmployeeList.class.getName()).info(db.clientIpAddr+"|"+"Servlet EmployeeList : end");
         } catch (Exception e) {
             out.println("Failure " + e.getMessage());
             Logger.getLogger(EmployeeList.class.getName()).fatal(request.getRemoteAddr()+"|"+"Exception in Servlet EmployeeList : " + e.getMessage());
