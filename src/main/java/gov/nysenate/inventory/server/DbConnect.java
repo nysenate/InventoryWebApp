@@ -114,7 +114,7 @@ public class DbConnect extends DbManager
           this.serverIpAddr = inetAddress.getHostAddress();
           this.serverName = inetAddress.getHostName();
       } catch (UnknownHostException ex) {
-          java.util.logging.Logger.getLogger(DbConnect.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+          log.error(null, ex);
       }
       
   }

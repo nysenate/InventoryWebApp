@@ -11,11 +11,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.internet.InternetAddress;
 import gov.nysenate.inventory.exception.InvalidParameterException;
 import gov.nysenate.inventory.exception.ParameterNotUsedException;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -33,6 +32,8 @@ public class EmailData
  private String cdemail; 
  private boolean emailFoundInDBA = false;
  private ArrayList<String> validEmailParams = new ArrayList<String>();
+
+ private static final Logger log = Logger.getLogger(EmailData.class.getName());
 
  public EmailData(String cdemail) {
    this.db = new DbConnect();
@@ -182,9 +183,9 @@ public class EmailData
         this.emailFoundInDBA = true;
      }
    } catch (ClassNotFoundException ex) {
-     Logger.getLogger(EmailData.class.getName()).log(Level.WARNING, null, ex);
+       log.warn(null, ex);
    } catch (SQLException ex) {
-     Logger.getLogger(EmailData.class.getName()).log(Level.WARNING, null, ex);
+       log.warn(null, ex);
    }
   }
   

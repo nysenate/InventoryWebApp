@@ -1,9 +1,10 @@
 package gov.nysenate.inventory.server;
 
+import org.apache.log4j.Logger;
+
 import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -18,16 +19,9 @@ import javax.servlet.http.HttpSession;
 @WebServlet(name = "Search", urlPatterns = {"/Search"})
 public class Search extends HttpServlet
 {
-    /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+
+    private static final Logger log = Logger.getLogger(Search.class.getName());
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
                    throws ServletException, IOException
     {
