@@ -42,7 +42,7 @@ public class KeepSessionAlive extends HttpServlet {
             db = new DbConnect();   
             if (httpSession==null) {
                     System.out.println ("****SESSION NOT FOUND");
-                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND KeepSessionAlive.processRequest ");                
+                    log.info("****SESSION NOT FOUND KeepSessionAlive.processRequest ");
                     out.println("Session timed out");
             }
             else {
@@ -50,7 +50,7 @@ public class KeepSessionAlive extends HttpServlet {
                     String pwd = (String)httpSession.getAttribute("pwd");
                     db = new DbConnect(user, pwd);                
                     System.out.println ("SESSION FOUND!!!");
-                     log.info(db.clientIpAddr + "|" + "****SESSION FOUND KeepAlive USER:"+user);                
+                     log.info("****SESSION FOUND KeepAlive USER:"+user);
                     /* TODO output your page here. You may use following sample code. */
                      out.println("<!DOCTYPE html>");
                      out.println("<html>");

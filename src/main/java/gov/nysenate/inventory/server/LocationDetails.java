@@ -43,12 +43,12 @@ public class LocationDetails extends HttpServlet {
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND LocationDetails.processRequest ");                
+                log.info("****SESSION NOT FOUND LocationDetails.processRequest ");
                 try {
                    userFallback  = request.getParameter("userFallback");
                 }
                 catch (Exception e) {
-                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND LocationDetails.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                    log.info("****SESSION NOT FOUND LocationDetails.processRequest could not process Fallback Username. Generic Username will be used instead.");
                 } 
                 out.println("Session timed out");
                 return;                
@@ -61,8 +61,7 @@ public class LocationDetails extends HttpServlet {
                 db = new DbConnect(user, pwd);
                 
             }
-            db.clientIpAddr=request.getRemoteAddr();
-            Logger.getLogger(LocationDetails.class.getName()).info(db.clientIpAddr+"|"+"Servlet LocationDetails : start");
+            Logger.getLogger(LocationDetails.class.getName()).info("Servlet LocationDetails : start");
             String barcode_num = request.getParameter("barcode_num");
             System.out.println ("barcode_num:"+barcode_num);
           
@@ -79,7 +78,7 @@ public class LocationDetails extends HttpServlet {
                 out.println("{\"cdlocat\":\"" + model[0] + "\",\"delocat\":\"" + model[1].replaceAll("\"", "&34;") + "\",\"adstreet1\":\"" + model[2].replaceAll("\"", "&34;") + "\",\"adstreet2\":\"" + model[3].replaceAll("\"", "&34;") + "\",\"adcity\":\"" + model[4].replaceAll("\"", "&34;") + "\",\"adstate\":\"" + model[5] + "\",\"adzipcode\":\"" + model[6].replaceAll("\"", "&#34;") + "\",\"nucount\":\"" + model[7] + "\",\"cdrespctrhd\":\"" + model[8] + "\"}");
             }
 
-            Logger.getLogger(LocationDetails.class.getName()).info(db.clientIpAddr+"|"+"Servlet LocationDetails : end");
+            Logger.getLogger(LocationDetails.class.getName()).info("Servlet LocationDetails : end");
         } finally {
             out.close();
         }

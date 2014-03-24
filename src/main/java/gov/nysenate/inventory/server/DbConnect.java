@@ -58,7 +58,6 @@ import java.util.Date;
 public class DbConnect extends DbManager
 {
 
-  public String clientIpAddr = "";
   public String serverIpAddr = "";
   public String serverName = "";
   static Logger log = Logger.getLogger(DbConnect.class.getName());
@@ -156,7 +155,7 @@ public class DbConnect extends DbManager
 
   public LoginStatus validateUser()
   {
-    log.info(this.clientIpAddr + "|" + "validateUser() begin : user= " + userName + " & pwd= " + password);
+    log.info("validateUser() begin : user= " + userName + " & pwd= " + password);
     LoginStatus loginStatus = new LoginStatus();
     loginStatus.setNauser(userName);
     Connection conn = null;
@@ -223,8 +222,8 @@ public class DbConnect extends DbManager
    *----------------------------------------------------------------------------------------------------*/
   public LoginStatus securityAccess(String user, String defrmint, LoginStatus loginStatus)
   {
-    log.info(this.clientIpAddr + "|" + "securityAccess() begin : user= " + user + " & defrmint= " + defrmint);
-    System.out.println(this.clientIpAddr + "|" + "securityAccess() begin : user= " + user + " & defrmint= " + defrmint);
+    log.info("securityAccess() begin : user= " + user + " & defrmint= " + defrmint);
+    System.out.println("securityAccess() begin : user= " + user + " & defrmint= " + defrmint);
     loginStatus.setNustatus(loginStatus.NO_ACCESS);
     loginStatus.setDestatus("!!ERROR: No security clearance has been given to " + user + " for this process. Please contact STSBAC.");
     if (user == null || user.trim().length() == 0) {
@@ -316,10 +315,10 @@ public class DbConnect extends DbManager
    *----------------------------------------------------------------------------------------------------*/
   public String getDetails(String barcodeNum, String userFallback)
   {
-    log.info(this.clientIpAddr + "|" + "getDetails() begin : barcodeNum= " + barcodeNum);
+    log.info("getDetails() begin : barcodeNum= " + barcodeNum);
     if ((Integer.parseInt(barcodeNum) < 0)) {
       System.out.println("Error in DbConnect.getDetails() - Barcode Number Not Valid");
-      log.error(this.clientIpAddr + "|" + "Error in DbConnect.getDetails() - Barcode Number Not Valid");
+      log.error("Error in DbConnect.getDetails() - Barcode Number Not Valid");
       throw new IllegalArgumentException("Invalid Barcode Number");
     }
     String details = null;
@@ -341,14 +340,14 @@ public class DbConnect extends DbManager
       closeStatement(cs);
       closeConnection(conn);
     }
-    log.info(this.clientIpAddr + "|" + "getDetails() details = " + details);
-    log.info(this.clientIpAddr + "|" + "getDetails() end ");
+    log.info("getDetails() details = " + details);
+    log.info("getDetails() end ");
     return details;
   }
 
   public String getItemCommodityCode(String barcode, String userFallback)
   {
-    log.info(this.clientIpAddr + "|" + "getItemCommodityCode() begin : barcodeNum= " + barcode);
+    log.info("getItemCommodityCode() begin : barcodeNum= " + barcode);
 
     String commodityCode = ""; //TODO
     String query = "SELECT fm12comxref.cdcommodity "
@@ -385,9 +384,9 @@ public class DbConnect extends DbManager
    *----------------------------------------------------------------------------------------------------*/
   public String getInvLocDetails(String locCode, String userFallback)
   {
-    log.info(this.clientIpAddr + "|" + "getInvLocDetails() begin : locCode= " + locCode);
+    log.info("getInvLocDetails() begin : locCode= " + locCode);
     if (locCode.isEmpty() || locCode == null) {
-      log.info(this.clientIpAddr + "|" + "Invalid location Code " + locCode);
+      log.info("Invalid location Code " + locCode);
       throw new IllegalArgumentException("Invalid location Code");
     }
     String details = null;
@@ -409,7 +408,7 @@ public class DbConnect extends DbManager
       closeStatement(cs);
       closeConnection(conn);
     }
-    log.info(this.clientIpAddr + "|" + "getInvLocDetails() end ");
+    log.info("getInvLocDetails() end ");
     return details;
   }
   /*-------------------------------------------------------------------------------------------------------
@@ -418,7 +417,7 @@ public class DbConnect extends DbManager
 
   public ArrayList getLocationItemList(String locCode, String userFallback)
   {
-    log.info(this.clientIpAddr + "|" + "getLocationItemList() begin : locCode= " + locCode);
+    log.info("getLocationItemList() begin : locCode= " + locCode);
     if (locCode.isEmpty() || locCode == null) {
       throw new IllegalArgumentException("Invalid location Code");
     }
@@ -454,7 +453,7 @@ public class DbConnect extends DbManager
       }
     } catch (SQLException e) {
       System.out.println(e.getMessage());
-      log.fatal(this.clientIpAddr + "|" + "SQLException in getLocationItemList() : " + e.getMessage());
+      log.fatal("SQLException in getLocationItemList() : " + e.getMessage());
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -462,7 +461,7 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info(this.clientIpAddr + "|" + "getLocationItemList() end");
+    log.info("getLocationItemList() end");
     return itemList;
   }
 
@@ -471,7 +470,7 @@ public class DbConnect extends DbManager
    *----------------------------------------------------------------------------------------------------*/
   public ArrayList getCommodityList(String keywords, String userFallback)
   {
-    log.info(this.clientIpAddr + "|" + "getLocationItemList() begin : locCode= " + keywords);
+    log.info("getLocationItemList() begin : locCode= " + keywords);
     if (keywords.isEmpty() || keywords == null) {
       throw new IllegalArgumentException("No Keywords Found");
     }
@@ -509,7 +508,7 @@ public class DbConnect extends DbManager
       }
     } catch (SQLException e) {
       System.out.println(e.getMessage());
-      log.fatal(this.clientIpAddr + "|" + "SQLException in getCommodityList() : " + e.getMessage());
+      log.fatal("SQLException in getCommodityList() : " + e.getMessage());
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -517,7 +516,7 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info(this.clientIpAddr + "|" + "getCommodityList() end");
+    log.info("getCommodityList() end");
     return commodityList;
   }
 
@@ -526,7 +525,7 @@ public class DbConnect extends DbManager
    *----------------------------------------------------------------------------------------------------*/
   public ArrayList<Location> getLocCodes()
   {
-    log.info(this.clientIpAddr + "|" + "getLocCodes(String natype) begin)");
+    log.info("getLocCodes(String natype) begin)");
 
     String qry = "SELECT DISTINCT cdloctype, cdlocat, adstreet1, adcity, adzipcode, adstate "
             + "FROM sl16location a where a.cdstatus='A' ORDER BY cdlocat, cdloctype";
@@ -558,7 +557,7 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info(this.clientIpAddr + "|" + "getLocCodes() end");
+    log.info("getLocCodes() end");
     return locations;
   }
 
@@ -641,7 +640,7 @@ public class DbConnect extends DbManager
       while (resultCnt.next()) {
         nucnt = resultCnt.getInt(1);
       }
-      log.info(this.clientIpAddr + "|" + "getNuSerialList() gryCnt (" + nucnt + ") :" + gryCnt);
+      log.info("getNuSerialList() gryCnt (" + nucnt + ") :" + gryCnt);
       System.out.println("getNuSerialList() gryCnt (" + nucnt + ") :" + gryCnt);
       String qry;
 
@@ -660,7 +659,7 @@ public class DbConnect extends DbManager
               + "ORDER BY b.nuserial";
 
 
-      log.info(this.clientIpAddr + "|" + "getNuSerialList() qry:" + qry);
+      log.info("getNuSerialList() qry:" + qry);
       System.out.println("getNuSerialList() qry:" + qry);
 
       result = stmt.executeQuery(qry);
@@ -673,7 +672,7 @@ public class DbConnect extends DbManager
         String cdcommodity = result.getString(4);
         String decommodityf = result.getString(5);
 
-        log.info(this.clientIpAddr + "|" + "getNuSerialList() qry loop:" + nuserial);
+        log.info("getNuSerialList() qry loop:" + nuserial);
         System.out.println("getNuSerialList() qry loop:" + nuserial);
         InvSerialNumber invSerialNumber = new InvSerialNumber();
         invSerialNumber.setNuxrefsn(nuxrefsn);
@@ -713,7 +712,7 @@ public class DbConnect extends DbManager
 
   public int setBarcodesInDatabase(String cdlocat, String cdloctype, ArrayList<InvItem> invItems, String userFallback)
   {
-    log.info(this.clientIpAddr + "|" + "setBarcodesInDatabase() begin : cdlocat= " + cdlocat + " Number of Inf Items= " + invItems.size());
+    log.info("setBarcodesInDatabase() begin : cdlocat= " + cdlocat + " Number of Inf Items= " + invItems.size());
     if (cdlocat.isEmpty() || invItems == null) {
       throw new IllegalArgumentException("Invalid location Code");
     }
@@ -787,8 +786,8 @@ public class DbConnect extends DbManager
     } catch (SQLException ex) {
       result = 2;
       ex.printStackTrace();
-      log.info(this.clientIpAddr + "|" + "setBarcodesInDatabase() end");
-      Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, this.clientIpAddr + "|" + ex.getMessage());
+      log.info("setBarcodesInDatabase() end");
+      Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, ex.getMessage());
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -796,7 +795,7 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info(this.clientIpAddr + "|" + "setBarcodesInDatabase() end");
+    log.info("setBarcodesInDatabase() end");
 
 
     return result;
@@ -867,7 +866,6 @@ public class DbConnect extends DbManager
    *----------------------------------------------------------------------------------------------------*/
   public List<PickupGroup> getPickupList(ArrayList<SimpleListItem> searchByList, String userFallback)
   {
-    //log.info(this.clientIpAddr + "|" + "getDeliveryList() begin : locCode= " + locCode);
     if (searchByList == null || searchByList.size() == 0) {
       throw new IllegalArgumentException("No Search By Parameters for DbConnect.getPickupList");
     }
@@ -937,7 +935,7 @@ public class DbConnect extends DbManager
 
     } catch (SQLException e) {
       System.out.println(e.getMessage());
-      log.fatal(this.clientIpAddr + "|" + "SQLException in getDeliveryList() : " + e.getMessage());
+      log.fatal("SQLException in getDeliveryList() : " + e.getMessage());
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -945,7 +943,7 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info(this.clientIpAddr + "|" + "getDeliveryList() end");
+    log.info("getDeliveryList() end");
     return pickupList;
 
   }
@@ -955,7 +953,7 @@ public class DbConnect extends DbManager
 
   public ArrayList<InvItem> getDeliveryDetails(String nuxrpd, String userFallback)
   {
-    log.info(this.clientIpAddr + "|" + "getDeliveryDetails() begin : nuxrpd= " + nuxrpd);
+    log.info("getDeliveryDetails() begin : nuxrpd= " + nuxrpd);
     if (nuxrpd.isEmpty()) {
       throw new IllegalArgumentException("Invalid locCode");
     }
@@ -992,7 +990,7 @@ public class DbConnect extends DbManager
 
     } catch (SQLException e) {
       System.out.println(e.getMessage());
-      log.fatal(this.clientIpAddr + "|" + "SQLException in getDeliveryDetails() : " + e.getMessage());
+      log.fatal("SQLException in getDeliveryDetails() : " + e.getMessage());
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -1000,7 +998,7 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info(this.clientIpAddr + "|" + "getDeliveryDetails() end");
+    log.info("getDeliveryDetails() end");
     return deliveryDetails;
   }
   /*-------------------------------------------------------------------------------------------------------
@@ -1017,7 +1015,7 @@ public class DbConnect extends DbManager
 
   public int insertSignature(byte[] imageInArray, int nuxrefem, String nauser, String userFallback)
   {
-    log.info(this.clientIpAddr + "|" + "insertSignature() begin : nuxrefem= " + nuxrefem + " &nauser=" + nauser);
+    log.info("insertSignature() begin : nuxrefem= " + nuxrefem + " &nauser=" + nauser);
     if (imageInArray == null || nuxrefem < 0 || nauser == null) {
       throw new IllegalArgumentException("Invalid imageInArray or nuxrefem or nauser");
     }
@@ -1033,16 +1031,16 @@ public class DbConnect extends DbManager
     // jpg.
     // Commented ou 7/26/13 BH for testing purponses
     try {
-      log.info(this.clientIpAddr + "|IMAGE FORMATS AVAILABLE:" + Arrays.toString(ImageIO.getReaderFormatNames()));
+      log.info("|IMAGE FORMATS AVAILABLE:" + Arrays.toString(ImageIO.getReaderFormatNames()));
       System.out.println("IMAGE FORMATS AVAILABLE:" + Arrays.toString(ImageIO.getReaderFormatNames()));
       BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageInArray));
 
       if (bufferedImage == null) {
-        log.warn(this.clientIpAddr + "|" + "***WARNING: bufferedImage for a Signature Image was null!! (DBCONNECT.insertSignature)");
+        log.warn("***WARNING: bufferedImage for a Signature Image was null!! (DBCONNECT.insertSignature)");
       }
       Graphics2D newGraphic = bufferedImage.createGraphics();
       if (newGraphic == null) {
-        log.warn(this.clientIpAddr + "|" + "***WARNING: An attempt to create a new Graphic for a Signature Image has failed!!! Resulting in a NULL Result. (DBCONNECT.insertSignature)");
+        log.warn("***WARNING: An attempt to create a new Graphic for a Signature Image has failed!!! Resulting in a NULL Result. (DBCONNECT.insertSignature)");
       }
 
       newGraphic.drawImage(bufferedImage, 0, 0, Color.WHITE, null);
@@ -1054,7 +1052,7 @@ public class DbConnect extends DbManager
       System.out.println("Image should have been converted to a white background jpg.");
     } catch (Exception e) {
       e.printStackTrace();
-      log.fatal(this.clientIpAddr + "|" + "Exception in insertSignature() : " + e.getMessage());
+      log.fatal("Exception in insertSignature() : " + e.getMessage());
     }
 
     PreparedStatement ps = null;
@@ -1112,11 +1110,11 @@ public class DbConnect extends DbManager
     } catch (SQLException ex) {
       System.out.println("!!!!!!!!!!SQL EXCEPTION OCCURED:" + ex.getMessage());
       System.out.println(ex.getMessage());
-      log.fatal(this.clientIpAddr + "|" + "SQLException in insertSignature() : " + ex.getMessage());
+      log.fatal("SQLException in insertSignature() : " + ex.getMessage());
     } catch (IOException ex) {
       System.out.println("!!!!!!!!!!IO EXCEPTION OCCURED:" + ex.getMessage());
       ex.printStackTrace();
-      log.fatal(this.clientIpAddr + "|" + "IOException in insertSignature() : " + ex.getMessage());
+      log.fatal("IOException in insertSignature() : " + ex.getMessage());
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -1134,7 +1132,7 @@ public class DbConnect extends DbManager
         }
       }
     }
-    log.info(this.clientIpAddr + "|" + "insertSignature() end");
+    log.info("insertSignature() end");
     return nuxrsign;
 
   }
@@ -1147,7 +1145,7 @@ public class DbConnect extends DbManager
     //   if(nalast==null){
     //       throw new IllegalArgumentException("Invalid nalast");
     //   }
-    log.info(this.clientIpAddr + "|" + "getEmployeeList(String nalast) begin : nalast= " + nalast);
+    log.info("getEmployeeList(String nalast) begin : nalast= " + nalast);
     return getEmployeeList(nalast, "A");
   }
   /*-------------------------------------------------------------------------------------------------------
@@ -1156,7 +1154,7 @@ public class DbConnect extends DbManager
 
   public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus, String userFallback)
   {
-    log.info(this.clientIpAddr + "|" + "getEmployeeList(String nalast, String cdempstatus) begin : nalast= " + nalast + " &cdempstatus=" + cdempstatus);
+    log.info("getEmployeeList(String nalast, String cdempstatus) begin : nalast= " + nalast + " &cdempstatus=" + cdempstatus);
     // if(nalast.isEmpty()||cdempstatus.isEmpty()){
     // throw new IllegalArgumentException("Invalid nalst or cdempstatus");    
     //  }
@@ -1190,7 +1188,7 @@ public class DbConnect extends DbManager
       }
     } catch (SQLException e) {
       System.out.println(e.getMessage());
-      log.fatal(this.clientIpAddr + "|" + "SQLException in getEmployeeList() : " + e.getMessage());
+      log.fatal("SQLException in getEmployeeList() : " + e.getMessage());
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -1198,7 +1196,7 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info(this.clientIpAddr + "|" + "getEmployeeList() end");
+    log.info("getEmployeeList() end");
     return employeeList;
   }
 
@@ -1219,8 +1217,6 @@ public class DbConnect extends DbManager
    *------------------------------------------------------------------------------------------------------*/
   public int confirmDelivery(Transaction delivery, String userFallback)
   {
-    //log.info(this.clientIpAddr + "|" + "confirmDelivery() begin.");
-
     Statement stmt = null;
     CallableStatement cs = null;
     ResultSet res1 = null;
@@ -1333,7 +1329,7 @@ public class DbConnect extends DbManager
 
   public Employee getEmployee(String nuxrefem, boolean upperCase, String userFallback)
   {
-    log.info(this.clientIpAddr + "|" + "getEmployee() begin : nuxrefem= " + nuxrefem);
+    log.info("getEmployee() begin : nuxrefem= " + nuxrefem);
     if (nuxrefem.isEmpty() || nuxrefem == null) {
       throw new IllegalArgumentException("Invalid nuxrefem");
     }
@@ -1367,7 +1363,7 @@ public class DbConnect extends DbManager
       }
     } catch (SQLException e) {
       System.out.println(e.getMessage());
-      log.fatal(this.clientIpAddr + "|" + "SQLException in getEmployee() : " + e.getMessage());
+      log.fatal("SQLException in getEmployee() : " + e.getMessage());
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -1375,7 +1371,7 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info(this.clientIpAddr + "|" + "getEmployee() end");
+    log.info("getEmployee() end");
     return currentEmployee;
   }
 
@@ -1384,7 +1380,7 @@ public class DbConnect extends DbManager
    *----------------------------------------------------------------------------------------------------*/
   public int createNewPickup(Transaction delivery, String userFallback)
   {
-    log.info(this.clientIpAddr + "|" + "createNewDelivery() begin :");
+    log.info("createNewDelivery() begin :");
 
     Transaction pickup = new Transaction();
     pickup.setPickupItemsList(delivery.getNotCheckedItems());
@@ -1413,7 +1409,7 @@ public class DbConnect extends DbManager
         pickup.setPickupComments(result.getString(9));
       }
     } catch (SQLException ex) {
-      log.fatal(this.clientIpAddr + "|" + "Error getting pickup info in createNewDelivery(). ", ex);
+      log.fatal("Error getting pickup info in createNewDelivery(). ", ex);
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -1423,7 +1419,7 @@ public class DbConnect extends DbManager
     }
     DbConnect db = new DbConnect();
     db.invTransit(pickup, userFallback, delivery.getNuxrpd());
-    log.info(this.clientIpAddr + "|" + "createNewDelivery() end ");
+    log.info("createNewDelivery() end ");
     return 0;
   }
 

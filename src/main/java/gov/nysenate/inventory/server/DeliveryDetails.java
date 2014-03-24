@@ -49,12 +49,12 @@ public class DeliveryDetails extends HttpServlet {
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND DeliveryDetails.processRequest ");                
+                log.info("****SESSION NOT FOUND DeliveryDetails.processRequest ");
                 try {
                    userFallback  = request.getParameter("userFallback");
                 }
                 catch (Exception e) {
-                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND DeliveryDetails.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                    log.info("****SESSION NOT FOUND DeliveryDetails.processRequest could not process Fallback Username. Generic Username will be used instead.");
                 } 
                 out.println("Session timed out");
                 return;                
@@ -67,8 +67,7 @@ public class DeliveryDetails extends HttpServlet {
                 db = new DbConnect(user, pwd);
                 
             }
-            db.clientIpAddr=request.getRemoteAddr();
-            Logger.getLogger(DeliveryDetails.class.getName()).info(db.clientIpAddr+"|"+"Servlet DeliveryDetails : Start");
+            Logger.getLogger(DeliveryDetails.class.getName()).info("Servlet DeliveryDetails : Start");
 
             String nuxrpd = request.getParameter("NUXRPD");
             System.out.println("nuxrpickup : " + nuxrpd);
@@ -86,7 +85,7 @@ public class DeliveryDetails extends HttpServlet {
             response.getWriter().write(json);
             System.out.println("json : " + json);
             out.print(json);
-            Logger.getLogger(DeliveryDetails.class.getName()).info(db.clientIpAddr+"|"+"Servlet DeliveryDetails : end");
+            Logger.getLogger(DeliveryDetails.class.getName()).info("Servlet DeliveryDetails : end");
         } finally {
 
             out.close();

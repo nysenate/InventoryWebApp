@@ -54,12 +54,12 @@ public class PickupList extends HttpServlet {
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND PickupList.processRequest ");                
+                log.info("****SESSION NOT FOUND PickupList.processRequest ");
                 try {
                    userFallback  = request.getParameter("userFallback");
                 }
                 catch (Exception e) {
-                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND PickupList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                    log.info("****SESSION NOT FOUND PickupList.processRequest could not process Fallback Username. Generic Username will be used instead.");
                 } 
                 out.println("Session timed out");
                 return;            
@@ -73,8 +73,7 @@ public class PickupList extends HttpServlet {
                 db = new DbConnect(user, pwd);
                 
             }
-            db.clientIpAddr=request.getRemoteAddr();
-            Logger.getLogger(PickupList.class.getName()).info(db.clientIpAddr+"|"+"Servlet PickupList : Start");
+            Logger.getLogger(PickupList.class.getName()).info("Servlet PickupList : Start");
             String loc_code = request.getParameter("loc_code");
 
             for (int x=0;x<searchByTypes.length;x++) {
@@ -104,7 +103,7 @@ public class PickupList extends HttpServlet {
             out.print(json);
 
 
-            Logger.getLogger(PickupList.class.getName()).info(db.clientIpAddr+"|"+"Servlet PickupList : end");
+            Logger.getLogger(PickupList.class.getName()).info("Servlet PickupList : end");
         } finally {
 
             out.close();

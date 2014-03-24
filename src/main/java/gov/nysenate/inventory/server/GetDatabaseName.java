@@ -45,12 +45,12 @@ public class GetDatabaseName extends HttpServlet
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND EmployeeList.processRequest ");
+                log.info("****SESSION NOT FOUND EmployeeList.processRequest ");
                 try {
                    userFallback  = request.getParameter("userFallback");
                 }
                 catch (Exception e) {
-                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND EmployeeList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                    log.info("****SESSION NOT FOUND EmployeeList.processRequest could not process Fallback Username. Generic Username will be used instead.");
                 } 
                 out.println("Session timed out");
                 return;                

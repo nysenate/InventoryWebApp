@@ -52,12 +52,12 @@ public class SerialList extends HttpServlet
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND SerialList.processRequest ");                
+                log.info("****SESSION NOT FOUND SerialList.processRequest ");
                 try {
                    userFallback  = request.getParameter("userFallback");
                 }
                 catch (Exception e) {
-                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND SerialList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                    log.info("****SESSION NOT FOUND SerialList.processRequest could not process Fallback Username. Generic Username will be used instead.");
                 }    
                 out.println("Session timed out");
                 return;                
@@ -79,15 +79,14 @@ public class SerialList extends HttpServlet
                 this.numaxResults = Integer.valueOf(maxResults);
                }
                catch (Exception e) {
-                 Logger.getLogger(SerialList.class.getName()).warn(db.clientIpAddr+"|"+"Servlet SerialList could not convert maxResults ("+maxResults+") to a number, defaulting to "+maxResults);
+                 Logger.getLogger(SerialList.class.getName()).warn("Servlet SerialList could not convert maxResults ("+maxResults+") to a number, defaulting to "+maxResults);
                }
             }
             
-            db.clientIpAddr=request.getRemoteAddr();
             Gson gson = new GsonBuilder()
                   .excludeFieldsWithoutExposeAnnotation()
                   .create();                 
-            //Logger.getLogger(SerialList.class.getName()).info(db.clientIpAddr+"|"+"Servlet SerialList : start");
+            //Logger.getLogger(SerialList.class.getName()).info("Servlet SerialList : start");
 
             List<InvSerialNumber> serialList = Collections.synchronizedList(new ArrayList<InvSerialNumber>());
             
@@ -105,7 +104,7 @@ public class SerialList extends HttpServlet
             response.getWriter().write(json);
 
             out.print(json);
-            //Logger.getLogger(SerialList.class.getName()).info(db.clientIpAddr+"|"+"Servlet SerialList : end");
+            //Logger.getLogger(SerialList.class.getName()).info("Servlet SerialList : end");
         } finally {
             out.close();
         }

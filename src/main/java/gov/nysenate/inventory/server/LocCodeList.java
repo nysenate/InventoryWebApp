@@ -41,9 +41,8 @@ public class LocCodeList extends HttpServlet {
         PrintWriter out = response.getWriter();
         DbConnect db = HttpUtils.getHttpSession(request, response, out);
         Logger log = Logger.getLogger(LocCodeList.class.getName());
-        log.info(db.clientIpAddr+"|"+"Servlet LocCodeList : start");
+        log.info("Servlet LocCodeList : start");
         try {
-            db.clientIpAddr=request.getRemoteAddr();
             String natype = request.getParameter("NATYPE");
 
             if (natype == null) {
@@ -54,7 +53,7 @@ public class LocCodeList extends HttpServlet {
             locations = db.getLocCodes();
 
             if (locations.size() == 0) {
-                log.error(db.clientIpAddr + "LocCodList: NO LOCATION CODES FOUND");
+                log.error("LocCodList: NO LOCATION CODES FOUND");
             }
 
             String json = new Gson().toJson(locations);
@@ -62,7 +61,7 @@ public class LocCodeList extends HttpServlet {
             response.setCharacterEncoding("UTF-8");
             out.write(json);
 
-            log.info(db.clientIpAddr+"|"+"Servlet LocCodeList : end");
+            log.info("Servlet LocCodeList : end");
         } finally {
             out.close();
         }

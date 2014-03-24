@@ -60,7 +60,7 @@ public class PickupServlet extends HttpServlet
 
     PrintWriter out = response.getWriter();
     db = HttpUtils.getHttpSession(request, response, out);
-    log.info(db.clientIpAddr + "|" + "Servlet Pickup : start");
+    log.info("Servlet Pickup : start");
     //String pickupTest = request.getParameter("pickup");
     String pickupJson = URLDecoder.decode(request.getParameter("pickup"), "UTF-8");
     
@@ -95,7 +95,7 @@ public class PickupServlet extends HttpServlet
     try {
       testingModeParam = request.getParameter("testingMode");
       if (testingModeParam != null && testingModeParam.trim().length() > 0) {
-        Logger.getLogger(PickupServlet.class.getName()).info(db.clientIpAddr + "|" + "****PARAMETER testingMode was set from client. Pickup.processRequest ");
+        Logger.getLogger(PickupServlet.class.getName()).info("****PARAMETER testingMode was set from client. Pickup.processRequest ");
       }
     } catch (Exception e) {
     }
@@ -150,7 +150,7 @@ public class PickupServlet extends HttpServlet
       out.println("Database not updated");
     }
     //System.out.println("(C) Servlet Pickup : end");
-    log.info(db.clientIpAddr + "|" + "Servlet Pickup : end");
+    log.info("Servlet Pickup : end");
     out.close();
   }
 

@@ -45,8 +45,7 @@ public class ChangePassword extends HttpServlet
             String name = request.getMethod().toString();
             String user = request.getParameter("user");
             String newPassword = request.getParameter("newPassword");
-            db.clientIpAddr=request.getRemoteAddr();
-            db.log.info(db.clientIpAddr+"|"+"Servlet ChangePassword : start");
+            db.log.info("Servlet ChangePassword : start");
             String status = "OK";
           try {
             status = db.changePassword(user, newPassword);
@@ -59,7 +58,7 @@ public class ChangePassword extends HttpServlet
             java.util.logging.Logger.getLogger(ChangePassword.class.getName()).log(Level.SEVERE, null, ex);
           }
             out.println(status);
-            Logger.getLogger(Login.class.getName()).info(db.clientIpAddr+"|"+"Servlet Login : end");
+            Logger.getLogger(Login.class.getName()).info("Servlet Login : end");
         } finally {
             out.close();
         }

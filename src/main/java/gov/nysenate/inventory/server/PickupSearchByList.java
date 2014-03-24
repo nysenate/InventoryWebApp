@@ -51,12 +51,12 @@ public class PickupSearchByList extends HttpServlet
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND PickupSearchByList.processRequest ");                
+                log.info("****SESSION NOT FOUND PickupSearchByList.processRequest ");
                 try {
                    userFallback  = request.getParameter("userFallback");
                 }
                 catch (Exception e) {
-                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND PickupSearchByList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                    log.info("****SESSION NOT FOUND PickupSearchByList.processRequest could not process Fallback Username. Generic Username will be used instead.");
                 }    
                 out.println("Session timed out");
                 return;                
@@ -69,17 +69,16 @@ public class PickupSearchByList extends HttpServlet
                 db = new DbConnect(user, pwd);
             }
             
-            db.clientIpAddr=request.getRemoteAddr();
             Gson gson = new GsonBuilder()
                   .excludeFieldsWithoutExposeAnnotation()
                   .create();                 
-            Logger.getLogger(PickupSearchByList.class.getName()).info(db.clientIpAddr+"|"+"Servlet PickupSearchByList : start");
+            Logger.getLogger(PickupSearchByList.class.getName()).info("Servlet PickupSearchByList : start");
             String natype;
             try {
                 natype = request.getParameter("NATYPE");
             } catch (Exception e) {
                 natype = "ALL";
-                Logger.getLogger(PickupSearchByList.class.getName()).info(db.clientIpAddr+"|"+"Servlet PickupSearchByList : " + "NATYPE SET TO ALL DUE TO EXCEPTION");
+                Logger.getLogger(PickupSearchByList.class.getName()).info("Servlet PickupSearchByList : " + "NATYPE SET TO ALL DUE TO EXCEPTION");
                 System.out.println("NATYPE SET TO ALL DUE TO EXCEPTION");
             }
             if (natype == null) {
@@ -103,7 +102,7 @@ public class PickupSearchByList extends HttpServlet
             response.getWriter().write(json);
 
             out.print(json);
-            Logger.getLogger(PickupSearchByList.class.getName()).info(db.clientIpAddr+"|"+"Servlet PickupSearchByList : end");
+            Logger.getLogger(PickupSearchByList.class.getName()).info("Servlet PickupSearchByList : end");
         } finally {
             out.close();
         }

@@ -52,8 +52,7 @@ public class DeliveryConfirmation extends HttpServlet {
         db = HttpUtils.getHttpSession(request, response, out);
 
         try {
-            db.clientIpAddr = request.getRemoteAddr();
-            log.info(db.clientIpAddr + "|" + "Servlet DeliveryConfirmation : Start");
+            log.info("Servlet DeliveryConfirmation : Start");
 
             String deliveryJson = request.getParameter("Delivery");
 
@@ -63,7 +62,7 @@ public class DeliveryConfirmation extends HttpServlet {
                 mapper.completeDelivery(db, delivery);
             } catch (SQLException e) {
                 out.println("Database not updated");
-                log.info(db.clientIpAddr + "|" + "Database not updated");
+                log.info("Database not updated");
                 log.error("SQL Exception ", e);
                 return;
             } catch (ClassNotFoundException e) {
@@ -74,9 +73,9 @@ public class DeliveryConfirmation extends HttpServlet {
             }
 
             emailDeliveryReceipt(out, "Database updated successfully", delivery, request);
-            log.info(db.clientIpAddr + "|" + "Database updated successfully");
+            log.info("Database updated successfully");
 
-            log.info(db.clientIpAddr + "|" + "Servlet DeliveryConfirmation : end");
+            log.info("Servlet DeliveryConfirmation : end");
         } finally {
             out.close();
         }

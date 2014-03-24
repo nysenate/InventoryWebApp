@@ -48,12 +48,12 @@ public class VerificationReports extends HttpServlet {
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND");
                 db = new DbConnect();
-                log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND VerificationReports.processRequest ");                
+                log.info("****SESSION NOT FOUND VerificationReports.processRequest ");
                try {
                    userFallback  = request.getParameter("userFallback");
                 }
                 catch (Exception e) {
-                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND VerificationReports.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                    log.info("****SESSION NOT FOUND VerificationReports.processRequest could not process Fallback Username. Generic Username will be used instead.");
                 } 
                 out.println("Session timed out");
                 return;
@@ -66,8 +66,7 @@ public class VerificationReports extends HttpServlet {
                 db = new DbConnect(user, pwd);
                 
             }
-            db.clientIpAddr=request.getRemoteAddr();
-            Logger.getLogger(VerificationReports.class.getName()).info(db.clientIpAddr+"|"+"Servlet VerificationReports : start");
+            Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : start");
             //String jsonString = request.getParameter("barcodes");
             //String cdlocat = request.getParameter("loc_code");
             String cdlocat = request.getParameter("cdlocat");
@@ -103,7 +102,7 @@ public class VerificationReports extends HttpServlet {
                * message to the client.
                */
               if (cdloctype!=null && cdloctype.trim().length()>1) {
-                log.warn(db.clientIpAddr + "|" + "****Parameter cdloctype was passed by the Client with a value of "+cdloctype+" which is larger than 1 character. IGNORING. to VerificationReports.processRequest ");                
+                log.warn("****Parameter cdloctype was passed by the Client with a value of "+cdloctype+" which is larger than 1 character. IGNORING. to VerificationReports.processRequest ");
                 cdloctype = null;
               }              
             }
@@ -112,7 +111,7 @@ public class VerificationReports extends HttpServlet {
                * If Parameter cdloctype was not passed by the client, then simply pass null for the
                * value, the database procedure which is eventually called will handle nulls.
               */
-              log.info(db.clientIpAddr + "|" + "****Parameter cdloctype was not passed by the Client to VerificationReports.processRequest ");                
+              log.info("****Parameter cdloctype was not passed by the Client to VerificationReports.processRequest ");
               cdloctype = null;
             }
             
@@ -120,13 +119,13 @@ public class VerificationReports extends HttpServlet {
   
             if (result == 0) {
                 out.println("Database updated successfully");
-                Logger.getLogger(VerificationReports.class.getName()).info(db.clientIpAddr+"|"+"Servlet VerificationReports : Database updated successfully");
+                Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : Database updated successfully");
             } else {
                 out.println("Database not updated");
-                Logger.getLogger(VerificationReports.class.getName()).info(db.clientIpAddr+"|"+"Servlet VerificationReports : Database not updated");
+                Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : Database not updated");
             }
 
-            Logger.getLogger(VerificationReports.class.getName()).info(db.clientIpAddr+"|"+"Servlet VerificationReports : end");
+            Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : end");
         } finally {
             out.close();
         }

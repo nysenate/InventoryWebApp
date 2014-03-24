@@ -50,12 +50,12 @@ public class CommodityList extends HttpServlet
             if (httpSession==null) {
                 System.out.println ("****SESSION NOT FOUND(CommodityList)");
                 db = new DbConnect();
-                log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND CommodityList.processRequest ");                
+                log.info("****SESSION NOT FOUND CommodityList.processRequest ");
                 try {
                    userFallback  = request.getParameter("userFallback");
                 }
                 catch (Exception e) {
-                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND CommodityList.processRequest could not process Fallback Username. Generic Username will be used instead.");                
+                    log.info("****SESSION NOT FOUND CommodityList.processRequest could not process Fallback Username. Generic Username will be used instead.");
                 } 
                 out.println("Session timed out");
                 return;            
@@ -71,20 +71,19 @@ public class CommodityList extends HttpServlet
            Gson gson = new GsonBuilder()
                 .excludeFieldsWithoutExposeAnnotation()
                 .create();            
-            db.clientIpAddr=request.getRemoteAddr();
             //System.out.println("Before Logger");
-            Logger.getLogger(CommodityList.class.getName()).info(db.clientIpAddr+"|"+"Servlet CommodityList : Start");
+            Logger.getLogger(CommodityList.class.getName()).info("Servlet CommodityList : Start");
             //System.out.println("Before keywords");
             String keywords = request.getParameter("keywords");
            
             //System.out.println("Before commodityResults List Setup");
             List<Commodity> commodityResults = Collections.synchronizedList(new ArrayList<Commodity>());
             //System.out.println("Before commodityResults List Setup LOGGER");
-            Logger.getLogger(CommodityList.class.getName()).info(db.clientIpAddr+"|"+ "db.getCommodityList(+'"+keywords.trim()+"', '"+userFallback+"')");
+            Logger.getLogger(CommodityList.class.getName()).info("db.getCommodityList(+'"+keywords.trim()+"', '"+userFallback+"')");
             //System.out.println("Before actual commodityResults:"+keywords);
             commodityResults = db.getCommodityList(keywords.trim(), userFallback);
             //System.out.println("After actual commodityResults:"+keywords);
-            Logger.getLogger(CommodityList.class.getName()).info(db.clientIpAddr+"|"+ "commodityResults:"+commodityResults);
+            Logger.getLogger(CommodityList.class.getName()).info("commodityResults:"+commodityResults);
             //System.out.println("Before JSON:"+keywords);
             String json = gson.toJson(commodityResults);
             //System.out.println("Before JSON setContentType:"+keywords);
@@ -94,11 +93,11 @@ public class CommodityList extends HttpServlet
             response.getWriter().write(json);
             //System.out.println("after JSON getWriter retrning:"+json);
 
-            Logger.getLogger(CommodityList.class.getName()).info(db.clientIpAddr+"|"+ "returning:"+json);
+            Logger.getLogger(CommodityList.class.getName()).info("returning:"+json);
             out.print(json);
 
 
-            Logger.getLogger(CommodityList.class.getName()).info(db.clientIpAddr+"|"+"Servlet CommodityList : end");
+            Logger.getLogger(CommodityList.class.getName()).info("Servlet CommodityList : end");
         } finally {
 
             out.close();
