@@ -1557,7 +1557,7 @@ public class DbConnect extends DbManager
       ps = conn.prepareStatement(query);
 
       for (String item : items) {
-          if (isNotNumber(item)) {
+          if (!isNumber(item)) {
             log.warn("Invalid number sent as nuxrpd while removing delivery item: " + item);
             throw new InvalidParameterException();
           }
@@ -1572,7 +1572,7 @@ public class DbConnect extends DbManager
     }
   }
 
-    private boolean isNotNumber(String item) {
+    private boolean isNumber(String item) {
         try {
             Integer.valueOf(item);
             return true;
