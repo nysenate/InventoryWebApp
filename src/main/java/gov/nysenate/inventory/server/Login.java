@@ -1,9 +1,5 @@
 package gov.nysenate.inventory.server;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import gov.nysenate.inventory.model.LoginStatus;
@@ -23,17 +19,9 @@ import org.apache.log4j.Logger;
  */
 @WebServlet(name = "Login", urlPatterns = {"/Login"})
 public class Login extends HttpServlet {
- //static Logger log = Logger.getLogger(DbConnect.class.getName());
-    /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+
+    private static Logger log = Logger.getLogger(DbConnect.class.getName());
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
@@ -43,34 +31,26 @@ public class Login extends HttpServlet {
             String user = request.getParameter("user");
             String pwd = request.getParameter("pwd");
 
+            log.info("User " + user + "is attempting to log in");
+
             DbConnect db = new DbConnect(user, pwd);
-            db.log.info("Servlet Login : start");
+            String defrmint = request.getParameter("defrmint");
 
-            String defrmint = "";
-
-            try {
-               defrmint = request.getParameter("defrmint");
-            }
-            catch (Exception e) {
-                // Do nothing if we fail to get defrmint;
-            }
-                    
             HttpSession httpSession = request.getSession(true);
             LoginStatus loginStatus = new LoginStatus();
 
-            // create an object of the db class and pass user name and password to it   
-            // Use this code if we decide to create a new table for user name and password and 
-            // validate it from database function
-          
             loginStatus = db.validateUser();
-            Logger.getLogger(Login.class.getName()).info("Servlet Login : defrmint:"+defrmint+", status:"+loginStatus.getDestatus());
+            log.info("Login : defrmint:"+defrmint+", status:"+loginStatus.getDestatus());
+
             if (loginStatus.getNustatus() == loginStatus.VALID) {
                 System.out.println("VALID LOGIN:"+loginStatus.getDestatus());
+                log.info(user + " has access to use this app");
                 httpSession.setAttribute("user", user);
                 httpSession.setAttribute("pwd", pwd);
                 loginStatus = db.securityAccess(user, defrmint, loginStatus);
             }
             else {
+                log.info("Unable to validate access for user: " + user);
                 httpSession.setAttribute("user", null);
                 httpSession.setAttribute("pwd", null);
             }
@@ -80,9 +60,7 @@ public class Login extends HttpServlet {
             System.out.println("loginStatus:"+json);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
-            response.getWriter().write(json);
             out.print(json);
-            Logger.getLogger(Login.class.getName()).info("Servlet Login : end");
         } finally {
             out.close();
         }

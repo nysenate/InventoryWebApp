@@ -57,7 +57,7 @@ public class Search extends HttpServlet
             String barcode_num = request.getParameter("barcode_num");
             System.out.println("Search Servlet  barcode_num " + barcode_num);
             
-            String details = db.getDetails(barcode_num, userFallback);
+            String details = db.getDetails(barcode_num);
             String commodityCode = db.getItemCommodityCode(barcode_num, userFallback);
 
             if (details.equals("no")) {

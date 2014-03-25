@@ -58,6 +58,7 @@ import java.util.Date;
 public class DbConnect extends DbManager
 {
 
+  public String clientIpAddr = "";
   public String serverIpAddr = "";
   public String serverName = "";
   static Logger log = Logger.getLogger(DbConnect.class.getName());
@@ -114,7 +115,7 @@ public class DbConnect extends DbManager
           this.serverIpAddr = inetAddress.getHostAddress();
           this.serverName = inetAddress.getHostName();
       } catch (UnknownHostException ex) {
-          log.error(null, ex);
+          java.util.logging.Logger.getLogger(DbConnect.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
       }
       
   }
@@ -133,7 +134,6 @@ public class DbConnect extends DbManager
    *----------------------------------------------------------------------------------------------------*/
   public Connection getDbConnection() throws ClassNotFoundException, SQLException
   {
-    log.info("getDbConnection() begin ");
     Connection conn = null;
     // Get the connection string, user name and password from the properties file
     String connectionString = properties.getProperty("connectionString");
@@ -145,8 +145,6 @@ public class DbConnect extends DbManager
 
     Class.forName("oracle.jdbc.driver.OracleDriver");
     conn = DriverManager.getConnection(connectionString, userName, password);
-
-    log.info("getDbConnection() end");
     return conn;
   }
   /*-------------------------------------------------------------------------------------------------------
@@ -313,12 +311,11 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to return details of given barcode (item details)
    *----------------------------------------------------------------------------------------------------*/
-  public String getDetails(String barcodeNum, String userFallback)
+  public String getDetails(String barcodeNum)
   {
-    log.info("getDetails() begin : barcodeNum= " + barcodeNum);
     if ((Integer.parseInt(barcodeNum) < 0)) {
       System.out.println("Error in DbConnect.getDetails() - Barcode Number Not Valid");
-      log.error("Error in DbConnect.getDetails() - Barcode Number Not Valid");
+      log.error("Error getting item details, Barcode Number Not Valid");
       throw new IllegalArgumentException("Invalid Barcode Number");
     }
     String details = null;
@@ -331,17 +328,14 @@ public class DbConnect extends DbManager
       cs.setString(2, barcodeNum);
       cs.executeUpdate();
       details = cs.getString(1);
-      //System.out.println(details);
     } catch (SQLException ex) {
-      Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
+      log.error("SQLException ", ex);
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
       closeStatement(cs);
       closeConnection(conn);
     }
-    log.info("getDetails() details = " + details);
-    log.info("getDetails() end ");
     return details;
   }
 
@@ -382,11 +376,10 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to return details related to given location code( Address, type etc) 
    *----------------------------------------------------------------------------------------------------*/
-  public String getInvLocDetails(String locCode, String userFallback)
+  public String getInvLocDetails(String locCode)
   {
-    log.info("getInvLocDetails() begin : locCode= " + locCode);
     if (locCode.isEmpty() || locCode == null) {
-      log.info("Invalid location Code " + locCode);
+      log.warn("Invalid location Code " + locCode);
       throw new IllegalArgumentException("Invalid location Code");
     }
     String details = null;
@@ -399,16 +392,14 @@ public class DbConnect extends DbManager
       cs.setString(2, locCode);
       cs.executeUpdate();
       details = cs.getString(1);
-      //System.out.println(details);
     } catch (SQLException ex) {
-      Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, null, ex);
+      log.error("SQLException", ex);
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
       closeStatement(cs);
       closeConnection(conn);
     }
-    log.info("getInvLocDetails() end ");
     return details;
   }
   /*-------------------------------------------------------------------------------------------------------
@@ -525,8 +516,6 @@ public class DbConnect extends DbManager
    *----------------------------------------------------------------------------------------------------*/
   public ArrayList<Location> getLocCodes()
   {
-    log.info("getLocCodes(String natype) begin)");
-
     String qry = "SELECT DISTINCT cdloctype, cdlocat, adstreet1, adcity, adzipcode, adstate "
             + "FROM sl16location a where a.cdstatus='A' ORDER BY cdlocat, cdloctype";
 
@@ -549,7 +538,7 @@ public class DbConnect extends DbManager
         locations.add(loc);
       }
     } catch (SQLException e) {
-      log.error("Error in getLocCodes: ", e);
+      log.error("Error getting locations ", e);
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -557,7 +546,6 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info("getLocCodes() end");
     return locations;
   }
 
@@ -866,6 +854,7 @@ public class DbConnect extends DbManager
    *----------------------------------------------------------------------------------------------------*/
   public List<PickupGroup> getPickupList(ArrayList<SimpleListItem> searchByList, String userFallback)
   {
+    //log.info(this.clientIpAddr + "|" + "getDeliveryList() begin : locCode= " + locCode);
     if (searchByList == null || searchByList.size() == 0) {
       throw new IllegalArgumentException("No Search By Parameters for DbConnect.getPickupList");
     }
@@ -1013,9 +1002,8 @@ public class DbConnect extends DbManager
    * ---------------Function to insert signature into database
    *----------------------------------------------------------------------------------------------------*/
 
-  public int insertSignature(byte[] imageInArray, int nuxrefem, String nauser, String userFallback)
+  public int insertSignature(byte[] imageInArray, int nuxrefem, String nauser)
   {
-    log.info("insertSignature() begin : nuxrefem= " + nuxrefem + " &nauser=" + nauser);
     if (imageInArray == null || nuxrefem < 0 || nauser == null) {
       throw new IllegalArgumentException("Invalid imageInArray or nuxrefem or nauser");
     }
@@ -1031,8 +1019,6 @@ public class DbConnect extends DbManager
     // jpg.
     // Commented ou 7/26/13 BH for testing purponses
     try {
-      log.info("|IMAGE FORMATS AVAILABLE:" + Arrays.toString(ImageIO.getReaderFormatNames()));
-      System.out.println("IMAGE FORMATS AVAILABLE:" + Arrays.toString(ImageIO.getReaderFormatNames()));
       BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageInArray));
 
       if (bufferedImage == null) {
@@ -1132,29 +1118,12 @@ public class DbConnect extends DbManager
         }
       }
     }
-    log.info("insertSignature() end");
     return nuxrsign;
 
   }
 
-  /*-------------------------------------------------------------------------------------------------------
-   * ---------------Function to 
-   *----------------------------------------------------------------------------------------------------*/
-  public ArrayList<Employee> getEmployeeList(String nalast, String userFallback)
+  public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus)
   {
-    //   if(nalast==null){
-    //       throw new IllegalArgumentException("Invalid nalast");
-    //   }
-    log.info("getEmployeeList(String nalast) begin : nalast= " + nalast);
-    return getEmployeeList(nalast, "A");
-  }
-  /*-------------------------------------------------------------------------------------------------------
-   * ---------------Function to return the list of employee names
-   *----------------------------------------------------------------------------------------------------*/
-
-  public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus, String userFallback)
-  {
-    log.info("getEmployeeList(String nalast, String cdempstatus) begin : nalast= " + nalast + " &cdempstatus=" + cdempstatus);
     // if(nalast.isEmpty()||cdempstatus.isEmpty()){
     // throw new IllegalArgumentException("Invalid nalst or cdempstatus");    
     //  }
@@ -1168,7 +1137,6 @@ public class DbConnect extends DbManager
       if (nalast == null) {
         nalast = "";
       }
-      //  String loc_code;
       String qry = "SELECT a.nuxrefem, a.nafirst, a.nalast, a.namidinit, a.nasuffix, a.naemail"
               + " FROM pm21personn a "
               + " WHERE a.cdempstatus LIKE '" + cdempstatus + "'"
@@ -1176,7 +1144,6 @@ public class DbConnect extends DbManager
               + " AND a.naemail IS NOT null"
               + " ORDER BY  a.nalast||DECODE(a.nasuffix, NULL, NULL, ' '||a.nasuffix)||', '||a.nafirst||DECODE(a.namidinit, NULL, NULL, ' '||a.namidinit)";
 
-      //System.out.println("QRY:" + qry);
       result = stmt.executeQuery(qry);
       while (result.next()) {
 
@@ -1187,8 +1154,7 @@ public class DbConnect extends DbManager
         }
       }
     } catch (SQLException e) {
-      System.out.println(e.getMessage());
-      log.fatal("SQLException in getEmployeeList() : " + e.getMessage());
+      log.error("SQLException in getEmployeeList() : " + e.getMessage());
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -1196,7 +1162,6 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info("getEmployeeList() end");
     return employeeList;
   }
 
@@ -1217,6 +1182,7 @@ public class DbConnect extends DbManager
    *------------------------------------------------------------------------------------------------------*/
   public int confirmDelivery(Transaction delivery, String userFallback)
   {
+
     Statement stmt = null;
     CallableStatement cs = null;
     ResultSet res1 = null;

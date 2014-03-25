@@ -28,8 +28,7 @@ public class HttpUtils {
         if (httpSession == null) {
             System.out.println("****SESSION NOT FOUND");
             db = new DbConnect();
-            log.info("****SESSION NOT FOUND Pickup.processRequest ");
-            userFallback = request.getParameter("userFallback");
+            log.info("Session not found/timed out.");
             out.println("Session timed out");
             response.setStatus(noSessionStatus);
         } else {

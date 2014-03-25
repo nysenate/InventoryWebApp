@@ -77,11 +77,6 @@ public class TransactionMapper extends DbManager {
                 ps.setInt(7, Integer.valueOf(trans.getNuxrrelsign()));
             }
             ps.setString(8, "A");
-            /*
-             *   Date not always entered correctly, so use SYSDATE for the INSERT instead
-             */
- //           ps.setTime(9, getCurrentDate());
- //           ps.setTime(10, getCurrentDate());
             ps.setString(9, trans.getPickupComments());
             if (oldNuxrpd == 0) {
                 ps.setNull(10, java.sql.Types.INTEGER);
@@ -97,9 +92,6 @@ public class TransactionMapper extends DbManager {
                 ps.setInt(14, getTransShipId(conn, trans));
             }
             ps.setString(15, trans.getRemoteType());
-
-            log.info(query);
-            log.info(sdf.format(trans.getPickupDate()));
             ps.executeUpdate();
 
             // Also insert each picked up item.
