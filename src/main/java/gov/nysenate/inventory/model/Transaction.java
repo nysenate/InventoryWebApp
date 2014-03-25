@@ -1,7 +1,5 @@
 package gov.nysenate.inventory.model;
 
-import gov.nysenate.inventory.server.InvItem;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;

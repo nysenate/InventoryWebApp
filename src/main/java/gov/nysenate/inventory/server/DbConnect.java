@@ -1,11 +1,8 @@
 package gov.nysenate.inventory.server;
 
 import java.security.InvalidParameterException;
-import gov.nysenate.inventory.model.Employee;
-import gov.nysenate.inventory.model.Location;
-import gov.nysenate.inventory.model.Transaction;
 
-import gov.nysenate.inventory.model.Commodity;
+import gov.nysenate.inventory.model.*;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -38,16 +35,12 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.google.gson.reflect.TypeToken;
-import gov.nysenate.inventory.model.InvSerialNumber;
-import gov.nysenate.inventory.model.LoginStatus;
-import gov.nysenate.inventory.model.SimpleListItem;
 import gov.nysenate.inventory.util.DbManager;
 
 import java.awt.Graphics2D;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -314,8 +307,7 @@ public class DbConnect extends DbManager
   public String getDetails(String barcodeNum)
   {
     if ((Integer.parseInt(barcodeNum) < 0)) {
-      System.out.println("Error in DbConnect.getDetails() - Barcode Number Not Valid");
-      log.error("Error getting item details, Barcode Number Not Valid");
+      log.error("Error getting item details, Barcode Number is invalid Integer");
       throw new IllegalArgumentException("Invalid Barcode Number");
     }
     String details = null;
@@ -339,10 +331,8 @@ public class DbConnect extends DbManager
     return details;
   }
 
-  public String getItemCommodityCode(String barcode, String userFallback)
+  public String getItemCommodityCode(String barcode)
   {
-    log.info("getItemCommodityCode() begin : barcodeNum= " + barcode);
-
     String commodityCode = ""; //TODO
     String query = "SELECT fm12comxref.cdcommodity "
             + "FROM fm12comxref, fd12issue, fm12senxref "
@@ -406,9 +396,8 @@ public class DbConnect extends DbManager
    * ---------------Function to return arraylist of all the items at a given location codes 
    *----------------------------------------------------------------------------------------------------*/
 
-  public ArrayList getLocationItemList(String locCode, String userFallback)
+  public ArrayList getLocationItemList(String locCode)
   {
-    log.info("getLocationItemList() begin : locCode= " + locCode);
     if (locCode.isEmpty() || locCode == null) {
       throw new IllegalArgumentException("Invalid location Code");
     }
@@ -452,16 +441,14 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info("getLocationItemList() end");
     return itemList;
   }
 
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to return arraylist of all the commodity codes based on the keywords
    *----------------------------------------------------------------------------------------------------*/
-  public ArrayList getCommodityList(String keywords, String userFallback)
+  public ArrayList getCommodityList(String keywords)
   {
-    log.info("getLocationItemList() begin : locCode= " + keywords);
     if (keywords.isEmpty() || keywords == null) {
       throw new IllegalArgumentException("No Keywords Found");
     }
@@ -507,7 +494,6 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info("getCommodityList() end");
     return commodityList;
   }
 
@@ -552,7 +538,7 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to return arraylist of all pickups
    *----------------------------------------------------------------------------------------------------*/
-  public ArrayList getPickupSearchByList(String userFallback)
+  public ArrayList getPickupSearchByList()
   {
     ArrayList<SimpleListItem> pickupList = new ArrayList<SimpleListItem>();
     Statement stmt = null;
@@ -584,6 +570,7 @@ public class DbConnect extends DbManager
       }
     } catch (SQLException e) {
       System.out.println(e.getMessage());
+        log.warn(e.getMessage(), e);
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -597,7 +584,7 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to return arraylist of all Serial#s
    *----------------------------------------------------------------------------------------------------*/
-  public ArrayList getNuSerialList(String nuserialFilter, int numaxResults, String userFallback)
+  public ArrayList getNuSerialList(String nuserialFilter, int numaxResults)
   {
     ArrayList<InvSerialNumber> invSerialList = new ArrayList<InvSerialNumber>();
     Statement stmt = null;
@@ -693,14 +680,13 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to insert items found at given location(barcodes) for verification
    *----------------------------------------------------------------------------------------------------*/
-  public int setBarcodesInDatabase(String cdlocat, ArrayList<InvItem> invItems, String userFallback)
+  public int setBarcodesInDatabase(String cdlocat, ArrayList<InvItem> invItems)
   {
-    return setBarcodesInDatabase(cdlocat, null, invItems, userFallback);
+    return setBarcodesInDatabase(cdlocat, null, invItems);
   }
 
-  public int setBarcodesInDatabase(String cdlocat, String cdloctype, ArrayList<InvItem> invItems, String userFallback)
+  public int setBarcodesInDatabase(String cdlocat, String cdloctype, ArrayList<InvItem> invItems)
   {
-    log.info("setBarcodesInDatabase() begin : cdlocat= " + cdlocat + " Number of Inf Items= " + invItems.size());
     if (cdlocat.isEmpty() || invItems == null) {
       throw new IllegalArgumentException("Invalid location Code");
     }
@@ -783,8 +769,6 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info("setBarcodesInDatabase() end");
-
 
     return result;
   }
@@ -852,7 +836,7 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to return all the in transit pickups for the given values
    *----------------------------------------------------------------------------------------------------*/
-  public List<PickupGroup> getPickupList(ArrayList<SimpleListItem> searchByList, String userFallback)
+  public List<PickupGroup> getPickupList(ArrayList<SimpleListItem> searchByList)
   {
     //log.info(this.clientIpAddr + "|" + "getDeliveryList() begin : locCode= " + locCode);
     if (searchByList == null || searchByList.size() == 0) {
@@ -940,10 +924,10 @@ public class DbConnect extends DbManager
    * ---------------Function to return all the items related to a perticular delivery nuxrpd
    *----------------------------------------------------------------------------------------------------*/
 
-  public ArrayList<InvItem> getDeliveryDetails(String nuxrpd, String userFallback)
+  public ArrayList<InvItem> getDeliveryDetails(String nuxrpd)
   {
-    log.info("getDeliveryDetails() begin : nuxrpd= " + nuxrpd);
     if (nuxrpd.isEmpty()) {
+      log.warn("Cant get details on delivery, nuxrpd is empty");
       throw new IllegalArgumentException("Invalid locCode");
     }
     ArrayList<InvItem> deliveryDetails = new ArrayList<InvItem>();
@@ -979,7 +963,7 @@ public class DbConnect extends DbManager
 
     } catch (SQLException e) {
       System.out.println(e.getMessage());
-      log.fatal("SQLException in getDeliveryDetails() : " + e.getMessage());
+      log.fatal("SQLException in getDeliveryDetails(): ", e);
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -987,7 +971,6 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    log.info("getDeliveryDetails() end");
     return deliveryDetails;
   }
   /*-------------------------------------------------------------------------------------------------------

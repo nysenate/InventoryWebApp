@@ -16,17 +16,19 @@ import org.apache.log4j.Logger;
 @WebServlet(name = "CancelPickup", urlPatterns = { "/CancelPickup" })
 public class CancelPickup extends HttpServlet {
 
+    private static final Logger log = Logger.getLogger(CancelPickup.class.getName());
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Logger log = Logger.getLogger(CancelPickup.class.getName());
-
-        DbConnect db = null;
         PrintWriter out = response.getWriter();
-        db = HttpUtils.getHttpSession(request, response, out);
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
 
         String nuxrpdString = request.getParameter("nuxrpd");
+        log.info("Canceling pickup with nuxrpd = " + nuxrpdString);
+
         if (nuxrpdString == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            log.warn("Can't cancel pickup, nuxrpd was null");
             return;
         }
 

@@ -21,18 +21,19 @@ import com.google.gson.Gson;
 @WebServlet(name = "GetAllPickups", urlPatterns = { "/GetAllPickups" })
 public class GetAllPickups extends HttpServlet {
 
-    Logger log = Logger.getLogger(GetAllPickups.class.getName());
+    private static final Logger log = Logger.getLogger(GetAllPickups.class.getName());
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        DbConnect db = null;
         PrintWriter out = response.getWriter();
-        db = HttpUtils.getHttpSession(request, response, out);
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        log.info("Getting info for all pickups");
 
         boolean wantIncompleteRemotes = false;
         String incRemotes = request.getParameter("incompleteRemote");
         if (incRemotes != null) {
             wantIncompleteRemotes = Boolean.valueOf(incRemotes);
+            log.info("Include remote transactions? = " + incRemotes);
         }
 
         Collection<Transaction> trans = null;
@@ -47,9 +48,11 @@ public class GetAllPickups extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("GetAllPickups Exception: ", ex);
         } catch (ClassNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("Error getting oracle jdbc driver: ", e);
         }
 
+        log.info("Recieved info for " + trans.size() + " pickups.");
         Gson gson = new Gson();
         out.print(gson.toJson(trans));
         out.close();

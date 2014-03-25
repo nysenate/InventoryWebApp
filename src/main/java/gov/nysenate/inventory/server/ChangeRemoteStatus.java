@@ -22,32 +22,32 @@ import org.apache.log4j.Logger;
 public class ChangeRemoteStatus extends HttpServlet{
 
     private static final long serialVersionUID = 1L;
+    private static final Logger log = Logger.getLogger(ChangeRemoteStatus.class.getName());
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Logger log = Logger.getLogger(ChangeRemoteStatus.class.getName());
-
-        DbConnect db = null;
         PrintWriter out = response.getWriter();
-        db = HttpUtils.getHttpSession(request, response, out);
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
 
         String transJson = request.getParameter("trans");
-        String appUser = request.getParameter("user");
+        log.info("Updating remote status, pickup: " + transJson);
 
         Transaction trans = null;
         TransactionMapper mapper = new TransactionMapper();
 
-        if (transJson != null && appUser != null) {
+        if (transJson != null) {
             try {
                 trans = TransactionParser.parseTransaction(transJson);
-                mapper.updateTransaction(db, trans, appUser);
+                mapper.updateTransaction(db, trans);
             } catch (ClassNotFoundException | SQLException e) {
-                log.error("Error updating transaction: ", e);
+                log.error("Error updating remote status: ", e);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             } catch (JsonSyntaxException e) {
                 log.error("ChangeRemote Json Syntax Exception: ", e);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
         } else {
+            log.warn("Unable to update remote status, pickup json was null");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }

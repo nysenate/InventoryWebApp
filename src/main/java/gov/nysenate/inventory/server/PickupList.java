@@ -1,9 +1,5 @@
 package gov.nysenate.inventory.server;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
@@ -17,8 +13,8 @@ import java.util.List;
 
 import com.google.gson.Gson;
 import gov.nysenate.inventory.model.SimpleListItem;
-import gov.nysenate.inventory.server.DbConnect;
-import javax.servlet.http.HttpSession;
+
+import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -28,53 +24,19 @@ import org.apache.log4j.Logger;
 @WebServlet(name = "PickupList", urlPatterns = {"/PickupList"})
 public class PickupList extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     String[] searchByTypes = {"cdlocatfrom", "cdlocatto", "napickupby", "dttxnorigin"};
+    private static final Logger log = Logger.getLogger(PickupList.class.getName());
   
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        Logger log = Logger.getLogger(PickupList.class.getName());
-
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
         ArrayList<SimpleListItem> searchBy = new ArrayList<SimpleListItem>();
+
         try {
-            HttpSession httpSession = request.getSession(false);
-            DbConnect db;
-            String userFallback = null;
-            if (httpSession==null) {
-                System.out.println ("****SESSION NOT FOUND");
-                db = new DbConnect();
-                log.info("****SESSION NOT FOUND PickupList.processRequest ");
-                try {
-                   userFallback  = request.getParameter("userFallback");
-                }
-                catch (Exception e) {
-                    log.info("****SESSION NOT FOUND PickupList.processRequest could not process Fallback Username. Generic Username will be used instead.");
-                } 
-                out.println("Session timed out");
-                return;            
-            }
-            else {
-                long  lastAccess = (System.currentTimeMillis() - httpSession.getLastAccessedTime());
-                System.out.println ("SESSION FOUND!!!!");
-                String user = (String)httpSession.getAttribute("user");
-                String pwd = (String)httpSession.getAttribute("pwd");
-                System.out.println ("--------USER:"+user);
-                db = new DbConnect(user, pwd);
-                
-            }
-            Logger.getLogger(PickupList.class.getName()).info("Servlet PickupList : Start");
             String loc_code = request.getParameter("loc_code");
+            log.info("Getting pickup list for " + loc_code);
 
             for (int x=0;x<searchByTypes.length;x++) {
               try {
@@ -94,60 +56,29 @@ public class PickupList extends HttpServlet {
             }
            
             List<PickupGroup> pickupList = Collections.synchronizedList(new ArrayList<PickupGroup>());
-            pickupList = db.getPickupList(searchBy, userFallback);
+            pickupList = db.getPickupList(searchBy);
             String json = new Gson().toJson(pickupList);
+            log.info("Pickup list info = " + json);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(json);
 
             out.print(json);
-
-
-            Logger.getLogger(PickupList.class.getName()).info("Servlet PickupList : end");
         } finally {
-
             out.close();
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP
-     * <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP
-     * <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
 }

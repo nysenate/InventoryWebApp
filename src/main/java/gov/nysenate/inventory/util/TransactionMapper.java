@@ -8,18 +8,15 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Locale;
+import java.util.*;
 
 import org.apache.log4j.Logger;
 
 import gov.nysenate.inventory.model.Location;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.server.DbConnect;
-import gov.nysenate.inventory.server.InvItem;
+import gov.nysenate.inventory.model.InvItem;
 import java.sql.Timestamp;
-import java.util.Date;
 
 public class TransactionMapper extends DbManager {
 
@@ -110,7 +107,7 @@ public class TransactionMapper extends DbManager {
         return trans.getNuxrpd();
     }
 
-    public void updateTransaction(DbConnect db, Transaction trans, String appUser) throws SQLException, ClassNotFoundException {
+    public void updateTransaction(DbConnect db, Transaction trans) throws SQLException, ClassNotFoundException {
         String query = "UPDATE fm12invintrans SET " +
         "CDLOCATTO = ?, " +
         "CDLOCATFROM = ?, " +
@@ -190,7 +187,7 @@ public class TransactionMapper extends DbManager {
         }
 
         // Get pickup items
-        ArrayList<InvItem> items = db.getDeliveryDetails(Integer.toString(nuxrpd), "");
+        ArrayList<InvItem> items = db.getDeliveryDetails(Integer.toString(nuxrpd));
         trans.setPickupItems(items);
 
         return trans;
@@ -294,7 +291,6 @@ public class TransactionMapper extends DbManager {
             ps.setString(11, trans.getNareleaseby());
             ps.setInt(12, trans.getNuxrpd());
 
-            log.info(query);
             ps.executeUpdate();
 
             // Update FD12Issue corresponding tables for each delivered item.
@@ -313,10 +309,10 @@ public class TransactionMapper extends DbManager {
 
             // Delete non delivered items from FD12InvInTrans
             if (trans.getNotCheckedItems().size() > 0) {
+                log.info("Deleting the following not delivered items: " + Arrays.toString(trans.getNotCheckedItems().toArray()));
                 for (String nusenate : trans.getNotCheckedItems()) {
                     String delQuery = "DELETE FROM FD12INVINTRANS WHERE nuxrpd=" + trans.getNuxrpd() + "AND nusenate = '" + nusenate + "'";
                     ps = conn.prepareStatement(delQuery);
-                    log.info("FD12INVINTRANS DELETE QUERY: " + delQuery);
                     ps.executeUpdate();
                 }
             }

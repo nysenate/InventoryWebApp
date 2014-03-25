@@ -19,17 +19,18 @@ import java.sql.SQLException;
 @WebServlet(name = "PreviousRemoteInfo", urlPatterns = { "/PreviousRemoteInfo" })
 public class PreviousRemoteInfo extends HttpServlet {
 
-    private Logger log = Logger.getLogger(PreviousRemoteInfo.class.getName());
+    private static final Logger log = Logger.getLogger(PreviousRemoteInfo.class.getName());
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        DbConnect db = null;
         PrintWriter out = response.getWriter();
-        db = HttpUtils.getHttpSession(request, response, out);
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
 
         String nuxrpd = request.getParameter("nuxrpd");
+        log.info("Requesting previous remote info for nuxrpd = " + nuxrpd);
         if (nuxrpd == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            log.info("Could not get previous remote info, nuxrpd was null.");
             return;
         }
 
@@ -41,6 +42,7 @@ public class PreviousRemoteInfo extends HttpServlet {
             if (orig != 0) {
                 original = mapper.queryTransaction(db, orig);
                 out.write(original.toJson());
+                log.info("Previous transaction: " + original.toJson());
             }
         } catch (ClassNotFoundException | SQLException e) {
             log.error("Error getting original nuxrpd: ", e);

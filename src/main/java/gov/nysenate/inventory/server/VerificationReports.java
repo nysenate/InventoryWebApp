@@ -1,16 +1,13 @@
 package gov.nysenate.inventory.server;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import gov.nysenate.inventory.model.InvItem;
+import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;
 
-import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -34,36 +31,12 @@ public class VerificationReports extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
         try {
-            HttpSession httpSession = request.getSession(false);
-            DbConnect db;      
-            String userFallback = null;
-            if (httpSession==null) {
-                System.out.println ("****SESSION NOT FOUND");
-                db = new DbConnect();
-                log.info("****SESSION NOT FOUND VerificationReports.processRequest ");
-               try {
-                   userFallback  = request.getParameter("userFallback");
-                }
-                catch (Exception e) {
-                    log.info("****SESSION NOT FOUND VerificationReports.processRequest could not process Fallback Username. Generic Username will be used instead.");
-                } 
-                out.println("Session timed out");
-                return;
-             }
-            else {
-                System.out.println ("SESSION FOUND!!!!");
-                String user = (String)httpSession.getAttribute("user");
-                String pwd = (String)httpSession.getAttribute("pwd");
-                System.out.println ("--------USER:"+user);
-                db = new DbConnect(user, pwd);
-                
-            }
-            Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : start");
-            //String jsonString = request.getParameter("barcodes");
-            //String cdlocat = request.getParameter("loc_code");
             String cdlocat = request.getParameter("cdlocat");
             String scannedItems = request.getParameter("scannedItems");
+            log.info("Verification reports for cdlocat = " + cdlocat + " and scanned items = " + scannedItems);
+
             JsonParser parser = new JsonParser();
             JsonArray jsonArray = (JsonArray)parser.parse(scannedItems);
             
@@ -108,60 +81,28 @@ public class VerificationReports extends HttpServlet {
               cdloctype = null;
             }
             
-            int result = db.setBarcodesInDatabase(cdlocat, cdloctype, invItems, userFallback);
+            int result = db.setBarcodesInDatabase(cdlocat, cdloctype, invItems);
   
             if (result == 0) {
                 out.println("Database updated successfully");
-                Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : Database updated successfully");
             } else {
                 out.println("Database not updated");
-                Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : Database not updated");
             }
-
-            Logger.getLogger(VerificationReports.class.getName()).info("Servlet VerificationReports : end");
         } finally {
             out.close();
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP
-     * <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP
-     * <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
 }

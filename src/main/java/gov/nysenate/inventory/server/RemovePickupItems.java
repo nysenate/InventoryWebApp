@@ -18,20 +18,19 @@ import org.apache.log4j.Logger;
 @WebServlet(name = "RemovePickupItems", urlPatterns = { "/RemovePickupItems" })
 public class RemovePickupItems extends HttpServlet {
 
+    private static final Logger log = Logger.getLogger(RemovePickupItems.class.getName());
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Logger log = Logger.getLogger(RemovePickupItems.class.getName());
-
-        DbConnect db = null;
         PrintWriter out = response.getWriter();
-        db = HttpUtils.getHttpSession(request, response, out);
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
 
         String nuxrpdString = request.getParameter("nuxrpd");
         String[] items = request.getParameterValues("items[]");
-        log.info("RemovePickupItems nuxrpd = " + nuxrpdString);
-        log.info("RemovePickupItems items = " + Arrays.toString(items));
+        log.info("Removing items for pickup nuxrpd = " + nuxrpdString + ", items = " + Arrays.toString(items));
         if (nuxrpdString == null || items == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            log.info("Cannot remote items because nuxrpd or items are null.");
             return;
         }
 
@@ -48,7 +47,6 @@ public class RemovePickupItems extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             log.error("Invalid Param, remove delivery item.", e);
         }
-        log.info("RemovePickupItems end.");
     }
 
     @Override
