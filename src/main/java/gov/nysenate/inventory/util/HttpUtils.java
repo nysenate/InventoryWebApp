@@ -2,9 +2,9 @@ package gov.nysenate.inventory.util;
 
 import gov.nysenate.inventory.server.DbConnect;
 import gov.nysenate.inventory.server.PickupServlet;
+import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
-import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,6 +14,8 @@ public class HttpUtils {
 
     public static final int SC_SESSION_TIMEOUT = 599;
     public static final int SC_SESSION_OK = 200;
+
+    private static final Logger log = Logger.getLogger(HttpUtils.class.getName());
     
     public static DbConnect getHttpSession(HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
         return getHttpSession(request, response, out, SC_SESSION_TIMEOUT);
@@ -26,8 +28,7 @@ public class HttpUtils {
         if (httpSession == null) {
             System.out.println("****SESSION NOT FOUND");
             db = new DbConnect();
-            Logger.getLogger(PickupServlet.class.getName()).info(db.clientIpAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");
-            userFallback = request.getParameter("userFallback");
+            log.info("Session not found/timed out.");
             out.println("Session timed out");
             response.setStatus(noSessionStatus);
         } else {

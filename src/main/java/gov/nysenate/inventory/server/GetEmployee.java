@@ -16,19 +16,21 @@ import org.apache.log4j.Logger;
 @WebServlet(name = "GetEmployee", urlPatterns = { "/GetEmployee" })
 public class GetEmployee extends HttpServlet {
 
+    private static final Logger log = Logger.getLogger(GetEmployee.class.getName());
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Logger log = Logger.getLogger(CancelPickup.class.getName());
         response.setContentType("text/html;charset=UTF-8");
-
-        DbConnect db = null;
         PrintWriter out = response.getWriter();
-        db = HttpUtils.getHttpSession(request, response, out);
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
 
         String[] empInfo = new String[3];
         String nalast = request.getParameter("nalast");
+        log.info("Getting employee info for: " + nalast);
+
         if (nalast == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            log.warn("Cannot get employee info, nalast was null.");
             return;
         }
 
@@ -43,7 +45,7 @@ public class GetEmployee extends HttpServlet {
         }
         String json = ("{" + "\"nafirst\":" + empInfo[0] + "," + "\"nalast\":" + empInfo[1] + "," + "\"cdrespctrhd\":" + empInfo[2] + "}");
         out.print(json);
-        System.out.println(json);
+        log.info("Employee info = " + json);
         out.close();
     }
 

@@ -8,7 +8,8 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
-import com.sun.org.apache.bcel.internal.generic.Type;
+import gov.nysenate.inventory.model.InvItem;
+
 import java.util.ArrayList;
 import java.util.List;
 

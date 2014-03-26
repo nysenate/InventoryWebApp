@@ -16,18 +16,20 @@ import org.apache.log4j.Logger;
 @WebServlet(name = "ChangePickupLocation", urlPatterns = { "/ChangePickupLocation" })
 public class ChangePickupLocation extends HttpServlet {
 
+    private static final Logger log = Logger.getLogger(ChangePickupLocation.class.getName());
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Logger log = Logger.getLogger(CancelPickup.class.getName());
-
-        DbConnect db = null;
         PrintWriter out = response.getWriter();
-        db = HttpUtils.getHttpSession(request, response, out);
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
 
         String nuxrpdStr = request.getParameter("nuxrpd");
         String cdLoc = request.getParameter("cdloc");
+        log.info("Changing Pickup location for nuxrpd = " + nuxrpdStr + " to " + cdLoc);
+
         if (cdLoc == null || nuxrpdStr == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            log.warn("Unable to change pickup location because nuxrpd or cdloc was null");
             return;
         }
 

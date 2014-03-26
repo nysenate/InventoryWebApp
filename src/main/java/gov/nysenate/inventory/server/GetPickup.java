@@ -20,21 +20,22 @@ import com.google.gson.Gson;
 @WebServlet(name = "GetPickup", urlPatterns = { "/GetPickup" })
 public class GetPickup extends HttpServlet {
 
+    private static final Logger log = Logger.getLogger(GetPickup.class.getName());
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Logger log = Logger.getLogger(GetPickup.class.getName());
         response.setContentType("text/html;charset=UTF-8");
-
-        DbConnect db = null;
         PrintWriter out = response.getWriter();
-        db = HttpUtils.getHttpSession(request, response, out);
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
 
         int nuxrpd;
         Transaction pickup = null;
         String userFallback = request.getParameter("userFallback");
         String nuxrpdString = request.getParameter("nuxrpd");
+        log.info("Getting pickup for nuxrpd = " + nuxrpdString);
         if (nuxrpdString == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            log.warn("Unable to get pickup info, nuxrpd was null");
             return;
         }
 
@@ -56,7 +57,9 @@ public class GetPickup extends HttpServlet {
             return;
         }
 
-        out.print(new Gson().toJson(pickup));
+        String json = new Gson().toJson(pickup);
+        log.info("Pickup info received: " + json);
+        out.print(json);
         out.close();
     }
 

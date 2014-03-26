@@ -1,8 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-package gov.nysenate.inventory.server;
+package gov.nysenate.inventory.model;
 
 import com.google.gson.annotations.Expose;
 
@@ -21,17 +17,17 @@ public class InvItem
    
     boolean selected = false;
     
-    final int DECOMMODITYF = -101;
-    final int TYPE = -102;
-    final int NUSENATE = -103;
-    final int CDCATEGORY = -104;
-    final int SELECTED = -105;   
-    final int CDLOCAT = -106;   
-    final int CDLOCATTO = -107;   
-    final int CDINTRANSIT = -108;  // Note: Does not match the Andriod CDINTRANSIT value 
-    final int DECOMMENTS = -109; 
-    final int NUXREFCO = -110; 
-    final int CDCOMMODITY = -111; 
+    final transient int DECOMMODITYF = -101;
+    final transient int TYPE = -102;
+    final transient int NUSENATE = -103;
+    final transient int CDCATEGORY = -104;
+    final transient int SELECTED = -105;
+    final transient int CDLOCAT = -106;
+    final transient int CDLOCATTO = -107;
+    final transient int CDINTRANSIT = -108;  // Note: Does not match the Andriod CDINTRANSIT value
+    final transient int DECOMMENTS = -109;
+    final transient int NUXREFCO = -110;
+    final transient int CDCOMMODITY = -111;
     
     public InvItem(String nusenate, String cdcategory, String type,
             String decommodityf) {

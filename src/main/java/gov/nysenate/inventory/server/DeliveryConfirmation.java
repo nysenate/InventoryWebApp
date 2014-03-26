@@ -8,9 +8,7 @@ import gov.nysenate.inventory.util.TransactionParser;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URLDecoder;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -27,43 +25,25 @@ import org.apache.log4j.Logger;
  */
 @WebServlet(name = "DeliveryConfirmation", urlPatterns = {"/DeliveryConfirmation"})
 public class DeliveryConfirmation extends HttpServlet {
- 
- /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+
+    private static final Logger log = Logger.getLogger(DeliveryConfirmation.class.getName());
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        Logger log = Logger.getLogger(DeliveryConfirmation.class.getName());
         response.setContentType("text/html;charset=UTF-8");
-
-        Transaction delivery = new Transaction();
-        DbConnect db = null;
-        String userFallback = null;
-
         PrintWriter out = response.getWriter();
-        db = HttpUtils.getHttpSession(request, response, out);
 
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        Transaction delivery = null;
         try {
-            db.clientIpAddr = request.getRemoteAddr();
-            log.info(db.clientIpAddr + "|" + "Servlet DeliveryConfirmation : Start");
-
             String deliveryJson = request.getParameter("Delivery");
-
+            log.info("Completing delivery: " + deliveryJson);
             TransactionMapper mapper = new TransactionMapper();
             try {
                 delivery = TransactionParser.parseTransaction(deliveryJson);
                 mapper.completeDelivery(db, delivery);
             } catch (SQLException e) {
                 out.println("Database not updated");
-                log.info(db.clientIpAddr + "|" + "Database not updated");
                 log.error("SQL Exception ", e);
                 return;
             } catch (ClassNotFoundException e) {
@@ -74,9 +54,6 @@ public class DeliveryConfirmation extends HttpServlet {
             }
 
             emailDeliveryReceipt(out, "Database updated successfully", delivery, request);
-            log.info(db.clientIpAddr + "|" + "Database updated successfully");
-
-            log.info(db.clientIpAddr + "|" + "Servlet DeliveryConfirmation : end");
         } finally {
             out.close();
         }
@@ -107,44 +84,16 @@ public class DeliveryConfirmation extends HttpServlet {
         out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+"-2).");
       }
     }
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP
-     * <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Handles the HTTP
-     * <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
 }

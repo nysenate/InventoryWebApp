@@ -26,13 +26,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+
+import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 
 import gov.nysenate.inventory.model.SimpleListItem;
@@ -49,6 +49,8 @@ import java.sql.Timestamp;
  * @author senateuser
  */
 public class TestGson {
+
+    private static final Logger log = Logger.getLogger(TestGson.class.getName());
     
     public static void main (String[] args) throws ParserConfigurationException {
         DbConnect db = new DbConnect();
@@ -75,8 +77,12 @@ public class TestGson {
            System.out.println (warningEmailData.getMessage());
            System.out.println (warningEmailData.getFormattedMessage());
             
-         } catch (InvalidParameterException | ParameterNotUsedException | BlankMessageException ex) {
-            Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
          }        
         
        /* String test = "EMPLOYEE";

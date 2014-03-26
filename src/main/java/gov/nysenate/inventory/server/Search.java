@@ -1,9 +1,11 @@
 package gov.nysenate.inventory.server;
 
+import gov.nysenate.inventory.util.HttpUtils;
+import org.apache.log4j.Logger;
+
 import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -18,68 +20,37 @@ import javax.servlet.http.HttpSession;
 @WebServlet(name = "Search", urlPatterns = {"/Search"})
 public class Search extends HttpServlet
 {
-    /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+
+    private static final Logger log = Logger.getLogger(Search.class.getName());
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
                    throws ServletException, IOException
     {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+
         try {
-            HttpSession httpSession = request.getSession(false);
-            DbConnect db;     
-            String userFallback = null;
-            if (httpSession==null) {
-                System.out.println ("****SESSION NOT FOUND");
-                db = new DbConnect();
-                log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND Search.processRequest ");                 
-                try {
-                   userFallback  = request.getParameter("userFallback");
-                }
-                catch (Exception e) {
-                    log.info(db.clientIpAddr + "|" + "****SESSION NOT FOUND Search.processRequest could not process Fallback Username. Generic Username will be used instead.");                
-                } 
-                out.println("Session timed out");
-                return;
-            }
-            else {
-                long  lastAccess = (System.currentTimeMillis() - httpSession.getLastAccessedTime());
-                System.out.println ("SESSION FOUND!!!!LAST ACCESSED:"+this.convertTime(lastAccess));
-                String user = (String)httpSession.getAttribute("user");
-                String pwd = (String)httpSession.getAttribute("pwd");
-                System.out.println ("--------USER:"+user);
-                db = new DbConnect(user, pwd);
-                
-            }
-            db.clientIpAddr=request.getRemoteAddr();
-            Logger.getLogger(Search.class.getName()).info(db.clientIpAddr+"|"+"Servlet Search : start");
+            DbConnect db = HttpUtils.getHttpSession(request, response, out);
+
             String barcode_num = request.getParameter("barcode_num");
-            System.out.println("Search Servlet  barcode_num " + barcode_num);
-            
-            String details = db.getDetails(barcode_num, userFallback);
-            String commodityCode = db.getItemCommodityCode(barcode_num, userFallback);
+            log.info("Searching for info on barcode: " + barcode_num);
+
+            String details = db.getDetails(barcode_num);
+            String commodityCode = db.getItemCommodityCode(barcode_num);
 
             if (details.equals("no")) {
                 out.println("Does not exist in system");
+                log.info("barcode: " + barcode_num + " does not exist.");
             }
             else {
                 details += "|" + commodityCode;
+                log.info("Info for barcode: " + barcode_num + " = " + details);
                 String model[] = details.split("\\|");
                 String deadjust = "";
                 if (model.length>11) {
                     deadjust = model[11].replaceAll("\"", "&#34;");
                 }
-                
-                System.out.println("DETAILS:"+details+" MODEL LENGTH:"+model.length);
-                // out.println(" Model   :  "+model[0]+"\n Location :  "+model[1]+"\n Manufacturer : "+model[2]+"\n Signed By  :    "+model[3]);
+                                // out.println(" Model   :  "+model[0]+"\n Location :  "+model[1]+"\n Manufacturer : "+model[2]+"\n Signed By  :    "+model[3]);
                 //V_NUSENATE,V_NUXREFSN,V_NUSERIAL,V_DTISSUE,V_CDLOCATTO,V_CDLOCTYPETO,V_CDCATEGORY,V_DECOMMODITYF
                 //out.println(" Barcode   :  "+model[0]+"\n NUXREFSN :  "+model[1]+"\n NUSERIAL : "+model[2]+"\n DTISSUE  :    "+model[3]+"\n CDLOCATTO  :    "+model[4]+"\n CDLOCTYPETO :    "+model[5]+"\n CDCATEGORY  :    "+model[6]+"\n DECOMMODITYF  :    "+model[7]);
 
@@ -88,54 +59,13 @@ public class Search extends HttpServlet
                 out.println("{\"nusenate\":\"" + model[0] + "\",\"nuxrefsn\":\"" + model[1] + "\",\"dtissue\":\"" + model[3] + "\",\"cdlocatto\":\"" + model[4] + "\",\"cdloctypeto\":\"" + model[5]
                         + "\",\"cdcategory\":\"" + model[6] + "\",\"adstreet1to\":\"" + model[7].replaceAll("\"", "&#34;") + "\",\"decommodityf\":\"" + model[8].replaceAll("\"", "&#34;")
                         + "\",\"cdstatus\":\"" + model[10] + "\",\"deadjust\":\"" + deadjust + "\",\"dtlstinvntry\":\"" + model[13] + "\",\"commodityCd\":\"" + model[14] +  "\",\"nuserial\":\"" + model[2] + "\"}");
-                System.out.println("**Details** " + details);
              }
-
-
-            Logger.getLogger(Search.class.getName()).info(db.clientIpAddr+"|"+"Servlet Search : end");
 
         } finally {
             out.close();
         }
-    } // processRequest()
-    public String convertTime(long time) {
-        long secDiv = 1000;        
-        long minDiv = 1000 * 60;
-        long hourDiv = 1000 * 60 *60;
-        long minutes = time % hourDiv;
-        long seconds = minutes % minDiv;
-        int hoursConverted = (int)(time/hourDiv);
-        int minutesConverted = (int)(minutes/minDiv);
-        int secondsConverted = (int)(seconds/secDiv);
-      
-        StringBuffer  returnTime = new StringBuffer();
-        if (hoursConverted>0) {
-            returnTime.append("Hours:");
-            returnTime.append(hoursConverted);
-            returnTime.append(" ");
-        }
-        if (hoursConverted>0||minutesConverted>0) {
-            returnTime.append("Minutes:");
-            returnTime.append(minutesConverted);
-            returnTime.append(" ");
-        }
-        returnTime.append("Seconds:");
-        returnTime.append(secondsConverted);
-        returnTime.append(" ");
-        
-        return returnTime.toString();
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP
-     * <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
                    throws ServletException, IOException
@@ -143,34 +73,11 @@ public class Search extends HttpServlet
         processRequest(request, response);
     } // doGet()
 
-
-
-    /**
-     * Handles the HTTP
-     * <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
                    throws ServletException, IOException
     {
         processRequest(request, response);
-    } // doPost()
+    }
 
-
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo()
-    {
-        return "Short description";
-    }// </editor-fold>
 }
