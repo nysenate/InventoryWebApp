@@ -501,6 +501,9 @@ public class EmailMoveReceipt implements Runnable
            if (serverInfo!=null) {
                emailData.put("ServerInfo", serverInfo);
            }
+           else {
+               emailData.put("ServerInfo", "");
+           }
            
          } catch (InvalidParameterException ex) {
             Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
@@ -525,6 +528,9 @@ public class EmailMoveReceipt implements Runnable
            emailData.put("UserName", nadeliverbyName);
            if (serverInfo!=null) {
                emailData.put("ServerInfo", serverInfo);
+           }
+           else {
+              emailData.put("ServerInfo", "");
            }
                  
          } catch (InvalidParameterException ex) {
@@ -1043,6 +1049,9 @@ public class EmailMoveReceipt implements Runnable
            if (serverInfo!=null) {
                errorEmailData.put("ServerInfo", serverInfo);
            }
+           else {
+               errorEmailData.put("ServerInfo", "");
+           }
          } catch (InvalidParameterException ex) {
             Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
          } catch (ParameterNotUsedException ex) {
@@ -1169,6 +1178,7 @@ public class EmailMoveReceipt implements Runnable
                warningEmailData.put("ServerInfo", serverInfo);
            }
            else {
+               warningEmailData.put("ServerInfo", "");               
                System.out.println("!!!!!NULL serverInfo:"+serverInfo);          
            }
          } catch (InvalidParameterException ex) {
