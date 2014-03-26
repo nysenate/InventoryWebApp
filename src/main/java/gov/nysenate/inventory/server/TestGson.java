@@ -53,6 +53,7 @@ public class TestGson {
     public static void main (String[] args) throws ParserConfigurationException {
         DbConnect db = new DbConnect();
         EmailData warningEmailData = new EmailData(db, "EMAILWARNING");
+        String serverInfo = null;
         try {
            /*if (testingMode) {
               emailData.setPreMessage(sbTestMsg.toString());
@@ -61,15 +62,20 @@ public class TestGson {
            warningEmailData.put("ReceiptURL", "http://www.google.com?test=1022");
            //warningEmailData.put("ReceiptURL", "http://www.google.com?test=1022" );
            warningEmailData.put("ProblemRecipients", "PROBLEM RECIPIENTS!!!");
+         if (serverInfo!=null) {
+               System.out.println("NOT NULL serverInfo:"+serverInfo);
+            //Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.INFO, "", null);
+               warningEmailData.put("ServerInfo", serverInfo);
+           }
+           else {
+               warningEmailData.put("ServerInfo", "");               
+               System.out.println("!!!!!NULL serverInfo:"+serverInfo);          
+           }           
            
            System.out.println (warningEmailData.getMessage());
            System.out.println (warningEmailData.getFormattedMessage());
             
-         } catch (InvalidParameterException ex) {
-            Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
-         } catch (ParameterNotUsedException ex) {
-            Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
-         } catch (BlankMessageException ex) {
+         } catch (InvalidParameterException | ParameterNotUsedException | BlankMessageException ex) {
             Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.SEVERE, null, ex);
          }        
         
