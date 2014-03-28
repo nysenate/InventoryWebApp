@@ -250,6 +250,7 @@ public class DbConnect extends DbManager
         System.out.println(user.trim().toUpperCase() + " HAS CLEARANCE");
         loginStatus.setNustatus(loginStatus.VALID);
         loginStatus.setCdseclevel(result.getString(1));
+        loginStatus.setDestatus(user.trim().toLowerCase() + " has clearance");
       }
       query = "Select dtpasswdexp From Im86orgid where nauser = ?";
       pstmt = conn.prepareStatement(query);
