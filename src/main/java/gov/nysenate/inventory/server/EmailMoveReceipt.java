@@ -491,21 +491,6 @@ public class EmailMoveReceipt implements Runnable
               emailData.setPreMessage(sbTestMsg.toString());
            }
            emailData.put("Employee", signingEmployee.getEmployeeName());
-           emailData.put("FromAddress", pickupAddress);
-           emailData.put("FromLocat", pickup.getOrigin().getCdlocat());
-           emailData.put("PickupDate", formatDate(dtreceipt, "dd-MMM-yy"));
-           emailData.put("RefDoc", receiptFilename);
-           emailData.put("ToAddress", deliverAddress);
-           emailData.put("ToLocat", pickup.getDestination().getCdlocat());
-           emailData.put("UserID", pickup.getNapickupby());
-           emailData.put("UserName", napickupbyName);
-           if (serverInfo!=null) {
-               emailData.put("ServerInfo", serverInfo);
-           }
-           else {
-               emailData.put("ServerInfo", "");
-           }
-           
          } catch (InvalidParameterException ex) {
             log.error(null, ex);
          } catch (ParameterNotUsedException ex) {
@@ -513,6 +498,100 @@ public class EmailMoveReceipt implements Runnable
          } catch (BlankMessageException ex) {
             log.error(null, ex);
          }        
+           
+        try {
+           emailData.put("FromAddress", pickupAddress);
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+
+        try {
+           emailData.put("FromLocat", pickup.getOrigin().getCdlocat());
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }   
+        
+        try {
+           emailData.put("PickupDate", formatDate(dtreceipt, "dd-MMM-yy"));
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+        
+        try {
+           emailData.put("RefDoc", receiptFilename);
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+        
+        try {
+           emailData.put("ToAddress", deliverAddress);
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+        
+        try {
+           emailData.put("ToLocat", pickup.getDestination().getCdlocat());
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+
+        try {
+           emailData.put("UserID", pickup.getNapickupby());
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+        try {
+           emailData.put("UserName", napickupbyName);
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+        try {
+           if (serverInfo!=null) {
+               emailData.put("ServerInfo", serverInfo);
+           }
+           else {
+               emailData.put("ServerInfo", "");
+           }
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+           
         break;
       case DELIVERY:
         emailData = new EmailData(db, "DELIVERYRCPT");        
@@ -521,12 +600,69 @@ public class EmailMoveReceipt implements Runnable
               emailData.setPreMessage(sbTestMsg.toString());
            }
            emailData.put("DeliveryDate", formatDate(dtreceipt, "dd-MMM-yy"));
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+           
+        try {
            emailData.put("Employee", signingEmployee.getEmployeeName());
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+        try {
            emailData.put("RefDoc", receiptFilename);
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+        try {
            emailData.put("ToAddress", deliverAddress);
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+        try {
            emailData.put("ToLocat", delivery.getDestination().getCdlocat());
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+        try {
            emailData.put("UserID", delivery.getNapickupby());
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+        try {
            emailData.put("UserName", nadeliverbyName);
+         } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+         } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+         } catch (BlankMessageException ex) {
+            log.error(null, ex);
+         }        
+        try {
            if (serverInfo!=null) {
                emailData.put("ServerInfo", serverInfo);
            }
@@ -1200,7 +1336,7 @@ public class EmailMoveReceipt implements Runnable
         message.setText(msgHeader + msgOverride, "utf-8", "html");
       }
       log.warn("{0}" + "|" + "(" + this.dbaUrl + ") !!!!EMAILWARNING AFTER SET MESSAGE");
-      log.info("{0}|(" + this.dbaUrl + ")  EMAIL WARNING MSG: " + message);
+      log.info("{0}|(" + this.dbaUrl + ")  EMAIL WARNING MSG " );
       /*if (this.problemEmailAddrs != null && this.problemEmailAddrs.size() > 0) {
         this.emailWarning(emailType);
       }*/
