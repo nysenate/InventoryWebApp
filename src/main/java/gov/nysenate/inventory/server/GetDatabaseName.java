@@ -28,8 +28,16 @@ public class GetDatabaseName extends HttpServlet
     PrintWriter out = response.getWriter();
         try {
             DbConnect db = HttpUtils.getHttpSession(request, response, out);
-            log.info("Getting database name.");
+            /*
+             * Override the SC_SESSION_TIMEOUT since we do not want it to state
+             * that the session timed out here. We don't care if it is timed out,
+             * no session exists, etc.. We just want to return the database string.
+             */
+            if (response.getStatus()==HttpUtils.SC_SESSION_TIMEOUT) {
+                response.setStatus(HttpUtils.SC_SESSION_OK);
+            }
             String result = db.getDatabaseName();
+            System.out.println("RETURNING:"+result);
             out.println(result);
             
         } finally {      
