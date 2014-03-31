@@ -107,7 +107,6 @@ public class EmailMoveReceipt implements Runnable
   EmailValidator emailValidator = new EmailValidator();
   InvUtil invUtil = new InvUtil();
   HttpServletRequest request = null;
-  private String serverName = "";
   private String subjectAddText = "";
   
   private static final Logger log = Logger.getLogger(EmailMoveReceipt.class.getName());
