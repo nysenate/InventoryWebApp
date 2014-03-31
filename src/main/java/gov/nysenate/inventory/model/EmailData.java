@@ -14,6 +14,7 @@ import java.util.Map;
 import javax.mail.internet.InternetAddress;
 import gov.nysenate.inventory.exception.InvalidParameterException;
 import gov.nysenate.inventory.exception.ParameterNotUsedException;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 
 /**
@@ -36,14 +37,14 @@ public class EmailData
  private static final Logger log = Logger.getLogger(EmailData.class.getName());
 
  public EmailData(String cdemail) {
-   this.db = new DbConnect();
+   this.db = new DbConnect((HttpServletRequest)null);
    this.cdemail = cdemail;
    this.pullEmailInfoFromDatabase();
  }
  
  public EmailData(DbConnect db, String cdemail) {
    if (db==null) {
-     this.db = new DbConnect();
+     this.db = new DbConnect((HttpServletRequest)null);
    }
    else {
      this.db = db;

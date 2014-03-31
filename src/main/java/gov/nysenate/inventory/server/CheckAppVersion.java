@@ -34,11 +34,13 @@ public class CheckAppVersion extends HttpServlet {
     
     String serverOS = "Windows"; // Default to Windows OS
     String pathDelimeter = "\\"; 
+    private HttpServletRequest request = null;
     
     private static final Logger log = Logger.getLogger(CheckAppVersion.class.getName());
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        this.request = request;
         serverOS = System.getProperty("os.name");
         if (serverOS.toUpperCase().indexOf("WINDOWS")==-1) {
             pathDelimeter = "/";
@@ -125,7 +127,7 @@ public class CheckAppVersion extends HttpServlet {
        int fileSize = (int)f.length();
        f = null;
        System.gc();
-       DbConnect db = new DbConnect();
+       DbConnect db = new DbConnect(this.request);
                
        if (fileName.endsWith(".apk") || fileName.endsWith(".zip")) {
             try {

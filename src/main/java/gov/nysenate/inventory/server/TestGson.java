@@ -53,13 +53,11 @@ public class TestGson {
     private static final Logger log = Logger.getLogger(TestGson.class.getName());
     
     public static void main (String[] args) throws ParserConfigurationException {
-        DbConnect db = new DbConnect();
-        EmailData warningEmailData = new EmailData(db, "EMAILWARNING");
+        DbConnect db = new DbConnect(null);
+        System.out.println("serverName:"+db.serverName);
+/*        EmailData warningEmailData = new EmailData(db, "EMAILWARNING");
         String serverInfo = null;
         try {
-           /*if (testingMode) {
-              emailData.setPreMessage(sbTestMsg.toString());
-           }*/
            warningEmailData.put("EmailType", "FAKE EMAIL TYPE");
            warningEmailData.put("ReceiptURL", "http://www.google.com?test=1022");
            //warningEmailData.put("ReceiptURL", "http://www.google.com?test=1022" );

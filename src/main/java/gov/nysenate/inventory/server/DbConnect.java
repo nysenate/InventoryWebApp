@@ -43,6 +43,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Calendar;
 import java.util.Date;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  *
@@ -61,23 +62,26 @@ public class DbConnect extends DbManager
   private String dbaName = "";
   private int passwordExpireWarning = 10;
   private InetAddress inetAddress;
+  private HttpServletRequest request = null;
 
-  public DbConnect()
+  public DbConnect(HttpServletRequest request)
   {
+    this.request = request;
     loadProperties();
     getServerAddress();
     userName = properties.getProperty("user");
     password = properties.getProperty("password");
   }
-
-  public DbConnect(String user, String pwd)
+  
+  public DbConnect(HttpServletRequest request, String user, String pwd)
   {
+    this.request = request;
     loadProperties();
     getServerAddress();
     userName = user;
     password = pwd;
-  }
-
+  } 
+  
   private void loadProperties()
   {
     if (properties == null) {
@@ -106,13 +110,19 @@ public class DbConnect extends DbManager
       try {
           inetAddress = InetAddress.getLocalHost();
           this.serverIpAddr = inetAddress.getHostAddress();
-          this.serverName = inetAddress.getHostName();
+          if (this.request == null) {
+            this.serverName = inetAddress.getHostName();
+            log.info("!!TEST: SERVERNAME OBTAINED FROM inetAddress:"+this.serverName);
+          }
+          else {
+            this.serverName = request.getServerName();
+            log.info("!!TEST: SERVERNAME OBTAINED FROM REQUEST:"+this.serverName+" (inetAddress Server Name:"+inetAddress.getHostName()+")");
+          }
       } catch (UnknownHostException ex) {
           java.util.logging.Logger.getLogger(DbConnect.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
       }
       
   }
-  
   
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Main function for testing other functions
@@ -1367,7 +1377,7 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    DbConnect db = new DbConnect();
+    DbConnect db = new DbConnect(request);
     db.invTransit(pickup, userFallback, delivery.getNuxrpd());
     log.info("createNewDelivery() end ");
     return 0;

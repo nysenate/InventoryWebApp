@@ -96,7 +96,7 @@ public class PickupServlet extends HttpServlet
         String user = (String) httpSession.getAttribute("user");
         String pwd = (String) httpSession.getAttribute("pwd");        
 
-        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(user, pwd, "pickup" ,pickup);
+        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(request, user, pwd, "pickup" ,pickup);
         user = null;
         pwd = null;
 

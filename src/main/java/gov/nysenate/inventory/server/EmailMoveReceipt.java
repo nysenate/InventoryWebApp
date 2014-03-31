@@ -41,6 +41,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -105,11 +106,14 @@ public class EmailMoveReceipt implements Runnable
   private ArrayList<EmailRecord> problemEmailAddrs = new ArrayList<>();
   EmailValidator emailValidator = new EmailValidator();
   InvUtil invUtil = new InvUtil();
-
+  HttpServletRequest request = null;
+  
   private static final Logger log = Logger.getLogger(EmailMoveReceipt.class.getName());
 
-  public EmailMoveReceipt(String username, String password, String type, Transaction trans)
+  public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, Transaction trans)
   {
+    this.request = request;
+    
     switch (type) {
       case "pickup":
         this.emailType = PICKUP;
@@ -122,7 +126,7 @@ public class EmailMoveReceipt implements Runnable
         attachmentPart = null;
         transTypeParam = "&p_transtype=PICKUP";
         System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
-        db = new DbConnect(username, password);
+        db = new DbConnect(request, username, password);
         
         this.serverInfo = "";
         
@@ -161,7 +165,7 @@ public class EmailMoveReceipt implements Runnable
         // set to username (which should be set)
         transTypeParam = "&p_transtype=DELIVERY";
         attachmentPart = null;
-        db = new DbConnect(username, password);
+        db = new DbConnect(request, username, password);
         System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
         properties = new Properties();
         in = getClass().getClassLoader().getResourceAsStream("config.properties");

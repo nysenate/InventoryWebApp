@@ -66,7 +66,7 @@ public class DeliveryConfirmation extends HttpServlet {
         String user = (String) httpSession.getAttribute("user");
         String pwd = (String) httpSession.getAttribute("pwd");
 
-        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(user, pwd, "delivery", delivery);
+        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(request, user, pwd, "delivery", delivery);
         Thread threadEmailMoveReceipt = new Thread(emailMoveReceipt);
         threadEmailMoveReceipt.start();
 

@@ -27,7 +27,7 @@ public class HttpUtils {
         String userFallback = "";
         if (httpSession == null) {
             System.out.println("****SESSION NOT FOUND");
-            db = new DbConnect();
+            db = new DbConnect(request);
             log.info("Session not found/timed out.");
             out.println("Session timed out");
             response.setStatus(noSessionStatus);
@@ -38,11 +38,11 @@ public class HttpUtils {
             String pwd = (String) httpSession.getAttribute("pwd");
             if (user==null||user.trim().length()==0||pwd==null||pwd.trim().length()==0) {
                 System.out.println("SESSION FOUND!!!! WITH MISSING USER/PASSWORD WILL BE TREATED AS IF SESSION WAS NOT FOUND" );
-                db = new DbConnect();
+                db = new DbConnect(request);
                 response.setStatus(noSessionStatus);
             }
             else {
-                db = new DbConnect(user, pwd);
+                db = new DbConnect(request, user, pwd);
             }
         }
         return db;
