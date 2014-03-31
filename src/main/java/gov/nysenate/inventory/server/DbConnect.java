@@ -118,8 +118,17 @@ public class DbConnect extends DbManager
             this.serverName = request.getServerName();
             log.info("!!TEST: SERVERNAME OBTAINED FROM REQUEST:"+this.serverName+" (inetAddress Server Name:"+inetAddress.getHostName()+")");
           }
+
+          if (this.serverName!=null) {
+              int firstPeriod = this.serverName.indexOf(".");
+              if (firstPeriod>-1) {
+                  this.serverName = this.serverName.substring(0,firstPeriod);
+              }
+          }
       } catch (UnknownHostException ex) {
           java.util.logging.Logger.getLogger(DbConnect.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+      } catch (Exception ex) {
+          java.util.logging.Logger.getLogger(DbConnect.class.getName()).log(java.util.logging.Level.WARNING, null, ex);
       }
       
   }
