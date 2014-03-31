@@ -107,13 +107,15 @@ public class EmailMoveReceipt implements Runnable
   EmailValidator emailValidator = new EmailValidator();
   InvUtil invUtil = new InvUtil();
   HttpServletRequest request = null;
+  private String serverName = "";
+  private String subjectAddText = "";
   
   private static final Logger log = Logger.getLogger(EmailMoveReceipt.class.getName());
 
   public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, Transaction trans)
   {
     this.request = request;
-    
+
     switch (type) {
       case "pickup":
         this.emailType = PICKUP;
@@ -129,8 +131,14 @@ public class EmailMoveReceipt implements Runnable
         db = new DbConnect(request, username, password);
         
         this.serverInfo = "";
+        this.subjectAddText  = "";
         
-        if (db.serverName.toUpperCase().contains("DEV")||db.serverName.toUpperCase().contains("TEST")) {
+        if (db.serverName.toUpperCase().contains("PROD")) {
+            this.subjectAddText  = "";
+            this.serverInfo = "";
+        }
+        else {
+            this.subjectAddText  = " ("+db.serverName+")";
             this.serverInfo = "<b>SERVER: "+db.serverName+" ("+db.serverIpAddr+")</b><br/><br/><br/>";
         }
         
@@ -938,9 +946,9 @@ public class EmailMoveReceipt implements Runnable
 
       //System.out.println("EMAILING BEFORE SUBJECT");
       if (emailType == DELIVERY) {
-        msg.setSubject("Equipment Delivery Receipt");
+            msg.setSubject("Equipment Delivery Receipt"+subjectAddText);
       } else {
-        msg.setSubject("Equipment Pickup Receipt");
+            msg.setSubject("Equipment Pickup Receipt"+subjectAddText);
       }
       //msg.setText(msgBody, "utf-8", "html");
       MimeBodyPart mbp1 = new MimeBodyPart();
@@ -1148,9 +1156,9 @@ public class EmailMoveReceipt implements Runnable
       // Set Subject: header field
 
       if (emailType == PICKUP) {
-        message.setSubject("!!ERROR: Oracle Report Server Unable to Generate Pickup Receipt. Contact STS/BAC.");
+        message.setSubject("!!ERROR: Oracle Report Server Unable to Generate Pickup Receipt. Contact STS/BAC."+subjectAddText);
       } else if (emailType == DELIVERY) {
-        message.setSubject("!!ERROR: Oracle Report Server Unable to Generate Delivery Receipt. Contact STS/BAC.");
+        message.setSubject("!!ERROR: Oracle Report Server Unable to Generate Delivery Receipt. Contact STS/BAC."+subjectAddText);
       }
 
       log.warn("{0}" + "|" + "!!!!EMAILERROR BEFORE MESSAGE HEADER");
@@ -1295,10 +1303,10 @@ public class EmailMoveReceipt implements Runnable
 
       String sEmailType = "";
       if (emailType == PICKUP) {
-        message.setSubject("***WARNING: Pickup Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC.");
+        message.setSubject("***WARNING: Pickup Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC."+subjectAddText);
         sEmailType = "PICKUP";
       } else if (emailType == DELIVERY) {
-        message.setSubject("***WARNING: Delivery Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC.");
+        message.setSubject("***WARNING: Delivery Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC."+subjectAddText);
         sEmailType = "DELIVERY";
       }
 
