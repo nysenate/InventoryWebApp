@@ -174,6 +174,10 @@ public class EmailData
       map.put(key, value);
   }
   
+  public void clearValues() {
+      map = new HashMap();
+  }
+  
   private void pullEmailInfoFromDatabase() {
    try {
      this.message = null;
