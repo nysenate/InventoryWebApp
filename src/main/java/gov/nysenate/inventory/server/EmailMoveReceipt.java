@@ -1245,6 +1245,9 @@ public class EmailMoveReceipt implements Runnable
 
   public void emailWarning(int emailType, String msgOverride)
   {
+    if (problemEmailAddrs==null||problemEmailAddrs.size()==0) {
+        return;
+    }
     Properties props = new Properties();
     String smtpServer = properties.getProperty("smtpServer");
     props.setProperty("mail.smtp.host", smtpServer);
