@@ -109,9 +109,15 @@ public class EmailMoveReceipt implements Runnable {
     HttpServletRequest request = null;
     private String subjectAddText = "";
     private static final Logger log = Logger.getLogger(EmailMoveReceipt.class.getName());
-
+    private String paperworkType = null;
+    
     public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, Transaction trans) {
+            this(request, username, password, type, (String)null, trans);
+    }
+
+    public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, String paperworkType, Transaction trans) {
         this.request = request;
+        this.paperworkType = paperworkType;
 
         switch (type) {
             case "pickup":
@@ -131,10 +137,20 @@ public class EmailMoveReceipt implements Runnable {
                 this.subjectAddText = "";
 
                 if (db.serverName.toUpperCase().contains("PROD")) {
-                    this.subjectAddText = "";
+                    if (this.paperworkType.equalsIgnoreCase("RPK")) {
+                        this.subjectAddText = " (REMOTE)";
+                    }
+                    else {
+                        this.subjectAddText = "";
+                    }
                     this.serverInfo = "";
                 } else {
-                    this.subjectAddText = " (" + db.serverName + ")";
+                    if (this.paperworkType.equalsIgnoreCase("RPK")) {
+                        this.subjectAddText = " (REMOTE) (" + db.serverName + ")";
+                    }
+                    else {
+                        this.subjectAddText = " (" + db.serverName + ")";
+                    }
                     this.serverInfo = "<b>SERVER: " + db.serverName + " (" + db.serverIpAddr + ")</b><br/><br/><br/>";
                 }
 
@@ -170,6 +186,26 @@ public class EmailMoveReceipt implements Runnable {
                 transTypeParam = "&p_transtype=DELIVERY";
                 attachmentPart = null;
                 db = new DbConnect(request, username, password);
+                this.serverInfo = "";
+                this.subjectAddText = "";
+
+                if (db.serverName.toUpperCase().contains("PROD")) {
+                    if (this.paperworkType.equalsIgnoreCase("RDL")) {
+                        this.subjectAddText = " (REMOTE)";
+                    }
+                    else {
+                        this.subjectAddText = "";
+                    }
+                    this.serverInfo = "";
+                } else {
+                    if (this.paperworkType.equalsIgnoreCase("RDL")) {
+                        this.subjectAddText = " (REMOTE) (" + db.serverName + ")";
+                    }
+                    else {
+                        this.subjectAddText = " (" + db.serverName + ")";
+                    }
+                    this.serverInfo = "<b>SERVER: " + db.serverName + " (" + db.serverIpAddr + ")</b><br/><br/><br/>";
+                }                
                 System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
                 properties = new Properties();
                 in = getClass().getClassLoader().getResourceAsStream("config.properties");
@@ -488,7 +524,31 @@ public class EmailMoveReceipt implements Runnable {
 
         switch (this.emailType) {
             case PICKUP:
-                emailData = new EmailData(db, "PICKUPRCPT");
+                if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
+                    emailData = new EmailData(db, "REMOTEPICKUPRCPT");
+                    try {
+                        emailData.put("ShipType", pickup.getShipType());
+                    } catch (InvalidParameterException ex) {
+                        log.error(null, ex);
+                    } catch (ParameterNotUsedException ex) {
+                        log.error(null, ex);
+                    } catch (BlankMessageException ex) {
+                        log.error(null, ex);
+                    }
+                    
+                    try {
+                        emailData.put("ShipTypeDesc", pickup.getShipTypeDesc());
+                    } catch (InvalidParameterException ex) {
+                        log.error(null, ex);
+                    } catch (ParameterNotUsedException ex) {
+                        log.error(null, ex);
+                    } catch (BlankMessageException ex) {
+                        log.error(null, ex);
+                    }
+                }
+                else {
+                    emailData = new EmailData(db, "PICKUPRCPT");
+                }
                 try {
                     if (testingMode) {
                         emailData.setPreMessage(sbTestMsg.toString());

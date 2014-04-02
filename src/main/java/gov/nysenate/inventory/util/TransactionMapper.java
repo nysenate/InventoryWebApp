@@ -156,7 +156,7 @@ public class TransactionMapper extends DbManager {
                 "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adzipcode fromzip, " +
                 "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adzipcode tozip, " +
                 "invintrans.nuxrefem, invintrans.nuxrrelsign, " +
-                "(SELECT count(nusenate) from fd12invintrans d where d.nuxrpd = invintrans.nuxrpd and d.cdstatus = 'A') cnt " +
+                "(SELECT count(nusenate) from fd12invintrans d where d.nuxrpd = invintrans.nuxrpd and d.cdstatus = 'A') cnt, shiptyp.deshiptyp " +
                 "FROM fm12invintrans invintrans " +
                 "LEFT OUTER JOIN fl12shiptyp shiptyp " +
                 "ON invintrans.nuxrshiptyp = shiptyp.nuxrshiptyp " +
@@ -469,6 +469,7 @@ public class TransactionMapper extends DbManager {
         trans.setEmployeeId(result.getInt(24));
         trans.setNuxrrelsign(result.getString(25));
         trans.setCount(result.getInt(26));
+        trans.setShipTypeDesc(result.getString(27));
 
         trans.setOrigin(origin);
         trans.setDestination(dest);

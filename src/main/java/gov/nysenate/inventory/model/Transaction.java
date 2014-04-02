@@ -36,6 +36,7 @@ public class Transaction {
     // Remote Info
     private int shipId;
     private String shipType;
+    private String shipTypeDesc;    
     private String shipComments;
     private int verificationId;
     private String verificationMethod;
@@ -86,9 +87,9 @@ public class Transaction {
     public String getRemoteType() {
         if (this.isRemote()) {
             if (origin.getAdcity().equalsIgnoreCase("Albany"))
-                return "D";
+                return "RDL";
 
-            return "P";
+            return "RPK";
         }
         return "";
     }
@@ -175,11 +176,19 @@ public class Transaction {
     public String getShipType() {
         return shipType;
     }
+    
+    public String getShipTypeDesc() {
+        return shipTypeDesc;
+    }
 
     public void setShipType(String shipType) {
         this.shipType = shipType;
     }
 
+    public void setShipTypeDesc(String shipTypeDesc) {
+        this.shipTypeDesc = shipTypeDesc;
+    }
+    
     public String getShipComments() {
         return shipComments;
     }
