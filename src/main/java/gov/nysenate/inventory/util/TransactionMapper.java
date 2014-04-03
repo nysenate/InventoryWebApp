@@ -23,7 +23,7 @@ public class TransactionMapper extends DbManager {
     private static final String fm12invintransColumns = "NUXRPD, CDLOCATTO, CDLOCATFROM, CDINTRANSIT, NAPICKUPBY, NARELEASEBY, " +
             "NUXRRELSIGN, CDSTATUS, DTTXNORIGIN, DTTXNUPDATE, NATXNORGUSER, NATXNUPDUSER, DEPUCOMMENTS, NUXRACCPTSIGN, NADELIVERBY, " +
             "NAACCEPTBY, NUXRPDORIG, DTPICKUP, DTDELIVERY, DEDELCOMMENTS, CDLOCTYPEFRM, CDLOCTYPETO, DESHIPCOMMENTS, DEVERCOMMENTS, " +
-            "NUHELPREF, NUXREFEM, NUXRSHIPTYP, NUXRVERMTHD";
+            "NUHELPREF, NUXREFEMPPWRK, NUXRSHIPTYP, NUXRVERMTHD";
 
     private static final String fd12invintransColumns = "NUXRPD, NUSENATE, CDSTATUS, DTTXNORIGIN, DTTXNUPDATE, NATXNORGUSER, NATXNUPDUSER";
 
@@ -57,7 +57,7 @@ public class TransactionMapper extends DbManager {
             
             query = "INSERT INTO FM12INVINTRANS (NUXRPD, CDLOCATTO, CDLOCATFROM, CDINTRANSIT, NAPICKUPBY, NARELEASEBY, " +
                     "NUXRRELSIGN, CDSTATUS, DTTXNORIGIN, DTTXNUPDATE, NATXNORGUSER, NATXNUPDUSER, DEPUCOMMENTS, " +
-                    "NUXRPDORIG, DTPICKUP, CDLOCTYPEFRM, CDLOCTYPETO, NUXRSHIPTYP, CDRMTTYP" + ") " +
+                    "NUXRPDORIG, DTPICKUP, CDLOCTYPEFRM, CDLOCTYPETO, NUXRSHIPTYP, CDPPWRKTYP" + ") " +
                     "VALUES(?,?,?,?,?,?,?,?,SYSDATE,SYSDATE,USER,USER,?,?,?,?,?,?,?)";
 
             ps = conn.prepareStatement(query);
@@ -118,7 +118,7 @@ public class TransactionMapper extends DbManager {
         "CDLOCTYPETO = ?, " +
         "NUXRSHIPTYP = ?, " +
         "DESHIPCOMMENTS = ?, " +
-        "CDRMTTYP = ? " +
+        "CDPPWRKTYP = ? " +
         "WHERE nuxrpd = ? ";
 
         PreparedStatement ps = null;
@@ -155,7 +155,7 @@ public class TransactionMapper extends DbManager {
                 "invintrans.nuxrvermthd, vermthd.cdvermthd, invintrans.devercomments, " +
                 "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adzipcode fromzip, " +
                 "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adzipcode tozip, " +
-                "invintrans.nuxrefem, invintrans.nuxrrelsign, " +
+                "invintrans.NUXREFEMPPWRK, invintrans.nuxrrelsign, " +
                 "(SELECT count(nusenate) from fd12invintrans d where d.nuxrpd = invintrans.nuxrpd and d.cdstatus = 'A') cnt, shiptyp.deshiptyp " +
                 "FROM fm12invintrans invintrans " +
                 "LEFT OUTER JOIN fl12shiptyp shiptyp " +
@@ -200,7 +200,7 @@ public class TransactionMapper extends DbManager {
                 "invintrans.nuxrvermthd, vermthd.cdvermthd, invintrans.devercomments, " +
                 "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adzipcode fromzip, " +
                 "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adzipcode tozip, " +
-                "invintrans.nuxrefem, invintrans.nuxrrelsign, " +
+                "invintrans.NUXREFEMPPWRK, invintrans.nuxrrelsign, " +
                 "(SELECT count(nusenate) from fd12invintrans d where d.nuxrpd = invintrans.nuxrpd and d.cdstatus = 'A') cnt " +
                 "FROM fm12invintrans invintrans " +
                 "LEFT OUTER JOIN fl12shiptyp shiptyp " +
@@ -249,7 +249,7 @@ public class TransactionMapper extends DbManager {
                 "DEDELCOMMENTS=?, " +
                 "DESHIPCOMMENTS=?, " +
                 "DEVERCOMMENTS=?, " +
-                "NUXREFEM=?, " +
+                "NUXREFEMPPWRK=?, " +
                 "NUHELPREF=?, " +
                 "NUXRVERMTHD=?, " +
                 "NARELEASEBY=? " +
@@ -389,7 +389,7 @@ public class TransactionMapper extends DbManager {
 
     public void insertRemoteInfo(DbConnect db, Transaction trans) throws ClassNotFoundException, SQLException {
         String query = "UPDATE FM12INVINTRANS SET " +
-                "NUXREFEM = ?, " +
+                "NUXREFEMPPWRK = ?, " +
                 "NUXRVERMTHD = ?, " +
                 "NUHELPREF = ?, " +
                 "DEVERCOMMENTS = ?, " +
@@ -551,7 +551,7 @@ public class TransactionMapper extends DbManager {
                 "invintrans.nuxrvermthd, vermthd.cdvermthd, invintrans.devercomments, " +
                 "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adzipcode fromzip, " +
                 "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adzipcode tozip, " +
-                "invintrans.nuxrefem, invintrans.nuxrrelsign, " +
+                "invintrans.NUXREFEMPPWRK, invintrans.nuxrrelsign, " +
                 "(SELECT count(nusenate) from fd12invintrans d where d.nuxrpd = invintrans.nuxrpd and d.cdstatus = 'A') cnt " +
                 "FROM fm12invintrans invintrans " +
                 "LEFT OUTER JOIN fl12shiptyp shiptyp " +
