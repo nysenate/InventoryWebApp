@@ -137,20 +137,24 @@ public class EmailMoveReceipt implements Runnable {
                 this.subjectAddText = "";
 
                 if (db.serverName.toUpperCase().contains("PROD")) {
-                    if (this.paperworkType.equalsIgnoreCase("RPK")) {
+                    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE BEFORE PAPERWORK (PICKUP) PROD");                    
+                    if (this.paperworkType!=null && this.paperworkType.equalsIgnoreCase("RPK")) {
                         this.subjectAddText = " (REMOTE)";
                     }
                     else {
                         this.subjectAddText = "";
                     }
+                    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE YES!!! AFTER PAPERWORK (PICKUP) PROD");                    
                     this.serverInfo = "";
                 } else {
-                    if (this.paperworkType.equalsIgnoreCase("RPK")) {
+                    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE BEFORE PAPERWORK (PICKUP)");                    
+                    if (this.paperworkType!=null && this.paperworkType.equalsIgnoreCase("RPK")) {
                         this.subjectAddText = " (REMOTE) (" + db.serverName + ")";
                     }
                     else {
                         this.subjectAddText = " (" + db.serverName + ")";
                     }
+                    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE YES!!! AFTER PAPERWORK (PICKUP)");                    
                     this.serverInfo = "<b>SERVER: " + db.serverName + " (" + db.serverIpAddr + ")</b><br/><br/><br/>";
                 }
 
@@ -198,12 +202,14 @@ public class EmailMoveReceipt implements Runnable {
                     }
                     this.serverInfo = "";
                 } else {
-                    if (this.paperworkType.equalsIgnoreCase("RDL")) {
+                    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE BEFORE PAPERWORK (DELIVERY)");
+                    if (this.paperworkType!=null && this.paperworkType.equalsIgnoreCase("RDL")) {
                         this.subjectAddText = " (REMOTE) (" + db.serverName + ")";
                     }
                     else {
                         this.subjectAddText = " (" + db.serverName + ")";
                     }
+                    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE YES!!! AFTER PAPERWORK (DELIVERY)");
                     this.serverInfo = "<b>SERVER: " + db.serverName + " (" + db.serverIpAddr + ")</b><br/><br/><br/>";
                 }                
                 System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
