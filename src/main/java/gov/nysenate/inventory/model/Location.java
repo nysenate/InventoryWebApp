@@ -1,6 +1,9 @@
 package gov.nysenate.inventory.model;
 
-public class Location {
+import com.google.gson.Gson;
+
+public class Location
+{
 
     private String cdloctype;
     private String cdlocat;
@@ -10,7 +13,9 @@ public class Location {
     private String adstate;
 
     public Location() {
-
+        cdloctype = "";
+        cdlocat = "";
+        adstreet1 = "";
     }
 
     public Location(String summary) {
@@ -30,10 +35,6 @@ public class Location {
         return adstreet1;
     }
 
-    public void setAdstreet1(String adstreet1) {
-        this.adstreet1 = adstreet1;
-    }
-
     public String getCdloctype() {
         return cdloctype;
     }
@@ -50,20 +51,16 @@ public class Location {
         this.cdlocat = cdlocat;
     }
 
+    public void setAdstreet1(String addressLine1) {
+        this.adstreet1 = addressLine1;
+    }
+
     public String getAdcity() {
         return adcity;
     }
 
-    public void setAdcity(String adcity) {
-        this.adcity = adcity;
-    }
-    
-    public String getAdstate() {
-        return adstate;
-    }
-
-    public void setAdstate(String adstate) {
-        this.adstate = adstate;
+    public void setAdcity(String city) {
+        this.adcity = city;
     }
 
     public String getAdzipcode() {
@@ -74,8 +71,29 @@ public class Location {
         this.adzipcode = adzipcode;
     }
 
+    public String getAdstate() {
+        return adstate;
+    }
+
+    public void setAdstate(String adstate) {
+        this.adstate = adstate;
+    }
+
     public String getLocationSummaryString() {
         return getCdlocat() + "-" + getCdloctype()+ ": " + getAdstreet1();
+    }
+
+    public String getLocationSummaryStringRemoteAppended() {
+        String remoteTag = " [" + "<font color='#ff0000'>R</font>" + "]";
+        return this.isRemote() ? getLocationSummaryString() + remoteTag : getLocationSummaryString();
+    }
+
+    public String getFullAddress() {
+        return this.getAdstreet1() + " " + this.getAdcity() + ", " + this.getAdstate() + " " + this.getAdzipcode();
+    }
+
+    public String toJson() {
+        return new Gson().toJson(this);
     }
 
 }

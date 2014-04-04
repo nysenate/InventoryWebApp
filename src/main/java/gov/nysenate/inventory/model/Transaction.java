@@ -36,7 +36,7 @@ public class Transaction {
     // Remote Info
     private int shipId;
     private String shipType;
-    private String shipTypeDesc;    
+    private String shipTypeDesc;
     private String shipComments;
     private int verificationId;
     private String verificationMethod;
@@ -66,6 +66,7 @@ public class Transaction {
         helpReferenceNum = "";
     }
 
+    // shipType must exists for all remote transactions.
     public boolean isRemote() {
         return !shipType.equals("");
     }
@@ -176,19 +177,19 @@ public class Transaction {
     public String getShipType() {
         return shipType;
     }
-    
-    public String getShipTypeDesc() {
-        return shipTypeDesc;
-    }
 
     public void setShipType(String shipType) {
         this.shipType = shipType;
     }
 
+    public String getShipTypeDesc() {
+        return shipTypeDesc;
+    }
+
     public void setShipTypeDesc(String shipTypeDesc) {
         this.shipTypeDesc = shipTypeDesc;
     }
-    
+
     public String getShipComments() {
         return shipComments;
     }
@@ -396,4 +397,11 @@ public class Transaction {
         this.nuxraccptsign = nuxraccptsign;
     }
 
+    public String getOriginFullAddress() {
+        return origin.getFullAddress();
+    }
+
+    public String getDestinationFullAddress() {
+        return destination.getFullAddress();
+    }
 }
