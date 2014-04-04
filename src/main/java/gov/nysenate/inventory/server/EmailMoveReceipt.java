@@ -118,7 +118,7 @@ public class EmailMoveReceipt implements Runnable {
     public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, String paperworkType, Transaction trans) {
         this.request = request;
         this.paperworkType = paperworkType;
-
+        
         switch (type) {
             case "pickup":
                 this.emailType = PICKUP;
@@ -126,6 +126,11 @@ public class EmailMoveReceipt implements Runnable {
                 this.password = password;
                 this.pickup = trans;
                 userFallback = username; // userfallback is not really being used
+                if (this.paperworkType==null||this.paperworkType.trim().length()==0 && this.pickup!=null) {
+                    this.paperworkType = this.pickup.getRemoteType();
+                    //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PAPERWORK TYPE WAS SET FROM PICKUP OBJECT "+this.paperworkType);
+                    //log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PAPERWORK TYPE WAS SET FROM PICKUP OBJECT "+this.paperworkType);
+               }
                 // but it needs to be passed so it is being
                 // set to username (which should be set)
                 attachmentPart = null;
@@ -137,24 +142,24 @@ public class EmailMoveReceipt implements Runnable {
                 this.subjectAddText = "";
 
                 if (db.serverName.toUpperCase().contains("PROD")) {
-                    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE BEFORE PAPERWORK (PICKUP) PROD");                    
+                    //System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE BEFORE PAPERWORK (PICKUP) PROD");                    
                     if (this.paperworkType!=null && this.paperworkType.equalsIgnoreCase("RPK")) {
                         this.subjectAddText = " (REMOTE)";
                     }
                     else {
                         this.subjectAddText = "";
                     }
-                    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE YES!!! AFTER PAPERWORK (PICKUP) PROD");                    
+                    //System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE YES!!! AFTER PAPERWORK (PICKUP) PROD");                    
                     this.serverInfo = "";
                 } else {
-                    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE BEFORE PAPERWORK (PICKUP)");                    
+                    //System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE BEFORE PAPERWORK (PICKUP)");                    
                     if (this.paperworkType!=null && this.paperworkType.equalsIgnoreCase("RPK")) {
                         this.subjectAddText = " (REMOTE) (" + db.serverName + ")";
                     }
                     else {
                         this.subjectAddText = " (" + db.serverName + ")";
                     }
-                    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE YES!!! AFTER PAPERWORK (PICKUP)");                    
+                    //System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE YES!!! AFTER PAPERWORK (PICKUP)");                    
                     this.serverInfo = "<b>SERVER: " + db.serverName + " (" + db.serverIpAddr + ")</b><br/><br/><br/>";
                 }
 
@@ -184,6 +189,11 @@ public class EmailMoveReceipt implements Runnable {
                 this.username = username;
                 this.password = password;
                 this.delivery = trans;
+                if (this.paperworkType==null||this.paperworkType.trim().length()==0 && this.delivery!=null) {
+                    this.paperworkType = this.delivery.getRemoteType();
+                    //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PAPERWORK TYPE WAS SET FROM DELIVERY OBJECT "+this.paperworkType);
+                    //log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PAPERWORK TYPE WAS SET FROM DELIVERY OBJECT "+this.paperworkType);
+                }                
                 userFallback = username; // userfallback is not really being used
                 // but it needs to be passed so it is being
                 // set to username (which should be set)
@@ -202,14 +212,14 @@ public class EmailMoveReceipt implements Runnable {
                     }
                     this.serverInfo = "";
                 } else {
-                    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE BEFORE PAPERWORK (DELIVERY)");
+                    //System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE BEFORE PAPERWORK (DELIVERY)");
                     if (this.paperworkType!=null && this.paperworkType.equalsIgnoreCase("RDL")) {
                         this.subjectAddText = " (REMOTE) (" + db.serverName + ")";
                     }
                     else {
                         this.subjectAddText = " (" + db.serverName + ")";
                     }
-                    System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE YES!!! AFTER PAPERWORK (DELIVERY)");
+                    //System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE YES!!! AFTER PAPERWORK (DELIVERY)");
                     this.serverInfo = "<b>SERVER: " + db.serverName + " (" + db.serverIpAddr + ")</b><br/><br/><br/>";
                 }                
                 System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
