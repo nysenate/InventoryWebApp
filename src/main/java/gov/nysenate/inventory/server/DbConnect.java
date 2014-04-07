@@ -1254,7 +1254,7 @@ public class DbConnect extends DbManager
     }
     return 0;
   }
-
+  
   public Employee getEmployeeWhoSigned(String nuxrsign, String userFallback)
   {
     return getEmployeeWhoSigned(nuxrsign, true, userFallback);

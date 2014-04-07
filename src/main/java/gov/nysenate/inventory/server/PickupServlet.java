@@ -101,12 +101,34 @@ public class PickupServlet extends HttpServlet
         pwd = null;
 
         System.out.println("RIGHT Before E-mail Receipt");
+        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Generating Email for Pickup Part");
         //emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(pickup);
         Thread threadEmailMoveReceipt = new Thread(emailMoveReceipt);
         threadEmailMoveReceipt.start();
+        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: PickupPart Email Started");
+        
+        /*
+         * If user is doing a pickup of a remote delivery, we need to also send the paperwork
+         * for the remote delivery at the time if pickup. The remote delivery paperwork will be
+         * printed and sent to the remote location for signature.
+         * 
+         */
+        
+        if (pickup.getRemoteType().equalsIgnoreCase("RDL")) {
+            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Generating Email for Remote Delivery Part");
+            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Generating Email for Remote Delivery Part");
+            Transaction remoteDelivery;
+            TransactionMapper transactionMapper = new TransactionMapper();
+            remoteDelivery = transactionMapper.queryTransaction(db, pickup.getNuxrpd());
+            //remoteDelivery = db.getDelivery(pickup.getNuxrpd()); 
+            EmailMoveReceipt emailRemoteDeliveryReceipt = new EmailMoveReceipt(request, user, pwd, "delivery" ,remoteDelivery);
+            Thread threadEmailRemoteDeliveryReceipt = new Thread(emailRemoteDeliveryReceipt);
+            threadEmailRemoteDeliveryReceipt.start();
+            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Remote Delivery Part Email Started");
+            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Remote Delivery Part Email Started");
+        }
+        
         //System.out.println("emailReceiptStatus:" + emailReceiptStatus);
-
-
 
 //        if (emailReceiptStatus == 0) {
           //System.out.println("Database updated successfully");
