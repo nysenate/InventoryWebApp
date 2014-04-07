@@ -324,12 +324,13 @@ public class TransactionMapper extends DbManager {
 
         if (trans.getNotCheckedItems().size() > 0) {
             ArrayList<InvItem> items = getNotDeliveredItems(trans);
-            trans.setPickupItems(items);
-            if (trans.isRemotePickup()) {
-                trans.setNareleaseby("");
+            Transaction newTrans = trans.shallowCopy();
+            newTrans.setPickupItems(items);
+            if (newTrans.isRemotePickup()) {
+                newTrans.setNareleaseby("");
             }
             // Insert a new pickup that is the same as the original but only contains the non delivered items.
-            insertPickup(db, trans, trans.getNuxrpd());
+            insertPickup(db, newTrans, newTrans.getNuxrpd());
         }
     }
 
