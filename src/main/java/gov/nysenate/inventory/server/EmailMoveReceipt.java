@@ -126,6 +126,7 @@ public class EmailMoveReceipt implements Runnable {
                 this.password = password;
                 this.pickup = trans;
                 userFallback = username; // userfallback is not really being used
+                //log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP START, PAPERWORK:"+this.paperworkType);
                 if (this.paperworkType==null||this.paperworkType.trim().length()==0 && this.pickup!=null) {
                     this.paperworkType = this.pickup.getRemoteType();
                     //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PAPERWORK TYPE WAS SET FROM PICKUP OBJECT "+this.paperworkType);
@@ -540,14 +541,20 @@ public class EmailMoveReceipt implements Runnable {
 
         switch (this.emailType) {
             case PICKUP:
+                /*
+                 * Pickup Receipt for Remote Pickup 
+                 */
+                log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP START(A), PAPERWORK:"+this.paperworkType);
+                
                 if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
-                    emailData = new EmailData(db, "REMOTEPICKUPRCPT");
+                    log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) REMOTE PICKUP (PICKUP)");
+                    emailData = new EmailData(db, "RMTPCKPPICKUPRCPT");
                     try {
                         emailData.put("ShipType", pickup.getShipType());
                     } catch (InvalidParameterException ex) {
                         log.error(null, ex);
                     } catch (ParameterNotUsedException ex) {
-                        log.error(null, ex);
+                        log.info(null, ex);
                     } catch (BlankMessageException ex) {
                         log.error(null, ex);
                     }
@@ -557,12 +564,42 @@ public class EmailMoveReceipt implements Runnable {
                     } catch (InvalidParameterException ex) {
                         log.error(null, ex);
                     } catch (ParameterNotUsedException ex) {
-                        log.error(null, ex);
+                        log.info(null, ex);
                     } catch (BlankMessageException ex) {
                         log.error(null, ex);
                     }
+                }                
+                /*
+                 * Pickup Receipt for Remote Delivery 
+                 */                
+                else if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
+                    log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) REMOTE DELIVERY (PICKUP)");
+                    emailData = new EmailData(db, "RMTDLRYPICKUPRCPT");
+                    try {
+                        emailData.put("ShipType", pickup.getShipType());
+                    } catch (InvalidParameterException ex) {
+                        log.error(null, ex);
+                    } catch (ParameterNotUsedException ex) {
+                        log.info(null, ex);
+                    } catch (BlankMessageException ex) {
+                        log.error(null, ex);
+                    }
+                    
+               /*     try {
+                        emailData.put("ShipTypeDesc", pickup.getShipTypeDesc());
+                    } catch (InvalidParameterException ex) {
+                        log.error(null, ex);
+                    } catch (ParameterNotUsedException ex) {
+                        log.error(null, ex);
+                    } catch (BlankMessageException ex) {
+                        log.error(null, ex);
+                    }*/
                 }
+                /*
+                 * Pickup Receipt for normal Pickup/Delivery (Neither are remote) 
+                 */               
                 else {
+                    log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) (PICKUP)");
                     emailData = new EmailData(db, "PICKUPRCPT");
                 }
                 try {
@@ -573,7 +610,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -583,7 +620,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -593,7 +630,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -603,7 +640,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -613,7 +650,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -623,7 +660,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -633,7 +670,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -643,7 +680,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -652,7 +689,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -665,14 +702,74 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
 
                 break;
             case DELIVERY:
-                emailData = new EmailData(db, "DELIVERYRCPT");
+                /*
+                 * Delivery Receipt for Remote Delivery
+                 */
+                
+                log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: DELIVERY(A) START, PAPERWORK:"+this.paperworkType);
+                if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
+                    log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) REMOTE DELIVERY (DELIVERY)");
+                    emailData = new EmailData(db, "RMTDLRYDELIVERYRCPT");
+                    try {
+                        emailData.put("ShipType", delivery.getShipType());
+                    } catch (InvalidParameterException ex) {
+                        log.error(null, ex);
+                    } catch (ParameterNotUsedException ex) {
+                        log.info(null, ex);
+                    } catch (BlankMessageException ex) {
+                        log.error(null, ex);
+                    }
+                    
+                    try {
+                        emailData.put("ShipTypeDesc", delivery.getShipTypeDesc());
+                    } catch (InvalidParameterException ex) {
+                        log.error(null, ex);
+                    } catch (ParameterNotUsedException ex) {
+                        log.info(null, ex);
+                    } catch (BlankMessageException ex) {
+                        log.error(null, ex);
+                    }
+                }
+                /*
+                 * Delivery Receipt for Remote Pickup
+                 */                
+                else if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
+                    log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) REMOTE PICKUP (DELIVERY)");
+                    emailData = new EmailData(db, "RMTPCKPDELIVERYRCPT");
+                    try {
+                        emailData.put("ShipType", delivery.getShipType());
+                    } catch (InvalidParameterException ex) {
+                        log.error(null, ex);
+                    } catch (ParameterNotUsedException ex) {
+                        log.info(null, ex);
+                    } catch (BlankMessageException ex) {
+                        log.error(null, ex);
+                    }
+                    
+                    try {
+                        emailData.put("ShipTypeDesc", delivery.getShipTypeDesc());
+                    } catch (InvalidParameterException ex) {
+                        log.error(null, ex);
+                    } catch (ParameterNotUsedException ex) {
+                        log.info(null, ex);
+                    } catch (BlankMessageException ex) {
+                        log.error(null, ex);
+                    }
+                }                
+                /*
+                 * Delivery Receipt for normal Pickup/Delivery (Neither are remote) 
+                 */                    
+                else {
+                    log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) DELIVERY (DELIVERY)");
+                    emailData = new EmailData(db, "DELIVERYRCPT");
+                }                
                 try {
                     if (testingMode) {
                         emailData.setPreMessage(sbTestMsg.toString());
@@ -681,7 +778,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -691,7 +788,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -700,7 +797,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -709,7 +806,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -718,7 +815,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -727,7 +824,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -736,7 +833,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -750,7 +847,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
-                    log.error(null, ex);
+                    log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
@@ -906,9 +1003,10 @@ public class EmailMoveReceipt implements Runnable {
             in = this.getClass().getClassLoader().getResourceAsStream("config.properties");
             properties.load(in);
 
-            msgBody = emailData.getFormattedMessage();
-            System.out.println("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY:" + msgBody);
-
+            msgBody = emailData.getFormattedMessage();            
+            System.out.println("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY("+this.paperworkType+"):" + msgBody);
+            log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY("+this.paperworkType+"):" + msgBody);
+            
             MimeMessage msg = new MimeMessage(session);
             //System.out.println("EMAILING FROM:" + naemailFrom + ":" + naemailNameFrom);
             try {
