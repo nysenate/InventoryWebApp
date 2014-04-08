@@ -66,6 +66,31 @@ public class Transaction {
         helpReferenceNum = "";
     }
 
+    public Transaction shallowCopy() {
+        Transaction copy = new Transaction();
+        copy.origin = this.origin;
+        copy.destination = this.destination;
+        copy.pickupItems = this.pickupItems;
+        copy.checkedItems = this.checkedItems;
+        copy.pickupComments = this.pickupComments;
+        copy.napickupby = this.napickupby;
+        copy.nareleaseby = this.nareleaseby;
+        copy.nuxrrelsign = this.nuxrrelsign;
+        copy.pickupDate = this.pickupDate;
+        copy.deliveryComments = this.deliveryComments;
+        copy.nadeliverby = this.nadeliverby;
+        copy.naacceptby = this.naacceptby;
+        copy.nuxraccptsign = this.nuxraccptsign;
+        copy.deliveryDate = this.deliveryDate;
+        copy.shipType = this.shipType;
+        copy.shipComments = this.shipComments;
+        copy.verificationMethod = this.verificationMethod;
+        copy.verificationComments = this.verificationComments;
+        copy.helpReferenceNum = this.helpReferenceNum;
+
+        return copy;
+    }
+
     // shipType must exists for all remote transactions.
     public boolean isRemote() {
         return !shipType.equals("");
