@@ -73,6 +73,7 @@ public class EmailMoveReceipt implements Runnable {
     private String[] naemailGenNameTo = null;
     private String testingModeParam = null;
     private Employee signingEmployee = null;
+    private Employee remoteUser = null;
     private String username = null;
     private String password = null;
     private DbConnect db = null;
@@ -339,11 +340,20 @@ public class EmailMoveReceipt implements Runnable {
         }
 
         System.out.println("(" + this.dbaUrl + ") EmailMoveReciept: pickup.getNuxrrelsign:" + pickup.getNuxrrelsign());
-        log.warn("{0}" + "|" + "(" + this.dbaUrl + ") " + "EmailMoveReciept: pickup.getNuxrrelsign:" + pickup.getNuxrrelsign() + " " + pickup.getNapickupby());
-        // Get the employee who signed the Release 
-        signingEmployee = db.getEmployeeWhoSigned(pickup.getNuxrrelsign(), false, userFallback);
-        signingEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
-
+        log.info("{0}" + "|" + "(" + this.dbaUrl + ") " + "EmailMoveReciept: pickup.getNuxrrelsign:" + pickup.getNuxrrelsign() + " " + pickup.getNapickupby());
+        // Get the employee who signed the Release
+        if (pickup.getNuxrrelsign()==null || pickup.getNuxrrelsign().trim().length()==0) {
+            remoteUser = this.pickupEmployee;
+        }
+        else {
+            try {
+                signingEmployee = db.getEmployeeWhoSigned(pickup.getNuxrrelsign(), false, userFallback);
+                signingEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
+            }
+            catch (Exception e) {
+                log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Pickup SigningEmployee");              
+            }
+        }
         // Get the employee who picked up the items
         try {
             pickupEmployee = db.getEmployee(pickup.getNapickupby());
@@ -357,6 +367,9 @@ public class EmailMoveReceipt implements Runnable {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        
+        log.info("{0}" + "|" + "(" + this.dbaUrl + ") Call sendEmailReciept PART II "+emailType);        
+
         int emailReturnStatus = sendEmailReceipt(emailType);
 
         return emailReturnStatus;
@@ -383,25 +396,56 @@ public class EmailMoveReceipt implements Runnable {
             e.printStackTrace();
         }
 
-
-        // Get the employee who signed the Release 
-        signingEmployee = db.getEmployeeWhoSigned(delivery.getNuxraccptsign(), false, userFallback);
-        signingEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
+        System.out.println("(" + this.dbaUrl + ") EmailMoveReciept: delivery.getNuxrrelsign:" + delivery.getNuxraccptsign());
+        log.info("{0}" + "|" + "(" + this.dbaUrl + ") " + "EmailMoveReciept: delivery.getNuxraccptsign:" + delivery.getNuxraccptsign() + " " + delivery.getNadeliverby());
+        // Get the employee who signed the Release
+        if (delivery.getNuxraccptsign()==null || delivery.getNuxraccptsign().trim().length()==0) {
+            remoteUser = this.deliveryEmployee;
+        }
+        else {
+            try {
+                signingEmployee = db.getEmployeeWhoSigned(delivery.getNuxraccptsign(), false, userFallback);
+                signingEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
+            }
+            catch (Exception e) {
+                log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Delivery SigningEmployee");              
+            }
+            
+        }
+        System.out.println("(" + this.dbaUrl + ") EmailMoveReciept: After delivery Nuxraccptsign");
+        log.info( "|" + "(" + this.dbaUrl + ") " + "EmailMoveReciept: After delivery Nuxraccptsign");
 
         // Get the employee who picked up the items
-        try {
-            deliveryEmployee = db.getEmployee(delivery.getNadeliverby());
-            deliveryEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
-            this.nadeliverbyName = deliveryEmployee.getEmployeeName().trim();
-        } catch (SQLException sqle) {
-            log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Pickup Employee for " + pickup.getNapickupby(), sqle);
-            pickupEmployee = new Employee();
-            this.napickupbyName = "N/A";
-        } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        if (delivery.getNadeliverby()==null || delivery.getNadeliverby().trim().length()== 0) {
+        System.out.println("(" + this.dbaUrl + ") Delivery no NadeliverBy");
+        log.info( "|" + "(" + this.dbaUrl + ") " + "Delivery no NadeliverBy");
+            deliveryEmployee = new Employee();
+            this.nadeliverbyName = "N/A";
+        System.out.println("(" + this.dbaUrl + ") Delivery no NadeliverBy now set");
+        log.info( "|" + "(" + this.dbaUrl + ") " + "Delivery no NadeliverBy now set");
         }
+        else {
+            try {
+                deliveryEmployee = db.getEmployee(delivery.getNadeliverby());
+                deliveryEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
+                this.nadeliverbyName = deliveryEmployee.getEmployeeName().trim();
+            } catch (SQLException sqle) {
+                log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Delivery Employee for " + delivery.getNadeliverby(), sqle);
+                deliveryEmployee = new Employee();
+                this.nadeliverbyName = "N/A";
+            } catch (ClassNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            
+        }
+        
+        System.out.println("(" + this.dbaUrl + ") Call sendEmailReciept PART II "+emailType);
+        log.info( "|" + "(" + this.dbaUrl + ") " + "Call sendEmailReciept PART II "+emailType);
+      
         int emailReturnStatus = sendEmailReceipt(emailType);
+        System.out.println("(" + this.dbaUrl + ") After call sendEmailReciept PART II "+emailType+" emailReturnStatus:"+emailReturnStatus);
+        log.info( "|" + "(" + this.dbaUrl + ") " + "After call sendEmailReciept PART II "+emailType+" emailReturnStatus:"+emailReturnStatus);
 
         return emailReturnStatus;
     }
@@ -421,6 +465,7 @@ public class EmailMoveReceipt implements Runnable {
                 nuxrpdOrig = delivery.getNuxrpd();
                 break;
         }
+        log.info("{0}" + "|" + "(" + this.dbaUrl + ") sendEmailReciept nuxrpd:"+nuxrpdOrig);        
 
         final int nuxrpd = nuxrpdOrig;
         this.nuxrpd = nuxrpd;
@@ -536,6 +581,7 @@ public class EmailMoveReceipt implements Runnable {
             sbTestMsg.append("<br /><br />");
             log.info("{0}" + "|" + "(" + this.dbaUrl + ") ***Testing Mode add testing information");
         }
+       log.info("{0}" + "|" + "(" + this.dbaUrl + ") sendEmailReciept before emailData");        
 
         EmailData emailData = null;
 
@@ -606,7 +652,16 @@ public class EmailMoveReceipt implements Runnable {
                     if (testingMode) {
                         emailData.setPreMessage(sbTestMsg.toString());
                     }
-                    emailData.put("Employee", signingEmployee.getEmployeeName());
+                    if (signingEmployee.getEmployeeName()!=null && signingEmployee.getEmployeeName().trim().length()>0) {
+                         emailData.put("Employee", signingEmployee.getEmployeeName());
+                    }
+                    else if (remoteUser.getEmployeeName()!=null && remoteUser.getEmployeeName().trim().length()>0) {
+                         emailData.put("Employee", remoteUser.getEmployeeName());
+                    }
+                    else {
+                        log.warn("***WARNING: Both signing employee and remote user employee names are blank. {Employee} cannot be set.");
+                    }
+                             
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
@@ -791,7 +846,10 @@ public class EmailMoveReceipt implements Runnable {
                     log.info(null, ex);
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
+                } catch (NullPointerException ex) {
+                    log.info(null, ex);
                 }
+                
                 try {
                     emailData.put("RefDoc", receiptFilename);
                 } catch (InvalidParameterException ex) {

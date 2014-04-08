@@ -7,16 +7,8 @@ import gov.nysenate.inventory.util.TransactionMapper;
 import gov.nysenate.inventory.util.TransactionParser;
 import org.apache.log4j.Logger;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLDecoder;
 import java.sql.SQLException;
 
 import javax.servlet.ServletException;
@@ -25,7 +17,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 
 /**
  *
@@ -97,9 +88,8 @@ public class PickupServlet extends HttpServlet
         String pwd = (String) httpSession.getAttribute("pwd");        
 
         EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(request, user, pwd, "pickup" ,pickup);
-        user = null;
-        pwd = null;
 
+//        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: comment code below back in");
         System.out.println("RIGHT Before E-mail Receipt");
         log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Generating Email for Pickup Part");
         //emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(pickup);
@@ -113,21 +103,40 @@ public class PickupServlet extends HttpServlet
          * printed and sent to the remote location for signature.
          * 
          */
-        
+       
+        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: *******pickup remote:"+pickup.isRemote()+", shiptype:"+pickup.getShipType()+", RemoteType:"+pickup.getRemoteType()+", Origin Remote:"+pickup.getOrigin().isRemote()+", Destination Remote:"+pickup.getDestination().isRemote()+", Dest City:"+pickup.getDestination().getAdcity());
         if (pickup.getRemoteType().equalsIgnoreCase("RDL")) {
             log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Generating Email for Remote Delivery Part");
             System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Generating Email for Remote Delivery Part");
-            Transaction remoteDelivery;
+            
+            if (db==null) {
+                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Remote Delivery Part Email db is NULL!!");              
+            }
+            
+            Transaction remoteDelivery = null;
             TransactionMapper transactionMapper = new TransactionMapper();
-            remoteDelivery = transactionMapper.queryTransaction(db, pickup.getNuxrpd());
+            try {
+                remoteDelivery = transactionMapper.queryTransaction(db, pickup.getNuxrpd());
+                if (remoteDelivery==null) {
+                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet(a): Remote Delivery Part Email remoteDelivery==NULL!!");              
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            } 
+                if (remoteDelivery==null) {
+                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet(b): Remote Delivery Part Email remoteDelivery==NULL!!");              
+                }
             //remoteDelivery = db.getDelivery(pickup.getNuxrpd()); 
+            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet(b): Remote Delivery Part user:"+user+", pwd:"+pwd);                          
             EmailMoveReceipt emailRemoteDeliveryReceipt = new EmailMoveReceipt(request, user, pwd, "delivery" ,remoteDelivery);
             Thread threadEmailRemoteDeliveryReceipt = new Thread(emailRemoteDeliveryReceipt);
             threadEmailRemoteDeliveryReceipt.start();
             log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Remote Delivery Part Email Started");
             System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Remote Delivery Part Email Started");
         }
-        
+        user = null;
+        pwd = null;       
         //System.out.println("emailReceiptStatus:" + emailReceiptStatus);
 
 //        if (emailReceiptStatus == 0) {
