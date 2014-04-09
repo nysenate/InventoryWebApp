@@ -130,9 +130,10 @@ public class DownloadServlet extends HttpServlet
                 outs.write(b,0,read);
             }
         }
-    }catch (Exception e) {
-        e.printStackTrace();
-
+    } catch (org.apache.catalina.connector.ClientAbortException e) {
+        // Don't throw ClientAbortException, caused by android when downloading on tablet.
+    } catch (Exception e) {
+        log.warn(e.getMessage(), e);
     }finally {
         try{
             if(outs!=null) outs.close();
