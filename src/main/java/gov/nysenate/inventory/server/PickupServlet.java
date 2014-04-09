@@ -2,6 +2,7 @@ package gov.nysenate.inventory.server;
 
 import com.google.gson.JsonSyntaxException;
 import gov.nysenate.inventory.model.Transaction;
+import gov.nysenate.inventory.util.HandleEmails;
 import gov.nysenate.inventory.util.HttpUtils;
 import gov.nysenate.inventory.util.TransactionMapper;
 import gov.nysenate.inventory.util.TransactionParser;
@@ -80,6 +81,9 @@ public class PickupServlet extends HttpServlet
     pickup.setNuxrpd(dbResponse);
 
     if (dbResponse > -1) {
+      /* HandleEmails handleEmails = new HandleEmails(pickup, "pickup", request, testingModeParam, db);
+       Thread threadHandleEmails = new Thread(handleEmails);
+       threadHandleEmails.start();*/
       int emailReceiptStatus = 0;
       try {
         System.out.println("Before E-mail Receipt");
@@ -103,6 +107,8 @@ public class PickupServlet extends HttpServlet
          * printed and sent to the remote location for signature.
          * 
          */
+        
+        //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: *******pickup remote delivery commented out for now");        
        
         log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: *******pickup remote:"+pickup.isRemote()+", shiptype:"+pickup.getShipType()+", RemoteType:"+pickup.getRemoteType()+", Origin Remote:"+pickup.getOrigin().isRemote()+", Destination Remote:"+pickup.getDestination().isRemote()+", Dest City:"+pickup.getDestination().getAdcity());
         if (pickup.getRemoteType().equalsIgnoreCase("RDL")) {
@@ -142,15 +148,11 @@ public class PickupServlet extends HttpServlet
 //        if (emailReceiptStatus == 0) {
           //System.out.println("Database updated successfully");
           out.println("Database updated successfully");
-/*        } else {
-          System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + ").");
-          out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + ").");
-        }*/
       } catch (Exception e) {
           e.printStackTrace();
           System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).["+e.getMessage()+":"+e.getStackTrace()[0].toString()+"]");
           out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).");
-      }
+      }       
     } else {
       out.println("Database not updated");
     }

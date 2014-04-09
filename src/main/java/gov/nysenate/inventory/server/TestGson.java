@@ -19,6 +19,7 @@ import gov.nysenate.inventory.exception.ParameterNotUsedException;
 import gov.nysenate.inventory.model.Commodity;
 import gov.nysenate.inventory.model.EmailData;
 import gov.nysenate.inventory.model.EmailRecord;
+import gov.nysenate.inventory.model.Employee;
 import gov.nysenate.inventory.model.LoginStatus;
 import gov.nysenate.inventory.model.SimpleListItem;
 import java.io.File;
@@ -42,6 +43,7 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Time;
 import java.util.Date;
 import java.sql.Timestamp;
@@ -58,112 +60,133 @@ public class TestGson {
     
     public static void main(String[] args) throws ParserConfigurationException {
         DbConnect db = new DbConnect(null);
-        System.out.println("serverName:" + db.serverName);
-        TestGson testGson = new TestGson();
-        testGson.buildTestErrorEmails();
-        System.out.println(testGson.getProblemEmailString());
-
-        /*        EmailData warningEmailData = new EmailData(db, "EMAILWARNING");
-        String serverInfo = null;
         try {
-        warningEmailData.put("EmailType", "FAKE EMAIL TYPE");
-        warningEmailData.put("ReceiptURL", "http://www.google.com?test=1022");
-        //warningEmailData.put("ReceiptURL", "http://www.google.com?test=1022" );
-        warningEmailData.put("ProblemRecipients", "PROBLEM RECIPIENTS!!!");
-        if (serverInfo!=null) {
-        System.out.println("NOT NULL serverInfo:"+serverInfo);
-        //Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.INFO, "", null);
-        warningEmailData.put("ServerInfo", serverInfo);
-        }
-        else {
-        warningEmailData.put("ServerInfo", "");
-        System.out.println("!!!!!NULL serverInfo:"+serverInfo);
-        }
-        System.out.println (warningEmailData.getMessage());
-        System.out.println (warningEmailData.getFormattedMessage());
-        } catch (InvalidParameterException ex) {
-        log.error(null, ex);
-        } catch (ParameterNotUsedException ex) {
-        log.error(null, ex);
-        } catch (BlankMessageException ex) {
-        log.error(null, ex);
-        }
-        /* String test = "EMPLOYEE";
-        System.out.println (test.substring(0, 1));
-        java.util.Date date = new java.util.Date();
-        System.out.println ("DATE:"+date);
-        Time time = new Time(date.getTime());
-        System.out.println ("SQL TIME:"+time);*/
+            Employee employee = db.getEmployee("HEITNER");
+            if (employee ==null) {
+                System.out.println("Employee is null");
+            }
+            else {
+                System.out.println(employee.getEmployeeXref());
+                System.out.println(employee.getNaemail());
+                System.out.println(employee.getEmployeeName());
+                employee.setEmployeeNameOrder(employee.FIRST_MI_LAST_SUFFIX);
+                System.out.println(employee.getEmployeeName());
+                
+                
+            }
+            
+    /*        DbConnect db = new DbConnect(null);
+            System.out.println("serverName:" + db.serverName);
+            TestGson testGson = new TestGson();
+            testGson.buildTestErrorEmails();
+            System.out.println(testGson.getProblemEmailString());
+
+            /*        EmailData warningEmailData = new EmailData(db, "EMAILWARNING");
+            String serverInfo = null;
+            try {
+            warningEmailData.put("EmailType", "FAKE EMAIL TYPE");
+            warningEmailData.put("ReceiptURL", "http://www.google.com?test=1022");
+            //warningEmailData.put("ReceiptURL", "http://www.google.com?test=1022" );
+            warningEmailData.put("ProblemRecipients", "PROBLEM RECIPIENTS!!!");
+            if (serverInfo!=null) {
+            System.out.println("NOT NULL serverInfo:"+serverInfo);
+            //Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.INFO, "", null);
+            warningEmailData.put("ServerInfo", serverInfo);
+            }
+            else {
+            warningEmailData.put("ServerInfo", "");
+            System.out.println("!!!!!NULL serverInfo:"+serverInfo);
+            }
+            System.out.println (warningEmailData.getMessage());
+            System.out.println (warningEmailData.getFormattedMessage());
+            } catch (InvalidParameterException ex) {
+            log.error(null, ex);
+            } catch (ParameterNotUsedException ex) {
+            log.error(null, ex);
+            } catch (BlankMessageException ex) {
+            log.error(null, ex);
+            }
+            /* String test = "EMPLOYEE";
+            System.out.println (test.substring(0, 1));
+            java.util.Date date = new java.util.Date();
+            System.out.println ("DATE:"+date);
+            Time time = new Time(date.getTime());
+            System.out.println ("SQL TIME:"+time);*/
 
 
-        /*    EmailValidator emailValidator = new EmailValidator();
-        String[] emailAddresses = {null, "test", "test@senate.state.ny.us", "test", "test@", "@senate.state.ny.us", "wow.com", "test@senate", "test@nysenate.gov", "test@gmail.com", "TEST@YAHOO.COM"};
-        for (int x=0;x<emailAddresses.length;x++) {
-        String emailAddress = emailAddresses[x];
-        if (emailValidator.validate(emailAddress)) {
-        System.out.println(emailAddress+" is valid e-mail");
-        }
-        else {
-        System.out.println("***"+emailAddress+" is INVALID e-mail");
-        }
-        }
-        /*
-        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        LoginStatus loginStatus = new LoginStatus();
-        loginStatus.setCdseclevel("01");
-        loginStatus.setDestatus("This is a test of destatus.");
-        loginStatus.setDtpasswdexp(new Date());
-        loginStatus.setNauser("asdasdghf");
-        loginStatus.setNustatus(loginStatus.INVALID_USERNAME_OR_PASSWORD);
-        loginStatus.setSQLErrorCode(102);
-        String json = gson.toJson(loginStatus);
-        System.out.println(json);
-         */
-        /*        System.out.println (convertTime((long)((3*60*60*1000)+(32*60*1000)+(18*1000)+383)));
-        System.out.println (convertTime((long)1533));
-        System.out.println (convertTime((long)434));
-        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        List<SimpleListItem> list = Collections.synchronizedList(new ArrayList<SimpleListItem>() );
-        SimpleListItem simpleListItem = new SimpleListItem();
-        simpleListItem.setNavalue("MY FIRST REC");
-        simpleListItem.setNatype("FIRST");
-        list.add(simpleListItem);
-        simpleListItem = new SimpleListItem();
-        simpleListItem.setNatype("SECOND");
-        simpleListItem.setNavalue("MY SECOND REC");
-        list.add(simpleListItem);
-        System.out.println (gson.toJson(list));
-        //Make Serial
-        List<InvItem> list2 = Collections.synchronizedList(new ArrayList<InvItem>() );
-        list2.add(new InvItem("088998", "sdfsdfsd", "NEW",
-        "THIS IS THE FIRST ITEM"));
-        list2.add(new InvItem("392343", "fgdsgfgs", "EXISTS",
-        "THIS IS THE SECOND ITEM"));
-        System.out.println (gson.toJson(list2));       */
-        //Make Serial
-        /*
-        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        Type listOfTestObject = new TypeToken<List<InvItem>>(){}.getType();
-        //Make Serial
-        List<InvItem> list = Collections.synchronizedList(new ArrayList<InvItem>() );
-        list.add(new InvItem("088998", "sdfsdfsd", "NEW",
-        "THIS IS THE FIRST ITEM"));
-        list.add(new InvItem("392343", "fgdsgfgs", "EXISTS",
-        "THIS IS THE SECOND ITEM"));
-        System.out.println (gson.toJson(list));
-        /*
-        Gson gson = new Gson();
-        Type listOfTestObject = new TypeToken<List<PickupGroup>>(){}.getType();
-        //Make Serial
-        /*        Type locationInfoListType = (Type) new TypeToken<List<PickupGroup>>() {}.getType();
-        Gson gson = new GsonBuilder()
-        .registerTypeAdapter(PickupGroupTypeAdapter, new PickupGroupTypeAdapter())
-        .create();
-        System. out.println("{\"nusenate\":\""+"1"+"\",\"nuxrefsn\":\""+"2"+"\",\"dtissue\":\""+"3"+",\"cdlocatto\":\""+"4"+"\",\"cdlocatto\":\""+"5"+"\",\"cdcategory\":\""+"6"+"\",\"decommodityf\":\""+"7"+"\"}");*/
+            /*    EmailValidator emailValidator = new EmailValidator();
+            String[] emailAddresses = {null, "test", "test@senate.state.ny.us", "test", "test@", "@senate.state.ny.us", "wow.com", "test@senate", "test@nysenate.gov", "test@gmail.com", "TEST@YAHOO.COM"};
+            for (int x=0;x<emailAddresses.length;x++) {
+            String emailAddress = emailAddresses[x];
+            if (emailValidator.validate(emailAddress)) {
+            System.out.println(emailAddress+" is valid e-mail");
+            }
+            else {
+            System.out.println("***"+emailAddress+" is INVALID e-mail");
+            }
+            }
+            /*
+            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+            LoginStatus loginStatus = new LoginStatus();
+            loginStatus.setCdseclevel("01");
+            loginStatus.setDestatus("This is a test of destatus.");
+            loginStatus.setDtpasswdexp(new Date());
+            loginStatus.setNauser("asdasdghf");
+            loginStatus.setNustatus(loginStatus.INVALID_USERNAME_OR_PASSWORD);
+            loginStatus.setSQLErrorCode(102);
+            String json = gson.toJson(loginStatus);
+            System.out.println(json);
+             */
+            /*        System.out.println (convertTime((long)((3*60*60*1000)+(32*60*1000)+(18*1000)+383)));
+            System.out.println (convertTime((long)1533));
+            System.out.println (convertTime((long)434));
+            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+            List<SimpleListItem> list = Collections.synchronizedList(new ArrayList<SimpleListItem>() );
+            SimpleListItem simpleListItem = new SimpleListItem();
+            simpleListItem.setNavalue("MY FIRST REC");
+            simpleListItem.setNatype("FIRST");
+            list.add(simpleListItem);
+            simpleListItem = new SimpleListItem();
+            simpleListItem.setNatype("SECOND");
+            simpleListItem.setNavalue("MY SECOND REC");
+            list.add(simpleListItem);
+            System.out.println (gson.toJson(list));
+            //Make Serial
+            List<InvItem> list2 = Collections.synchronizedList(new ArrayList<InvItem>() );
+            list2.add(new InvItem("088998", "sdfsdfsd", "NEW",
+            "THIS IS THE FIRST ITEM"));
+            list2.add(new InvItem("392343", "fgdsgfgs", "EXISTS",
+            "THIS IS THE SECOND ITEM"));
+            System.out.println (gson.toJson(list2));       */
+            //Make Serial
+            /*
+            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+            Type listOfTestObject = new TypeToken<List<InvItem>>(){}.getType();
+            //Make Serial
+            List<InvItem> list = Collections.synchronizedList(new ArrayList<InvItem>() );
+            list.add(new InvItem("088998", "sdfsdfsd", "NEW",
+            "THIS IS THE FIRST ITEM"));
+            list.add(new InvItem("392343", "fgdsgfgs", "EXISTS",
+            "THIS IS THE SECOND ITEM"));
+            System.out.println (gson.toJson(list));
+            /*
+            Gson gson = new Gson();
+            Type listOfTestObject = new TypeToken<List<PickupGroup>>(){}.getType();
+            //Make Serial
+            /*        Type locationInfoListType = (Type) new TypeToken<List<PickupGroup>>() {}.getType();
+            Gson gson = new GsonBuilder()
+            .registerTypeAdapter(PickupGroupTypeAdapter, new PickupGroupTypeAdapter())
+            .create();
+            System. out.println("{\"nusenate\":\""+"1"+"\",\"nuxrefsn\":\""+"2"+"\",\"dtissue\":\""+"3"+",\"cdlocatto\":\""+"4"+"\",\"cdlocatto\":\""+"5"+"\",\"cdcategory\":\""+"6"+"\",\"decommodityf\":\""+"7"+"\"}");*/
 
-        /*         ArrayList<Employee> empList = new ArrayList<Employee>();
-        String json = new Gson().toJson(curEmp);
-        System.out.println (json);*/
+            /*         ArrayList<Employee> empList = new ArrayList<Employee>();
+            String json = new Gson().toJson(curEmp);
+            System.out.println (json);*/
+        } catch (SQLException ex) {
+            java.util.logging.Logger.getLogger(TestGson.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(TestGson.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     ;
