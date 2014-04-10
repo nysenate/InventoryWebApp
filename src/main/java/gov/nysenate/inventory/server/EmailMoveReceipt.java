@@ -377,8 +377,9 @@ public class EmailMoveReceipt implements Runnable {
         System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 30!!");
         // Get the employee who picked up the items
         try {
+            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt picked up by (causing errors):"+pickup.getNapickupby());
             pickupEmployee = db.getEmployee(pickup.getNapickupby());
-            pickupEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
+            pickupEmployee.setEmployeeNameOrder(pickupEmployee.FIRST_MI_LAST_SUFFIX);
             this.napickupbyName = pickupEmployee.getEmployeeName().trim();
         } catch (SQLException sqle) {
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Pickup Employee for " + pickup.getNapickupby(), sqle);
@@ -783,9 +784,9 @@ public class EmailMoveReceipt implements Runnable {
                     if (testingMode) {
                         emailData.setPreMessage(sbTestMsg.toString());
                     }
-                    if (signingEmployee.getEmployeeName() != null && signingEmployee.getEmployeeName().trim().length() > 0) {
+                    if (signingEmployee!=null && signingEmployee.getEmployeeName() != null && signingEmployee.getEmployeeName().trim().length() > 0) {
                         emailData.put("Employee", signingEmployee.getEmployeeName());
-                    } else if (remoteUser.getEmployeeName() != null && remoteUser.getEmployeeName().trim().length() > 0) {
+                    } else if (remoteUser != null && remoteUser.getEmployeeName() != null && remoteUser.getEmployeeName().trim().length() > 0) {
                         emailData.put("Employee", remoteUser.getEmployeeName());
                     } else {
                         log.warn("***WARNING: Both signing employee and remote user employee names are blank. {Employee} cannot be set.");
