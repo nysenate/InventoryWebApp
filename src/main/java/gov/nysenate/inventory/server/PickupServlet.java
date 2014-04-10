@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.logging.Level;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -79,6 +80,17 @@ public class PickupServlet extends HttpServlet
     }
 
     pickup.setNuxrpd(dbResponse);
+    String cdshiptyp = pickup.getShipType();
+    if (   (cdshiptyp!=null && cdshiptyp.trim().length()>0) ||
+           (pickup.getShipTypeDesc()==null||pickup.getShipTypeDesc().trim().length()==0)) {
+        try {
+            pickup.setShipTypeDesc(db.getShipTypeDesc(cdshiptyp));
+        } catch (ClassNotFoundException ex) {
+            log.warn(null, ex);
+        } catch (SQLException ex) {
+            log.warn(null, ex);
+        }
+    }
 
     if (dbResponse > -1) {
       /* HandleEmails handleEmails = new HandleEmails(pickup, "pickup", request, testingModeParam, db);

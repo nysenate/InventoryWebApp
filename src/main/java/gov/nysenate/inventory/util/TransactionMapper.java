@@ -153,8 +153,8 @@ public class TransactionMapper extends DbManager {
                 "invintrans.napickupby, invintrans.nareleaseby, invintrans.nadeliverby, invintrans.naacceptby, invintrans.depucomments, " +
                 "invintrans.nuxrshiptyp, shiptyp.cdshiptyp, invintrans.deshipcomments, " +
                 "invintrans.nuxrvermthd, vermthd.cdvermthd, invintrans.devercomments, " +
-                "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adzipcode fromzip, " +
-                "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adzipcode tozip, " +
+                "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adstate fromstate, loc1.adzipcode fromzip, " +
+                "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adstate tostate, loc2.adzipcode tozip, " +
                 "invintrans.NUXREFEMPPWRK, invintrans.nuxrrelsign, " +
                 "(SELECT count(nusenate) from fd12invintrans d where d.nuxrpd = invintrans.nuxrpd and d.cdstatus = 'A') cnt, shiptyp.deshiptyp " +
                 "FROM fm12invintrans invintrans " +
@@ -198,8 +198,8 @@ public class TransactionMapper extends DbManager {
                 "invintrans.napickupby, invintrans.nareleaseby, invintrans.nadeliverby, invintrans.naacceptby, invintrans.depucomments, " +
                 "invintrans.nuxrshiptyp, shiptyp.cdshiptyp, invintrans.deshipcomments, " +
                 "invintrans.nuxrvermthd, vermthd.cdvermthd, invintrans.devercomments, " +
-                "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adzipcode fromzip, " +
-                "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adzipcode tozip, " +
+                "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adstate fromstate, loc1.adzipcode fromzip, " +
+                "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adstate tostate, loc2.adzipcode tozip, " +
                 "invintrans.NUXREFEMPPWRK, invintrans.nuxrrelsign, " +
                 "(SELECT count(nusenate) from fd12invintrans d where d.nuxrpd = invintrans.nuxrpd and d.cdstatus = 'A') cnt, shiptyp.deshiptyp " +
                 "FROM fm12invintrans invintrans " +
@@ -461,16 +461,18 @@ public class TransactionMapper extends DbManager {
         origin.setCdloctype(result.getString(15));
         origin.setAdstreet1(result.getString(16));
         origin.setAdcity(result.getString(17));
-        origin.setAdzipcode(result.getString(18));
-        dest.setCdlocat(result.getString(19));
-        dest.setCdloctype(result.getString(20));
-        dest.setAdstreet1(result.getString(21));
-        dest.setAdcity(result.getString(22));
-        dest.setAdzipcode(result.getString(23));
-        trans.setEmployeeId(result.getInt(24));
-        trans.setNuxrrelsign(result.getString(25));
-        trans.setCount(result.getInt(26));
-        trans.setShipTypeDesc(result.getString(27));
+        origin.setAdstate(result.getString(18));
+        origin.setAdzipcode(result.getString(19));
+        dest.setCdlocat(result.getString(20));
+        dest.setCdloctype(result.getString(21));
+        dest.setAdstreet1(result.getString(22));
+        dest.setAdcity(result.getString(23));
+        dest.setAdstate(result.getString(24));
+        dest.setAdzipcode(result.getString(25));
+        trans.setEmployeeId(result.getInt(26));
+        trans.setNuxrrelsign(result.getString(27));
+        trans.setCount(result.getInt(28));
+        trans.setShipTypeDesc(result.getString(29));
 
         trans.setOrigin(origin);
         trans.setDestination(dest);
@@ -550,8 +552,8 @@ public class TransactionMapper extends DbManager {
                 "invintrans.napickupby, invintrans.nareleaseby, invintrans.nadeliverby, invintrans.naacceptby, invintrans.depucomments, " +
                 "invintrans.nuxrshiptyp, shiptyp.cdshiptyp, invintrans.deshipcomments, " +
                 "invintrans.nuxrvermthd, vermthd.cdvermthd, invintrans.devercomments, " +
-                "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adzipcode fromzip, " +
-                "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adzipcode tozip, " +
+                "invintrans.cdlocatfrom, loc1.cdloctype fromloctype, loc1.adstreet1 fromstreet1, loc1.adcity fromcity, loc1.adstate fromstate, loc1.adzipcode fromzip, " +
+                "invintrans.cdlocatto, loc2.cdloctype toloctype, loc2.adstreet1 tostreet1, loc2.adcity tocity, loc2.adstate tostate, loc2.adzipcode tozip, " +
                 "invintrans.NUXREFEMPPWRK, invintrans.nuxrrelsign, " +
                 "(SELECT count(nusenate) from fd12invintrans d where d.nuxrpd = invintrans.nuxrpd and d.cdstatus = 'A') cnt, shiptyp.deshiptyp " +
                 "FROM fm12invintrans invintrans " +

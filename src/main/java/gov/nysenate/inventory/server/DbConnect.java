@@ -112,11 +112,11 @@ public class DbConnect extends DbManager
           this.serverIpAddr = inetAddress.getHostAddress();
           if (this.request == null) {
             this.serverName = inetAddress.getHostName();
-            log.info("!!TEST: SERVERNAME OBTAINED FROM inetAddress:"+this.serverName);
+            //log.info("!!TEST: SERVERNAME OBTAINED FROM inetAddress:"+this.serverName);
           }
           else {
             this.serverName = request.getServerName();
-            log.info("!!TEST: SERVERNAME OBTAINED FROM REQUEST:"+this.serverName+" (inetAddress Server Name:"+inetAddress.getHostName()+")");
+            //log.info("!!TEST: SERVERNAME OBTAINED FROM REQUEST:"+this.serverName+" (inetAddress Server Name:"+inetAddress.getHostName()+")");
           }
 
           if (this.serverName!=null) {
@@ -126,10 +126,10 @@ public class DbConnect extends DbManager
               }
           }
       } catch (UnknownHostException ex) {
-          java.util.logging.Logger.getLogger(DbConnect.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+          log.warn(null, ex);
       } catch (Exception ex) {
-          java.util.logging.Logger.getLogger(DbConnect.class.getName()).log(java.util.logging.Level.WARNING, null, ex);
-      }
+           log.warn(null, ex);
+       }
       
   }
   
@@ -780,8 +780,7 @@ public class DbConnect extends DbManager
     } catch (SQLException ex) {
       result = 2;
       ex.printStackTrace();
-      log.info("setBarcodesInDatabase() end");
-      Logger.getLogger(DbConnect.class.getName()).log(Level.FATAL, ex.getMessage());
+      log.error("SqlException in DbConnect.setBarcodesInDatabase: ", ex);
     } catch (ClassNotFoundException e) {
       log.error("Error getting oracle jdbc driver: ", e);
     } finally {
@@ -1890,4 +1889,31 @@ public class DbConnect extends DbManager
         return validEmailParams;
     }
 
+    public String getShipTypeDesc(String cdshiptyp) throws ClassNotFoundException, SQLException
+    {
+        String deshiptyp = null;
+        boolean foundInDBA = false;
+        Connection conn = getDbConnection();
+
+        String qry1 = "Select deshiptyp\n" +
+                "From fl12shiptyp\n" +
+                "Where cdshiptyp = ? \n" +
+                "  AND cdstatus = 'A'";
+
+        PreparedStatement ps = conn.prepareStatement(qry1);
+        ps.setString(1, cdshiptyp);
+        ResultSet res1 = ps.executeQuery();
+
+        while (res1.next()) {
+            deshiptyp = res1.getString("deshiptyp");
+            foundInDBA = true;
+        }
+
+        res1.close();
+        ps.close();
+
+        return deshiptyp;
+    }
+    
+    
 }

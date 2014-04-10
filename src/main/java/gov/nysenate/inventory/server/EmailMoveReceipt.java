@@ -14,6 +14,7 @@ import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.model.EmailRecord;
 import gov.nysenate.inventory.util.EmailValidator;
 import gov.nysenate.inventory.util.InvUtil;
+import gov.nysenate.inventory.util.TransactionMapper;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -111,6 +112,7 @@ public class EmailMoveReceipt implements Runnable {
     private String subjectAddText = "";
     private static final Logger log = Logger.getLogger(EmailMoveReceipt.class.getName());
     private String paperworkType = null;
+    private Transaction initialPickup = null;
 
     public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, Transaction trans) {
         this(request, username, password, type, (String) null, trans);
@@ -209,6 +211,19 @@ public class EmailMoveReceipt implements Runnable {
                 db = new DbConnect(request, username, password);
                 this.serverInfo = "";
                 this.subjectAddText = "";
+
+                if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
+                    TransactionMapper transactionMapper = new TransactionMapper();
+                    try {
+                        if (this.delivery != null && this.delivery.getNuxrpd() > 0) {
+                            this.initialPickup = transactionMapper.queryTransaction(db, this.delivery.getNuxrpd());
+                        }
+                    } catch (SQLException ex) {
+                        log.warn(null, ex);
+                    } catch (ClassNotFoundException ex) {
+                        log.warn(null, ex);
+                    }
+                }
 
                 if (db.serverName.toUpperCase().contains("PROD")) {
                     if (this.paperworkType.equalsIgnoreCase("RDL")) {
@@ -357,6 +372,19 @@ public class EmailMoveReceipt implements Runnable {
         log.info("{0}" + "|" + "(" + this.dbaUrl + ") " + "EmailMoveReciept: pickup.getNuxrrelsign:" + pickup.getNuxrrelsign() + " " + pickup.getNapickupby());
         log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 20!!");
         System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 20!!");
+        try {
+            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt picked up by (causing errors):" + pickup.getNapickupby());
+            pickupEmployee = db.getEmployee(pickup.getNapickupby());
+            pickupEmployee.setEmployeeNameOrder(pickupEmployee.FIRST_MI_LAST_SUFFIX);
+            this.napickupbyName = pickupEmployee.getEmployeeName().trim();
+        } catch (SQLException sqle) {
+            log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Pickup Employee for " + pickup.getNapickupby(), sqle);
+            pickupEmployee = new Employee();
+            this.napickupbyName = "N/A";
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
         // Get the employee who signed the Release
         if (pickup.getNuxrrelsign() == null || pickup.getNuxrrelsign().trim().length() == 0) {
@@ -376,19 +404,6 @@ public class EmailMoveReceipt implements Runnable {
         log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 30!!");
         System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 30!!");
         // Get the employee who picked up the items
-        try {
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt picked up by (causing errors):"+pickup.getNapickupby());
-            pickupEmployee = db.getEmployee(pickup.getNapickupby());
-            pickupEmployee.setEmployeeNameOrder(pickupEmployee.FIRST_MI_LAST_SUFFIX);
-            this.napickupbyName = pickupEmployee.getEmployeeName().trim();
-        } catch (SQLException sqle) {
-            log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Pickup Employee for " + pickup.getNapickupby(), sqle);
-            pickupEmployee = new Employee();
-            this.napickupbyName = "N/A";
-        } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
         log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 35!!");
         System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 35!!");
 
@@ -726,6 +741,8 @@ public class EmailMoveReceipt implements Runnable {
                     }
 
                     try {
+                        log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) REMOTE PICKUP ShipTyepDesc:" + pickup.getShipTypeDesc());
+
                         emailData.put("ShipTypeDesc", pickup.getShipTypeDesc());
                     } catch (InvalidParameterException ex) {
                         log.error(null, ex);
@@ -740,27 +757,27 @@ public class EmailMoveReceipt implements Runnable {
                     log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 110!!");
                     System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 110!!");
                     log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) REMOTE DELIVERY (PICKUP)");
-                    
+
                     /*
                      * BH 4/9/14. 
                      *     Discussed with SJG.. Suggestion was to send normal Pickup E-mail
                      *  even with a Remote Delivery. There will be a special instructions
                      *  in the Remote Delivery E-mail
                      */
-                    
-                    emailData = new EmailData(db, "PICKUPRCPT");
-                   /*    emailData = new EmailData(db, "RMTDLRYPICKUPRCPT");
-                    try {
-                        emailData.put("ShipType", pickup.getShipType());
-                    } catch (InvalidParameterException ex) {
-                        log.error(null, ex);
-                    } catch (ParameterNotUsedException ex) {
-                        //log.info(null, ex);
-                    } catch (BlankMessageException ex) {
-                        log.error(null, ex);
-                    }
 
-                      try {
+                    emailData = new EmailData(db, "PICKUPRCPT");
+                    /*    emailData = new EmailData(db, "RMTDLRYPICKUPRCPT");
+                     try {
+                     emailData.put("ShipType", pickup.getShipType());
+                     } catch (InvalidParameterException ex) {
+                     log.error(null, ex);
+                     } catch (ParameterNotUsedException ex) {
+                     //log.info(null, ex);
+                     } catch (BlankMessageException ex) {
+                     log.error(null, ex);
+                     }
+
+                     try {
                      emailData.put("ShipTypeDesc", pickup.getShipTypeDesc());
                      } catch (InvalidParameterException ex) {
                      log.error(null, ex);
@@ -784,12 +801,21 @@ public class EmailMoveReceipt implements Runnable {
                     if (testingMode) {
                         emailData.setPreMessage(sbTestMsg.toString());
                     }
-                    if (signingEmployee!=null && signingEmployee.getEmployeeName() != null && signingEmployee.getEmployeeName().trim().length() > 0) {
+                    if (signingEmployee != null && signingEmployee.getEmployeeName() != null && signingEmployee.getEmployeeName().trim().length() > 0) {
+                        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(2A) sendEmailReceipt EmployeeName(SigningEmployee)" + signingEmployee.getEmployeeName() + "!!");
                         emailData.put("Employee", signingEmployee.getEmployeeName());
                     } else if (remoteUser != null && remoteUser.getEmployeeName() != null && remoteUser.getEmployeeName().trim().length() > 0) {
+                        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(2A) sendEmailReceipt EmployeeName(remoteUser)" + remoteUser.getEmployeeName() + "!!");
                         emailData.put("Employee", remoteUser.getEmployeeName());
                     } else {
                         log.warn("***WARNING: Both signing employee and remote user employee names are blank. {Employee} cannot be set.");
+                        /*
+                         *  Dear {Employee} should be either the Signing Employee Name or the Remote User
+                         * (ie: the user who logged into the tablet to send the paperwork for the remote office)
+                         *  If neither are filled, then we will just default to a Generic Name
+                         */
+                        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(2C) sendEmailReceipt EmployeeName(NinComPoop):Senate Employee!!");
+                        emailData.put("Employee", "Senate Employee");
                     }
 
                 } catch (InvalidParameterException ex) {
@@ -945,26 +971,19 @@ public class EmailMoveReceipt implements Runnable {
                     } catch (BlankMessageException ex) {
                         log.error(null, ex);
                     }
-                } /*
-                 * Delivery Receipt for Remote Pickup
-                 */ 
-                else if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
-                    log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) REMOTE PICKUP (DELIVERY)");
-                    
-                    /*
-                     * BH 4/9/14. 
-                     *     Discussed with SJG.. Suggestion was to send normal Delivery E-mail
-                     *  even with a Remote Pickup. There will be a special instructions
-                     *  in the Remote Pickup E-mail
-                     */
-                                        
-                    emailData = new EmailData(db, "DELIVERYRCPT");                    
-/*                    emailData = new EmailData(db, "RMTPCKPDELIVERYRCPT");
-                    log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 190!!");
-                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 190!!");
+                    log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 197!!");
+                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 197!!");
 
                     try {
-                        emailData.put("ShipType", delivery.getShipType());
+                        if (initialPickup != null && initialPickup.getPickupDate() != null) {
+                            log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup Date(From Pickup):" + formatDate(initialPickup.getPickupDate(), "dd-MMM-yy") + "!!");
+                            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup Date(From Pickup):" + formatDate(initialPickup.getPickupDate(), "dd-MMM-yy") + "!!");
+                            emailData.put("PickupDate", formatDate(initialPickup.getPickupDate(), "dd-MMM-yy"));
+                        } else {
+                            log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup Date(From dtreceipt):" + formatDate(dtreceipt, "dd-MMM-yy") + "!!");
+                            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup Date(From dtreceipt):" + formatDate(dtreceipt, "dd-MMM-yy") + "!!");
+                            emailData.put("PickupDate", formatDate(dtreceipt, "dd-MMM-yy"));
+                        }
                     } catch (InvalidParameterException ex) {
                         log.error(null, ex);
                     } catch (ParameterNotUsedException ex) {
@@ -973,22 +992,86 @@ public class EmailMoveReceipt implements Runnable {
                         log.error(null, ex);
                     }
 
-                    log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 195!!");
-                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 195!!");
-                    try {
-                        emailData.put("ShipTypeDesc", delivery.getShipTypeDesc());
-                    } catch (InvalidParameterException ex) {
-                        log.error(null, ex);
-                    } catch (ParameterNotUsedException ex) {
-                        //log.info(null, ex);
-                    } catch (BlankMessageException ex) {
-                        log.error(null, ex);
-                    }*/
+                    log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198!!");
+                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198!!");
+
+                    if (initialPickup != null && initialPickup.getOrigin() != null) {
+                        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198A!!");
+                        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198A!!");
+                        try {
+                            if (initialPickup.getOrigin().getCdlocat() != null) {
+                                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup From Locat:" + initialPickup.getOrigin().getCdlocat() + "!!");
+                                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup From Locat:" + initialPickup.getOrigin().getCdlocat() + "!!");
+                                emailData.put("FromLocat", initialPickup.getOrigin().getCdlocat());
+                            }
+                        } catch (InvalidParameterException ex) {
+                            log.error(null, ex);
+                        } catch (ParameterNotUsedException ex) {
+                            //log.info(null, ex);
+                        } catch (BlankMessageException ex) {
+                            log.error(null, ex);
+                        }
+                        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198B!!");
+                        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198B!!");
+
+                        try {
+                            if (initialPickup.getOrigin().getFullAddress() != null) {
+                                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup From Address:" + initialPickup.getOrigin().getFullAddress() + "!!");
+                                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup From Address:" + initialPickup.getOrigin().getFullAddress() + "!!");
+                                emailData.put("FromAddress", initialPickup.getOrigin().getFullAddress());
+                            }
+                        } catch (InvalidParameterException ex) {
+                            log.error(null, ex);
+                        } catch (ParameterNotUsedException ex) {
+                            //log.info(null, ex);
+                        } catch (BlankMessageException ex) {
+                            log.error(null, ex);
+                        }
+                    }
+                    log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198B DONE!!");
+                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198B DONE!!");
+                } /*
+                 * Delivery Receipt for Remote Pickup
+                 */ else if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
+                    log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) REMOTE PICKUP (DELIVERY)");
+
+                    /*
+                     * BH 4/9/14. 
+                     *     Discussed with SJG.. Suggestion was to send normal Delivery E-mail
+                     *  even with a Remote Pickup. There will be a special instructions
+                     *  in the Remote Pickup E-mail
+                     */
+
+                    emailData = new EmailData(db, "DELIVERYRCPT");
+                    /*                    emailData = new EmailData(db, "RMTPCKPDELIVERYRCPT");
+                     log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 190!!");
+                     System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 190!!");
+
+                     try {
+                     emailData.put("ShipType", delivery.getShipType());
+                     } catch (InvalidParameterException ex) {
+                     log.error(null, ex);
+                     } catch (ParameterNotUsedException ex) {
+                     //log.info(null, ex);
+                     } catch (BlankMessageException ex) {
+                     log.error(null, ex);
+                     }
+
+                     log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 195!!");
+                     System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 195!!");
+                     try {
+                     emailData.put("ShipTypeDesc", delivery.getShipTypeDesc());
+                     } catch (InvalidParameterException ex) {
+                     log.error(null, ex);
+                     } catch (ParameterNotUsedException ex) {
+                     //log.info(null, ex);
+                     } catch (BlankMessageException ex) {
+                     log.error(null, ex);
+                     }*/
                     log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 200!!");
                     System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 200!!");
 
-                } 
-                 /*
+                } /*
                  * Delivery Receipt for normal Pickup/Delivery (Neither are remote) 
                  */ else {
                     log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 205!!");
@@ -1011,13 +1094,16 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 215!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 215!!");
+
+                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 216!!");
+                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 216!!");
 
                 try {
                     if (signingEmployee != null && signingEmployee.getEmployeeName() != null) {
+                        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(1A) sendEmailReceipt EmployeeName(SigningEmployee)" + signingEmployee.getEmployeeName() + "!!");
                         emailData.put("Employee", signingEmployee.getEmployeeName());
                     } else if (remoteUser != null && remoteUser.getEmployeeName() != null) {
+                        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(1B) sendEmailReceipt EmployeeName(RemoteUser)" + remoteUser.getEmployeeName() + "!!");
                         emailData.put("Employee", remoteUser.getEmployeeName());
                     } else {
                         /*
@@ -1025,6 +1111,7 @@ public class EmailMoveReceipt implements Runnable {
                          * (ie: the user who logged into the tablet to send the paperwork for the remote office)
                          *  If neither are filled, then we will just default to a Generic Name
                          */
+                        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(1C) sendEmailReceipt EmployeeName(NinComPoop):Senate Employee!!");
                         emailData.put("Employee", "Senate Employee");
                     }
                 } catch (InvalidParameterException ex) {
@@ -2232,7 +2319,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (ParameterNotUsedException ex) {
                     //log.warn(null, ex);
                 } catch (BlankMessageException ex) {
-                    log.warn(null, ex);               
+                    log.warn(null, ex);
                 }
 
                 try {

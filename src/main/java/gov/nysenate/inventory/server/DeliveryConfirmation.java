@@ -41,6 +41,18 @@ public class DeliveryConfirmation extends HttpServlet {
             TransactionMapper mapper = new TransactionMapper();
             try {
                 delivery = TransactionParser.parseTransaction(deliveryJson);
+                String cdshiptyp = delivery.getShipType();
+                if ((cdshiptyp != null && cdshiptyp.trim().length() > 0)
+                        || (delivery.getShipTypeDesc() == null || delivery.getShipTypeDesc().trim().length() == 0)) {
+                    try {
+                        delivery.setShipTypeDesc(db.getShipTypeDesc(cdshiptyp));
+                    } catch (ClassNotFoundException ex) {
+                        log.warn(null, ex);
+                    } catch (SQLException ex) {
+                        log.warn(null, ex);
+                    }
+                }
+
                 mapper.completeDelivery(db, delivery);
             } catch (SQLException e) {
                 out.println("Database not updated");
@@ -60,29 +72,28 @@ public class DeliveryConfirmation extends HttpServlet {
     }
 
     public void emailDeliveryReceipt(PrintWriter out, String msg, Transaction delivery, HttpServletRequest request) {
-      int emailReceiptStatus  = 0;
-      try {
-        HttpSession httpSession = request.getSession(false);        
-        String user = (String) httpSession.getAttribute("user");
-        String pwd = (String) httpSession.getAttribute("pwd");
+        int emailReceiptStatus = 0;
+        try {
+            HttpSession httpSession = request.getSession(false);
+            String user = (String) httpSession.getAttribute("user");
+            String pwd = (String) httpSession.getAttribute("pwd");
 
-        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(request, user, pwd, "delivery", delivery);
-        Thread threadEmailMoveReceipt = new Thread(emailMoveReceipt);
-        threadEmailMoveReceipt.start();
+            EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(request, user, pwd, "delivery", delivery);
+            Thread threadEmailMoveReceipt = new Thread(emailMoveReceipt);
+            threadEmailMoveReceipt.start();
 
-        //emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(delivery);
-        //if (emailReceiptStatus==0) {
-          out.println("Database updated successfully");         
-        /*}
-        else {
-          out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+").");
-        }*/
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-        System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).["+e.getMessage()+":"+e.getStackTrace()[0].toString()+"]");
-        out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+"-2).");
-      }
+            //emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(delivery);
+            //if (emailReceiptStatus==0) {
+            out.println("Database updated successfully");
+            /*}
+             else {
+             out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+").");
+             }*/
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).[" + e.getMessage() + ":" + e.getStackTrace()[0].toString() + "]");
+            out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).");
+        }
     }
 
     @Override
