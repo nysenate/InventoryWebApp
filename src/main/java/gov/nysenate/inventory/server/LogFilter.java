@@ -34,7 +34,7 @@ public class LogFilter implements Filter {
     }
 
     private void putUserName(HttpServletRequest req) {
-        HttpSession session = req.getSession(true);
+        HttpSession session = req.getSession(false);
         String username = null;
         if (session != null) {
             username = (String) session.getAttribute("user");
