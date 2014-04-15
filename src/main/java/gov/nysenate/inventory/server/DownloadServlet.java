@@ -30,16 +30,8 @@ public class DownloadServlet extends HttpServlet
   String serverOS = "Windows"; // Default to Windows OS
   String pathDelimeter = "\\"; 
 
-  /**
-   * Processes requests for both HTTP
-   * <code>GET</code> and
-   * <code>POST</code> methods.
-   *
-   * @param request servlet request
-   * @param response servlet response
-   * @throws ServletException if a servlet-specific error occurs
-   * @throws IOException if an I/O error occurs
-   */
+  private static final Logger log = Logger.getLogger(DownloadServlet.class.getName());
+
   protected void processRequest(HttpServletRequest request, HttpServletResponse response)
           throws ServletException, IOException
   {
@@ -62,16 +54,6 @@ public class DownloadServlet extends HttpServlet
     }
   }
 
-  // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-  /**
-   * Handles the HTTP
-   * <code>GET</code> method.
-   *
-   * @param request servlet request
-   * @param response servlet response
-   * @throws ServletException if a servlet-specific error occurs
-   * @throws IOException if an I/O error occurs
-   */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
           throws ServletException, IOException
@@ -91,7 +73,7 @@ public class DownloadServlet extends HttpServlet
             downloadPath = properties.getProperty("downloadPath");
   
         } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(DbConnect.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            log.warn(null, ex);
         }
     
     BufferedInputStream fin = null;
@@ -148,9 +130,10 @@ public class DownloadServlet extends HttpServlet
                 outs.write(b,0,read);
             }
         }
-    }catch (Exception e) {
-        e.printStackTrace();
-
+    } catch (org.apache.catalina.connector.ClientAbortException e) {
+        // Don't throw ClientAbortException, caused by android when downloading on tablet.
+    } catch (Exception e) {
+        log.warn(e.getMessage(), e);
     }finally {
         try{
             if(outs!=null) outs.close();

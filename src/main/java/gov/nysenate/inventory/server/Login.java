@@ -1,9 +1,8 @@
 package gov.nysenate.inventory.server;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import gov.nysenate.inventory.model.LoginStatus;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
@@ -20,17 +19,9 @@ import org.apache.log4j.Logger;
  */
 @WebServlet(name = "Login", urlPatterns = {"/Login"})
 public class Login extends HttpServlet {
- //static Logger log = Logger.getLogger(DbConnect.class.getName());
-    /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+
+    private static Logger log = Logger.getLogger(DbConnect.class.getName());
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
@@ -40,86 +31,36 @@ public class Login extends HttpServlet {
             String user = request.getParameter("user");
             String pwd = request.getParameter("pwd");
 
-            DbConnect db = new DbConnect(user, pwd);
-            db.ipAddr=request.getRemoteAddr();         //Logger.getLogger(Login.class.getName()).info("Servlet Login : start");
-            db.log.info(db.ipAddr+"|"+"Servlet Login : start");
+            log.info("User " + user + "is attempting to log in");
 
-            String defrmint = "";
+            DbConnect db = new DbConnect(request, user, pwd);
+            String defrmint = request.getParameter("defrmint");
 
-            try {
-               defrmint = request.getParameter("defrmint");
-            }
-            catch (Exception e) {
-                // Do nothing if we fail to get defrmint;
-            }
-                    
             HttpSession httpSession = request.getSession(true);
-            String status = "N";
+            LoginStatus loginStatus = new LoginStatus();
 
-            // create an object of the db class and pass user name and password to it   
-            //  Use this code if we decide to create a new table for user name and password and 
-            // validate it from database function
-          
-            status = db.validateUser();
+            loginStatus = db.validateUser();
+            log.info("Login : defrmint:"+defrmint+", status:"+loginStatus.getDestatus());
 
-
-            if (status.equalsIgnoreCase("VALID")) {
+            if (loginStatus.getNustatus() == loginStatus.VALID) {
+                System.out.println("VALID LOGIN:"+loginStatus.getDestatus());
+                log.info(user + " has access to use this app");
                 httpSession.setAttribute("user", user);
                 httpSession.setAttribute("pwd", pwd);
-                status = db.securityAccess(user, defrmint);
+                loginStatus = db.securityAccess(user, defrmint, loginStatus);
             }
             else {
+                log.info("Unable to validate access for user: " + user);
                 httpSession.setAttribute("user", null);
                 httpSession.setAttribute("pwd", null);
             }
+            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
-
-            //---------- Call the MyWorkplace web server and validate the user name and password
-          /*
-             int userNumber = -1000;
-
-             Properties properties = new Properties();
-             InputStream ins =  db.getClass().getClassLoader().getResourceAsStream("gov/nysenate/inventory/server/config.properties");
-             properties.load(ins);
-     
-             String connectionString = properties.getProperty("myWpAPI");
-            
-             // validating from myWorkPlace API 
-             URL url = new URL(connectionString + user + "+PVCXVNXCU=" + pwd);
-             URLConnection con = url.openConnection();
-             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-             String inputLine;
-             StringBuilder builder = new StringBuilder();
-             while ((inputLine = in.readLine()) != null) {
-             builder.append(inputLine.trim());
-             }
-             in.close();
-             String serverResponse = builder.toString(); // this string is the response we get from server
-
-             int start = serverResponse.indexOf("<body>");
-             int end = serverResponse.indexOf("</body>");
-
-             String bodyText = serverResponse.substring(start + 6, end).trim(); // the server reponse is HTML page, we just need 
-             // content of BODY tag
-             // server checks if the user name and password combination is correct, if yes it returns us 
-             // the user number or it will return us -2 (invalid user)
-             try {
-             userNumber = Integer.parseInt(bodyText);
-             } catch (Exception e) {
-             out.println(e.getMessage() + " " + e.getStackTrace()[0].toString());
-             }
-
-
-             if (userNumber >= 0) {
-             status = "VALID";
-             }
-             */
-            // ------------MyWorkPlace Validation end
-
-
-            // pass the status to the app
-            out.println(status);
-            Logger.getLogger(Login.class.getName()).info(db.ipAddr+"|"+"Servlet Login : end");
+            String json = gson.toJson(loginStatus);
+            System.out.println("loginStatus:"+json);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            out.print(json);
         } finally {
             out.close();
         }

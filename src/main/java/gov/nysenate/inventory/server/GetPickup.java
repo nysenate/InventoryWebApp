@@ -1,12 +1,12 @@
 package gov.nysenate.inventory.server;
 
-import gov.nysenate.inventory.model.Pickup;
+import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.TransactionMapper;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -20,42 +20,35 @@ import com.google.gson.Gson;
 @WebServlet(name = "GetPickup", urlPatterns = { "/GetPickup" })
 public class GetPickup extends HttpServlet {
 
+    private static final Logger log = Logger.getLogger(GetPickup.class.getName());
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Logger log = Logger.getLogger(CancelPickup.class.getName());
         response.setContentType("text/html;charset=UTF-8");
-
-        PrintWriter out = null;
-        DbConnect db = null;
-        try {
-            out = response.getWriter();
-            db = HttpUtils.getHttpSession(request, out);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // Temporary fix to abide by current session checking functionality.
-        if (out.toString().contains("Session timed out")) {
-            response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
-        }
+        PrintWriter out = response.getWriter();
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
 
         int nuxrpd;
-        Pickup pickup = null;
-        ArrayList<InvItem> items;
+        Transaction pickup = null;
         String userFallback = request.getParameter("userFallback");
         String nuxrpdString = request.getParameter("nuxrpd");
+        log.info("Getting pickup for nuxrpd = " + nuxrpdString);
         if (nuxrpdString == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            log.warn("Unable to get pickup info, nuxrpd was null");
             return;
         }
 
+        TransactionMapper mapper = new TransactionMapper();
         nuxrpd = Integer.parseInt(nuxrpdString);
         try {
-            pickup = db.getPickupInfo(nuxrpd);
-            items = db.getDeliveryDetails(nuxrpdString, userFallback);
+            pickup = mapper.queryTransaction(db, nuxrpd);
         } catch (SQLException ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("GetPickup: SQL Exception: ", ex);
             return;
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
 
         if (pickup == null) {
@@ -64,8 +57,9 @@ public class GetPickup extends HttpServlet {
             return;
         }
 
-        pickup.setPickupItems(items);
-        out.print(new Gson().toJson(pickup));
+        String json = new Gson().toJson(pickup);
+        log.info("Pickup info received: " + json);
+        out.print(json);
         out.close();
     }
 

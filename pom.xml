@@ -4,7 +4,7 @@
 
     <groupId>gov.nysenate</groupId>
     <artifactId>InventoryWebApp</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
     <packaging>war</packaging>
 
     <name>InventoryWebApp</name>
@@ -97,7 +97,13 @@
                     <groupId>com.sun.jdmk</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>    
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>catalina</artifactId>
+            <version>6.0.16</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

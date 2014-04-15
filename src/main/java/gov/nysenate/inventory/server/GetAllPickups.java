@@ -1,12 +1,13 @@
 package gov.nysenate.inventory.server;
 
-import gov.nysenate.inventory.model.Pickup;
+import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.TransactionMapper;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.Collection;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -20,37 +21,45 @@ import com.google.gson.Gson;
 @WebServlet(name = "GetAllPickups", urlPatterns = { "/GetAllPickups" })
 public class GetAllPickups extends HttpServlet {
 
+    private static final Logger log = Logger.getLogger(GetAllPickups.class.getName());
+
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        Logger log = Logger.getLogger(GetAllPickups.class.getName());
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        PrintWriter out = response.getWriter();
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        log.info("Getting info for all pickups");
 
-        PrintWriter out = null;
-        DbConnect db = null;
-        try {
-            out = response.getWriter();
-            db = HttpUtils.getHttpSession(request, out);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (out.toString().contains("Session timed out")) {
-            response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
+        boolean wantIncompleteRemotes = false;
+        String incRemotes = request.getParameter("incompleteRemote");
+        if (incRemotes != null) {
+            wantIncompleteRemotes = Boolean.valueOf(incRemotes);
+            log.info("Include remote transactions? = " + incRemotes);
         }
 
-        List<Pickup> pickups = null;
+        Collection<Transaction> trans = null;
+        TransactionMapper transMap = new TransactionMapper();
         try {
-            pickups = db.getAllValidPickups();
+            if (wantIncompleteRemotes) {
+                trans = transMap.queryDeliveriesMissingRemoteInfo(db);
+            } else {
+                trans = transMap.queryAllValidTransactions(db);
+            }
         } catch (SQLException ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("GetAllPickups Exception: ", ex);
+        } catch (ClassNotFoundException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            log.error("Error getting oracle jdbc driver: ", e);
         }
 
+        log.info("Recieved info for " + trans.size() + " pickups.");
         Gson gson = new Gson();
-        out.print(gson.toJson(pickups));
+        out.print(gson.toJson(trans));
         out.close();
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         doGet(request, response);
     }
 }

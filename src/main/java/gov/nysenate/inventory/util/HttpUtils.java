@@ -2,33 +2,48 @@ package gov.nysenate.inventory.util;
 
 import gov.nysenate.inventory.server.DbConnect;
 import gov.nysenate.inventory.server.PickupServlet;
+import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
-import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 public class HttpUtils {
 
     public static final int SC_SESSION_TIMEOUT = 599;
+    public static final int SC_SESSION_OK = 200;
 
-    public static DbConnect getHttpSession(HttpServletRequest request, PrintWriter out) {
+    private static final Logger log = Logger.getLogger(HttpUtils.class.getName());
+    
+    public static DbConnect getHttpSession(HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
+        return getHttpSession(request, response, out, SC_SESSION_TIMEOUT);
+    }
+    
+    public static DbConnect getHttpSession(HttpServletRequest request, HttpServletResponse response, PrintWriter out, int noSessionStatus) {
         HttpSession httpSession = request.getSession(false);
         DbConnect db;
         String userFallback = "";
         if (httpSession == null) {
             System.out.println("****SESSION NOT FOUND");
-            db = new DbConnect();
-            Logger.getLogger(PickupServlet.class.getName()).info(db.ipAddr + "|" + "****SESSION NOT FOUND Pickup.processRequest ");
-            userFallback = request.getParameter("userFallback");
+            db = new DbConnect(request);
+            log.info("Session not found/timed out.");
             out.println("Session timed out");
+            response.setStatus(noSessionStatus);
         } else {
             long lastAccess = (System.currentTimeMillis() - httpSession.getLastAccessedTime());
             System.out.println("SESSION FOUND!!!! LAST ACCESSED:" + convertTime(lastAccess));
             String user = (String) httpSession.getAttribute("user");
             String pwd = (String) httpSession.getAttribute("pwd");
-            db = new DbConnect(user, pwd);
+            if (user==null||user.trim().length()==0||pwd==null||pwd.trim().length()==0) {
+                System.out.println("SESSION FOUND!!!! WITH MISSING USER/PASSWORD WILL BE TREATED AS IF SESSION WAS NOT FOUND" );
+                db = new DbConnect(request);
+                response.setStatus(noSessionStatus);
+            }
+            else {
+                db = new DbConnect(request, user, pwd);
+            }
         }
         return db;
     }

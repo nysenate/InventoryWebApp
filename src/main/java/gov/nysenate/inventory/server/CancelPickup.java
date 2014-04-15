@@ -16,26 +16,19 @@ import org.apache.log4j.Logger;
 @WebServlet(name = "CancelPickup", urlPatterns = { "/CancelPickup" })
 public class CancelPickup extends HttpServlet {
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        Logger log = Logger.getLogger(CancelPickup.class.getName());
+    private static final Logger log = Logger.getLogger(CancelPickup.class.getName());
 
-        PrintWriter out = null;
-        DbConnect db = null;
-        try {
-            out = response.getWriter();
-            db = HttpUtils.getHttpSession(request, out);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // Temporary fix to abide by current session checking functionality.
-        if (out.toString().contains("Session timed out")) {
-            response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
-        }
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        PrintWriter out = response.getWriter();
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
 
         String nuxrpdString = request.getParameter("nuxrpd");
+        log.info("Canceling pickup with nuxrpd = " + nuxrpdString);
+
         if (nuxrpdString == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            log.warn("Can't cancel pickup, nuxrpd was null");
             return;
         }
 
@@ -45,11 +38,13 @@ public class CancelPickup extends HttpServlet {
         } catch (SQLException ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("Cancel Pickup Exception: ", ex);
+        } catch (ClassNotFoundException e) {
+            log.error("Error getting oracle jdbc driver: ", e);
         }
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         doGet(request, response);
     }
 

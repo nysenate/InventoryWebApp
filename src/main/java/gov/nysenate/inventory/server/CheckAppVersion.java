@@ -13,8 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -25,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.JsonObject;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -35,19 +34,13 @@ public class CheckAppVersion extends HttpServlet {
     
     String serverOS = "Windows"; // Default to Windows OS
     String pathDelimeter = "\\"; 
+    private HttpServletRequest request = null;
     
-    /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+    private static final Logger log = Logger.getLogger(CheckAppVersion.class.getName());
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        this.request = request;
         serverOS = System.getProperty("os.name");
         if (serverOS.toUpperCase().indexOf("WINDOWS")==-1) {
             pathDelimeter = "/";
@@ -64,7 +57,7 @@ public class CheckAppVersion extends HttpServlet {
             try {            
                  properties.load(in);
              } catch (IOException ex) {
-                Logger.getLogger(PickupServlet.class.getName()).log(Level.SEVERE, null, ex);
+                log.error(null, ex);
             }
             
             try {
@@ -134,21 +127,20 @@ public class CheckAppVersion extends HttpServlet {
        int fileSize = (int)f.length();
        f = null;
        System.gc();
-       DbConnect db = new DbConnect();
+       DbConnect db = new DbConnect(this.request);
                
        if (fileName.endsWith(".apk") || fileName.endsWith(".zip")) {
             try {
                 zip = new ZipFile(fileName);
             } catch (IOException ex) {
-                  log.info(db.ipAddr + "|" + "***WARNING: "+fileName+" not found on Server. The Server cannot check for the latest version of the App or allow the App to be downloaded without the file on the server.");                
-//                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
+                  log.info("***WARNING: "+fileName+" not found on Server. The Server cannot check for the latest version of the App or allow the App to be downloaded without the file on the server.");
                 return "";
             }
             ZipEntry mft = zip.getEntry(zipEntry);
             try {
                 is = zip.getInputStream(mft);
             } catch (IOException ex) {
-                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
+                log.warn(ex.getMessage(), ex);
                 return "";
             }
                        
@@ -156,7 +148,7 @@ public class CheckAppVersion extends HttpServlet {
             try {
                 is = new FileInputStream(fileName);
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
+                log.warn(ex.getMessage(), ex);
                 return "";
             }
                 }
@@ -165,20 +157,20 @@ public class CheckAppVersion extends HttpServlet {
             try {
                  int bytesRead = is.read(buf);
                 } catch (IOException ex) {
-                    Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
+                    log.warn(ex.getMessage(), ex);
                     return "";
             }
             try {
                  is.close();
                 } catch (IOException ex) {
-                    Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
+                    log.warn(ex.getMessage(), ex);
                     return "";
                }
                 if (zip != null) {
                     try {
                         zip.close();
                     } catch (IOException ex) {
-                        Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, ex.getMessage(), ex);
+                        log.warn(ex.getMessage(), ex);
                         return "";
                 }
                 }
@@ -198,7 +190,7 @@ public class CheckAppVersion extends HttpServlet {
             return version;       
         }
         catch (Exception e) {
-            Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, e.getMessage(), e);
+            log.warn(e.getMessage(), e);
             return -1;
         }
     }
@@ -215,7 +207,7 @@ public class CheckAppVersion extends HttpServlet {
             return versionName;     
          }
         catch (Exception e) {
-            Logger.getLogger(TestGson.class.getName()).log(Level.WARNING, e.getMessage(), e);
+            log.warn(e.getMessage(), e);
             return "";
         }        
     }
