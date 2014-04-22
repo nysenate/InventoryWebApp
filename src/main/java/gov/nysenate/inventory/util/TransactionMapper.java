@@ -279,9 +279,9 @@ public class TransactionMapper extends DbManager {
                 ps.setInt(8, trans.getEmployeeId());
             }
             if (trans.getHelpReferenceNum() == null || trans.getHelpReferenceNum().equals("")) {
-                ps.setNull(9, java.sql.Types.INTEGER);
+                ps.setNull(9, java.sql.Types.VARCHAR);
             } else {
-                ps.setInt(9, Integer.valueOf(trans.getHelpReferenceNum()));
+                ps.setString(9, trans.getHelpReferenceNum());
             }
             if (getTransVerId(conn, trans) == 0) {
                 ps.setNull(10, java.sql.Types.INTEGER);
