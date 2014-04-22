@@ -14,6 +14,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
 
@@ -41,13 +42,25 @@ public class EnterRemoteInfo extends HttpServlet {
         try {
             trans = TransactionParser.parseTransaction(transJson);
             mapper.insertRemoteInfo(db, trans);
+            HttpSession httpSession = request.getSession(false);
+            String user = (String) httpSession.getAttribute("user");
+            String pwd = (String) httpSession.getAttribute("pwd");
+            EmailMoveReceipt emailMoveReceipt = null;
+
             if (trans.isRemoteDelivery()) {
                 log.info("Entering remote delivery info");
                 mapper.insertRemoteDeliveryRemoteUserInfo(db, trans);
+                emailMoveReceipt = new EmailMoveReceipt(request, user, pwd, "delivery", trans);
             } else {
                 log.info("Entering remote pickup info");
                 mapper.insertRemotePickupRemoteUserInfo(db, trans);
+                emailMoveReceipt = new EmailMoveReceipt(request, user, pwd, "pickup", trans);
             }
+            if (emailMoveReceipt!=null) {
+                Thread threadEmailMoveReceipt = new Thread(emailMoveReceipt);
+                threadEmailMoveReceipt.start();
+            }
+            
         } catch (ClassNotFoundException | SQLException e) {
             log.error("Error Inserting Remote Info: ", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
