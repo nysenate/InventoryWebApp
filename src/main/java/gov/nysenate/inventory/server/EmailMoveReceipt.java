@@ -31,7 +31,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Properties;
-import java.util.logging.Level;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.mail.Message;
@@ -149,16 +148,15 @@ public class EmailMoveReceipt implements Runnable {
 
                 this.serverInfo = "";
                 this.subjectAddText = "";
-                
-                if (verificationId>0 && this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
+
+                if (verificationId > 0 && this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
                     int remoteVerEmpNuxrefem = trans.getEmployeeId();
-                    if (remoteVerEmpNuxrefem>0) {                   
+                    if (remoteVerEmpNuxrefem > 0) {
                         String remoteVerEmpNuxrefemStr = new Integer(remoteVerEmpNuxrefem).toString();
                         remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, userFallback);
                         try {
                             remoteVerByEmployee.setEmployeeNameOrder(remoteVerByEmployee.FIRST_MI_LAST_SUFFIX);
-                        }
-                        catch (Exception e) {
+                        } catch (Exception e) {
                             log.warn("**WARNING: Could not set Remote Pickup Verification By Employee Name order", e);
                         }
                     }
@@ -227,20 +225,19 @@ public class EmailMoveReceipt implements Runnable {
                 db = new DbConnect(request, username, password);
                 this.serverInfo = "";
                 this.subjectAddText = "";
-                
-                if (verificationId>0 && this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
+
+                if (verificationId > 0 && this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
                     int remoteVerEmpNuxrefem = trans.getEmployeeId();
-                    if (remoteVerEmpNuxrefem>0) {                   
+                    if (remoteVerEmpNuxrefem > 0) {
                         String remoteVerEmpNuxrefemStr = new Integer(remoteVerEmpNuxrefem).toString();
                         remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, userFallback);
                         try {
                             remoteVerByEmployee.setEmployeeNameOrder(remoteVerByEmployee.FIRST_MI_LAST_SUFFIX);
-                        }
-                        catch (Exception e) {
+                        } catch (Exception e) {
                             log.warn("**WARNING: Could not set Remote Delivery Verification By Employee Name order", e);
                         }
                     }
-                }                
+                }
 
                 if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
                     TransactionMapper transactionMapper = new TransactionMapper();
@@ -739,7 +736,7 @@ public class EmailMoveReceipt implements Runnable {
                 if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
                     sbTestMsg.append(", ");
                     sbTestMsg.append(remoteVerByEmployee.getNaemail());
-                }                
+                }
             }
             sbTestMsg.append("<br /><br />");
             log.info("{0}" + "|" + "(" + this.dbaUrl + ") ***Testing Mode add testing information");
@@ -838,8 +835,8 @@ public class EmailMoveReceipt implements Runnable {
                     if (signingEmployee != null && signingEmployee.getEmployeeName() != null && signingEmployee.getEmployeeName().trim().length() > 0) {
                         //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(2A) sendEmailReceipt EmployeeName(SigningEmployee)" + signingEmployee.getEmployeeName() + "!!");
                         emailData.put("Employee", signingEmployee.getEmployeeName());
-                    } else  if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
-                        emailData.put("Employee", remoteVerByEmployee.getEmployeeName());                        
+                    } else if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
+                        emailData.put("Employee", remoteVerByEmployee.getEmployeeName());
                     } else if (remoteUser != null && remoteUser.getEmployeeName() != null && remoteUser.getEmployeeName().trim().length() > 0) {
                         //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(2A) sendEmailReceipt EmployeeName(remoteUser)" + remoteUser.getEmployeeName() + "!!");
                         emailData.put("Employee", remoteUser.getEmployeeName());
@@ -1138,8 +1135,8 @@ public class EmailMoveReceipt implements Runnable {
                     if (signingEmployee != null && signingEmployee.getEmployeeName() != null) {
                         log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(1A) sendEmailReceipt EmployeeName(SigningEmployee)" + signingEmployee.getEmployeeName() + "!!");
                         emailData.put("Employee", signingEmployee.getEmployeeName());
-                    } else  if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
-                        emailData.put("Employee", remoteVerByEmployee.getEmployeeName());                        
+                    } else if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
+                        emailData.put("Employee", remoteVerByEmployee.getEmployeeName());
                     } else if (remoteUser != null && remoteUser.getEmployeeName() != null) {
                         log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(1B) sendEmailReceipt EmployeeName(RemoteUser)" + remoteUser.getEmployeeName() + "!!");
                         emailData.put("Employee", remoteUser.getEmployeeName());
@@ -1491,17 +1488,17 @@ public class EmailMoveReceipt implements Runnable {
                     }
                     if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
                         try {
-                            if (emailValidator.validate(remoteVerByEmployee.getNaemail())) {                        
+                            if (emailValidator.validate(remoteVerByEmployee.getNaemail())) {
                                 msg.addRecipient(Message.RecipientType.TO,
                                         new InternetAddress(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                                 recipientCount++;
-                              } else {
-                              addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), null, "Invalid E-mail Address");
-                              }
-                         } catch (UnsupportedEncodingException | MessagingException e2) {
+                            } else {
+                                addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), null, "Invalid E-mail Address");
+                            }
+                        } catch (UnsupportedEncodingException | MessagingException e2) {
                             addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), e2.getStackTrace(), e2.getMessage());
-                          }
                         }
+                    }
                     ////log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 25(" + this.paperworkType + "):");
                 } else if (pickupEmployee == null) {
                     log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Pickup Employee was null so can''t add Pickup Employee as recipient.");
@@ -1546,17 +1543,17 @@ public class EmailMoveReceipt implements Runnable {
                     }
                     if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
                         try {
-                            if (emailValidator.validate(remoteVerByEmployee.getNaemail())) {                        
+                            if (emailValidator.validate(remoteVerByEmployee.getNaemail())) {
                                 msg.addRecipient(Message.RecipientType.TO,
                                         new InternetAddress(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                                 recipientCount++;
-                              } else {
-                              addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), null, "Invalid E-mail Address");
-                              }
-                         } catch (UnsupportedEncodingException | MessagingException e2) {
+                            } else {
+                                addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), null, "Invalid E-mail Address");
+                            }
+                        } catch (UnsupportedEncodingException | MessagingException e2) {
                             addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), e2.getStackTrace(), e2.getMessage());
-                          }
-                     }                    
+                        }
+                    }
                     ////log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 90(" + this.paperworkType + ")");
                 } else if (deliveryEmployee == null) {
                     log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Delivery Employee was null so can''t add Delivery Employee as recipient.");
@@ -1627,17 +1624,17 @@ public class EmailMoveReceipt implements Runnable {
                             }
                             if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
                                 try {
-                                   if (emailValidator.validate(remoteVerByEmployee.getNaemail())) {                        
+                                    if (emailValidator.validate(remoteVerByEmployee.getNaemail())) {
                                         msg.addRecipient(Message.RecipientType.TO,
-                                        new InternetAddress(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
+                                                new InternetAddress(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                                         recipientCount++;
-                                      } else {
-                                    addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), null, "Invalid E-mail Address");
-                                     }
-                                 } catch (UnsupportedEncodingException | MessagingException e2) {
-                                      addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), e2.getStackTrace(), e2.getMessage());
-                                 }
-                                 }                            
+                                    } else {
+                                        addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), null, "Invalid E-mail Address");
+                                    }
+                                } catch (UnsupportedEncodingException | MessagingException e2) {
+                                    addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), e2.getStackTrace(), e2.getMessage());
+                                }
+                            }
                             //System.out.println("(" + this.dbaUrl + ") ADDED Remote User addRecipient: email:" + remoteUser.getNaemail() + ", Email Name:" + remoteUser.getEmployeeName());
                             //log.warn("(" + this.dbaUrl + ") ADDED Remote User  addRecipient: email:" + remoteUser.getNaemail() + ", Email Name:" + remoteUser.getEmployeeName());
                         }
@@ -1650,17 +1647,17 @@ public class EmailMoveReceipt implements Runnable {
                     } else if (remoteUser != null && remoteUser.getNaemail() != null) {
                         System.out.println("(" + this.dbaUrl + ") EXCEPTION Remote User  addRecipient: email:" + remoteUser.getNaemail() + ", Email Name:" + remoteUser.getEmployeeName());
                         log.warn("(" + this.dbaUrl + ") EXCEPTION Remote User  addRecipient: email:" + remoteUser.getNaemail() + ", Email Name:" + remoteUser.getEmployeeName());
-                        addProblemEmailAddr(remoteUser.getNaemail(), remoteUser.getEmployeeName(), e.getStackTrace(), e.getMessage());                        
+                        addProblemEmailAddr(remoteUser.getNaemail(), remoteUser.getEmployeeName(), e.getStackTrace(), e.getMessage());
                     }
                 }
             }
             /*if (this.emailType == this.PICKUP) {
-                System.out.println("-=-=-=-=-=-=-=-=-=TRACE PICKUP BEFORE SET SUBJECT!!!!!!");
-                //log.info("-=-=-=-=-=-=-=-=-=TRACE PICKUP BEFORE SET SUBJECT!!!!!!");
-            } else if (this.emailType == this.DELIVERY) {
-                System.out.println("-=-=-=-=-=-=-=-=-=TRACE DELIVERY BEFORE SET SUBJECT!!!!!!");
-                //log.info("-=-=-=-=-=-=-=-=-=TRACE DELIVERY DELIVERY BEFORE SET SUBJECT!!!!!!");
-            }*/
+             System.out.println("-=-=-=-=-=-=-=-=-=TRACE PICKUP BEFORE SET SUBJECT!!!!!!");
+             //log.info("-=-=-=-=-=-=-=-=-=TRACE PICKUP BEFORE SET SUBJECT!!!!!!");
+             } else if (this.emailType == this.DELIVERY) {
+             System.out.println("-=-=-=-=-=-=-=-=-=TRACE DELIVERY BEFORE SET SUBJECT!!!!!!");
+             //log.info("-=-=-=-=-=-=-=-=-=TRACE DELIVERY DELIVERY BEFORE SET SUBJECT!!!!!!");
+             }*/
 
 
             //System.out.println("EMAILING BEFORE SUBJECT");
