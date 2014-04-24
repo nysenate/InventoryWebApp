@@ -121,8 +121,11 @@ public class EmailMoveReceipt implements Runnable {
     public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, String paperworkType, Transaction trans) {
         this.request = request;
         this.paperworkType = paperworkType;
-        int verificationId = trans.getVerificationId();
+        String verificationMethod = trans.getVerificationMethod();
 
+        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE verificationMethod:"+verificationMethod);
+        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE verificationMethod:"+verificationMethod);
+        
         switch (type) {
             case "pickup":
                 this.emailType = PICKUP;
@@ -148,9 +151,13 @@ public class EmailMoveReceipt implements Runnable {
 
                 this.serverInfo = "";
                 this.subjectAddText = "";
+                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE pickup verificationMethod:"+verificationMethod+" paperworkType:"+this.paperworkType);
+                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE pickup verificationMethod:"+verificationMethod+" paperworkType:"+this.paperworkType);
 
-                if (verificationId > 0 && this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
+                if (verificationMethod != null && !verificationMethod.equals("") && this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
                     int remoteVerEmpNuxrefem = trans.getEmployeeId();
+                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE pickup remoteVerEmpNuxrefem:"+remoteVerEmpNuxrefem);
+                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE pickup remoteVerEmpNuxrefem:"+remoteVerEmpNuxrefem);
                     if (remoteVerEmpNuxrefem > 0) {
                         String remoteVerEmpNuxrefemStr = new Integer(remoteVerEmpNuxrefem).toString();
                         remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, userFallback);
@@ -212,6 +219,7 @@ public class EmailMoveReceipt implements Runnable {
                 this.username = username;
                 this.password = password;
                 this.delivery = trans;
+                
                 if (this.paperworkType == null || this.paperworkType.trim().length() == 0 && this.delivery != null) {
                     this.paperworkType = this.delivery.getRemoteType();
                     //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PAPERWORK TYPE WAS SET FROM DELIVERY OBJECT "+this.paperworkType);
@@ -226,9 +234,13 @@ public class EmailMoveReceipt implements Runnable {
                 this.serverInfo = "";
                 this.subjectAddText = "";
 
-                if (verificationId > 0 && this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
+                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE delivery verificationMethod:"+verificationMethod+" paperworkType:"+this.paperworkType);
+                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE delivery verificationMethod:"+verificationMethod+" paperworkType:"+this.paperworkType);
+                if (verificationMethod != null && !verificationMethod.equals("") && this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
                     int remoteVerEmpNuxrefem = trans.getEmployeeId();
-                    if (remoteVerEmpNuxrefem > 0) {
+                   log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE delivery remoteVerEmpNuxrefem:"+remoteVerEmpNuxrefem);
+                   System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE delivery remoteVerEmpNuxrefem:"+remoteVerEmpNuxrefem);
+                   if (remoteVerEmpNuxrefem > 0) {
                         String remoteVerEmpNuxrefemStr = new Integer(remoteVerEmpNuxrefem).toString();
                         remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, userFallback);
                         try {
@@ -355,8 +367,8 @@ public class EmailMoveReceipt implements Runnable {
      * which handles both Pickup and Delivery
      */
     public int sendPickupEmailReceipt(Transaction pickup) {
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt!!");
+        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt!!");
+        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt!!");
 
         if (emailType != PICKUP) {
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") " + "***WARNING: Email Type was not set to PICKUP!!! Not emailing Pickup receipt.");
@@ -369,8 +381,8 @@ public class EmailMoveReceipt implements Runnable {
         String originLocation = pickup.getOrigin().getCdlocat();
         String destinationLocation = pickup.getDestination().getCdlocat();
 
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 5!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 5!!");
+        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 5!!");
+        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 5!!");
         String naemployeeTo = "";
 
         try {
@@ -739,7 +751,7 @@ public class EmailMoveReceipt implements Runnable {
                 }
             }
             sbTestMsg.append("<br /><br />");
-            log.info("{0}" + "|" + "(" + this.dbaUrl + ") ***Testing Mode add testing information");
+            log.info("{0}" + "|" + "(" + this.dbaUrl + ") ***Testing Mode add testing information:"+sbTestMsg);
         }
         //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 90!!");
         //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 90!!");
