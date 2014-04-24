@@ -113,14 +113,30 @@ public class EmailMoveReceipt implements Runnable {
     private String paperworkType = null;
     private Transaction initialPickup = null;
     private Employee remoteVerByEmployee = null;
+    boolean remoteDeliveryNoSigDelivered = false;
+    private String calledBy = "";
 
     public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, Transaction trans) {
         this(request, username, password, type, (String) null, trans);
     }
 
+    public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, Transaction trans, String calledBy) {
+        this(request, username, password, type, (String) null, trans, calledBy);
+    }    
+
     public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, String paperworkType, Transaction trans) {
+        this(request, username, password, type, paperworkType, trans, "");
+    }   
+    
+    public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, String paperworkType, Transaction trans, String calledBy) {
         this.request = request;
         this.paperworkType = paperworkType;
+        this.calledBy = calledBy;
+        
+        if (this.calledBy==null) {
+            this.calledBy= "";
+        }
+        
         String verificationMethod = trans.getVerificationMethod();
 
         log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE verificationMethod:"+verificationMethod);
@@ -133,14 +149,9 @@ public class EmailMoveReceipt implements Runnable {
                 this.password = password;
                 this.pickup = trans;
                 userFallback = username; // userfallback is not really being used
-                //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE Email Pickup");
-                //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE Email Pickup");
-
-                //log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP START, PAPERWORK:"+this.paperworkType);
+ 
                 if (this.paperworkType == null || this.paperworkType.trim().length() == 0 && this.pickup != null) {
                     this.paperworkType = this.pickup.getRemoteType();
-                    //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PAPERWORK TYPE WAS SET FROM PICKUP OBJECT "+this.paperworkType);
-                    //log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PAPERWORK TYPE WAS SET FROM PICKUP OBJECT "+this.paperworkType);
                 }
                 // but it needs to be passed so it is being
                 // set to username (which should be set)
@@ -170,22 +181,18 @@ public class EmailMoveReceipt implements Runnable {
                 }
 
                 if (db.serverName.toUpperCase().contains("PROD")) {
-                    //System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE BEFORE PAPERWORK (PICKUP) PROD");                    
                     if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
                         this.subjectAddText = " (REMOTE)";
                     } else {
                         this.subjectAddText = "";
                     }
-                    //System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE YES!!! AFTER PAPERWORK (PICKUP) PROD");                    
                     this.serverInfo = "";
                 } else {
-                    //System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE BEFORE PAPERWORK (PICKUP)");                    
                     if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
                         this.subjectAddText = " (REMOTE) (" + db.serverName + ")";
                     } else {
                         this.subjectAddText = " (" + db.serverName + ")";
                     }
-                    //System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE YES!!! AFTER PAPERWORK (PICKUP)");                    
                     this.serverInfo = "<b>SERVER: " + db.serverName + " (" + db.serverIpAddr + ")</b><br/><br/><br/>";
                 }
 
@@ -209,12 +216,8 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (IOException ex) {
                     log.warn(null, ex);
                 }
-                //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE Email Pickup DONE");
-                //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE Email Pickup DONE");
                 break;
             case "delivery":
-                //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE Email Delivery");
-                //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE Email Delivery");
                 this.emailType = DELIVERY;
                 this.username = username;
                 this.password = password;
@@ -222,8 +225,6 @@ public class EmailMoveReceipt implements Runnable {
                 
                 if (this.paperworkType == null || this.paperworkType.trim().length() == 0 && this.delivery != null) {
                     this.paperworkType = this.delivery.getRemoteType();
-                    //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PAPERWORK TYPE WAS SET FROM DELIVERY OBJECT "+this.paperworkType);
-                    //log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PAPERWORK TYPE WAS SET FROM DELIVERY OBJECT "+this.paperworkType);
                 }
                 userFallback = username; // userfallback is not really being used
                 // but it needs to be passed so it is being
@@ -253,6 +254,18 @@ public class EmailMoveReceipt implements Runnable {
 
                 if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
                     TransactionMapper transactionMapper = new TransactionMapper();
+                    
+                    /*
+                     * If the transaction is a Remote Delivery which was called from 
+                     * the Delivery SERVLET (this.calledBy==DELIVERY) and Remote Verification still 
+                     * has not been entered (verificationMethod==null||verificationMethod.equals(""))
+                     * then the e-mail needs to specify that it has been delivered.
+                     * 
+                     */
+                    
+                    if (this.calledBy!=null && this.calledBy.equalsIgnoreCase("delivery") &&  (verificationMethod==null||verificationMethod.equals(""))) {
+                        remoteDeliveryNoSigDelivered = true;
+                    }
                     try {
                         if (this.delivery != null && this.delivery.getNuxrpd() > 0) {
                             this.initialPickup = transactionMapper.queryTransaction(db, this.delivery.getNuxrpd());
@@ -272,13 +285,11 @@ public class EmailMoveReceipt implements Runnable {
                     }
                     this.serverInfo = "";
                 } else {
-                    //System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE BEFORE PAPERWORK (DELIVERY)");
                     if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
                         this.subjectAddText = " (REMOTE) (" + db.serverName + ")";
                     } else {
                         this.subjectAddText = " (" + db.serverName + ")";
                     }
-                    //System.out.println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE YES!!! AFTER PAPERWORK (DELIVERY)");
                     this.serverInfo = "<b>SERVER: " + db.serverName + " (" + db.serverIpAddr + ")</b><br/><br/><br/>";
                 }
                 System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
@@ -367,22 +378,16 @@ public class EmailMoveReceipt implements Runnable {
      * which handles both Pickup and Delivery
      */
     public int sendPickupEmailReceipt(Transaction pickup) {
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt!!");
-
+        
         if (emailType != PICKUP) {
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") " + "***WARNING: Email Type was not set to PICKUP!!! Not emailing Pickup receipt.");
             return 30;
         }
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 2!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 2!!");
         this.pickup = pickup;
 //    String napickupby = pickup.getNapickupby();
         String originLocation = pickup.getOrigin().getCdlocat();
         String destinationLocation = pickup.getDestination().getCdlocat();
 
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 5!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 5!!");
         String naemployeeTo = "";
 
         try {
@@ -395,9 +400,6 @@ public class EmailMoveReceipt implements Runnable {
             e.printStackTrace();
         }
 
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 15!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 15!!");
-
         try {
             db.setLocationInfo(pickup.getDestination());
             deliverAddress = pickup.getDestination().getAdstreet1() + " " + pickup.getDestination().getAdcity() + ", " + pickup.getDestination().getAdstate() + ", " + pickup.getDestination().getAdzipcode();
@@ -407,12 +409,7 @@ public class EmailMoveReceipt implements Runnable {
             e.printStackTrace();
         }
 
-        System.out.println("(" + this.dbaUrl + ") EmailMoveReciept: pickup.getNuxrrelsign:" + pickup.getNuxrrelsign());
-        log.info("{0}" + "|" + "(" + this.dbaUrl + ") " + "EmailMoveReciept: pickup.getNuxrrelsign:" + pickup.getNuxrrelsign() + " " + pickup.getNapickupby());
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 20!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 20!!");
         try {
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt picked up by (causing errors):" + pickup.getNapickupby());
             pickupEmployee = db.getEmployee(pickup.getNapickupby());
             pickupEmployee.setEmployeeNameOrder(pickupEmployee.FIRST_MI_LAST_SUFFIX);
             this.napickupbyName = pickupEmployee.getEmployeeName().trim();
@@ -428,11 +425,7 @@ public class EmailMoveReceipt implements Runnable {
         // Get the employee who signed the Release
         if (pickup.getNuxrrelsign() == null || pickup.getNuxrrelsign().trim().length() == 0) {
             remoteUser = this.pickupEmployee;
-            log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 22!!");
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 22!!");
         } else {
-            log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 24!!");
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 24!!");
             try {
                 signingEmployee = db.getEmployeeWhoSigned(pickup.getNuxrrelsign(), false, userFallback);
                 signingEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
@@ -440,17 +433,9 @@ public class EmailMoveReceipt implements Runnable {
                 log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Pickup SigningEmployee");
             }
         }
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 30!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 30!!");
         // Get the employee who picked up the items
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 35!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 35!!");
-
-        log.info("{0}" + "|" + "(" + this.dbaUrl + ") Call sendEmailReciept PART II " + emailType);
 
         int emailReturnStatus = sendEmailReceipt(emailType);
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 40!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendPickupEmailReceipt 40!!");
 
         return emailReturnStatus;
     }
@@ -460,14 +445,10 @@ public class EmailMoveReceipt implements Runnable {
      * which handles both Pickup and Delivery
      */
     public int sendDeliveryEmailReceipt(Transaction delivery) {
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 1!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 1!!");
         if (emailType != DELIVERY) {
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Email Type was not set to DELIVERY!!! Not emailing Delivery receipt.");
             return 31;
         }
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 5!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 5!!");
         this.delivery = delivery;
 
         try {
@@ -479,38 +460,16 @@ public class EmailMoveReceipt implements Runnable {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 10!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 10!!");
-
-        System.out.println("(" + this.dbaUrl + ") EmailMoveReciept: delivery.getNuxrrelsign:" + delivery.getNuxraccptsign());
-        log.info("{0}" + "|" + "(" + this.dbaUrl + ") " + "EmailMoveReciept: delivery.getNuxraccptsign:" + delivery.getNuxraccptsign() + " " + delivery.getNadeliverby());
         // Get the employee who signed the Release
 
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 25!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 25!!");
-        System.out.println("(" + this.dbaUrl + ") EmailMoveReciept: After delivery Nuxraccptsign");
-        log.info("|" + "(" + this.dbaUrl + ") " + "EmailMoveReciept: After delivery Nuxraccptsign");
-
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 30!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 30!!");
         // Get the employee who picked up the items
         if (delivery.getNadeliverby() == null || delivery.getNadeliverby().trim().length() == 0) {
-            log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 31!!");
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 31!!");
-            System.out.println("(" + this.dbaUrl + ") Delivery no NadeliverBy");
-            log.info("|" + "(" + this.dbaUrl + ") " + "Delivery no NadeliverBy");
             deliveryEmployee = new Employee();
             this.nadeliverbyName = "N/A";
-            log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt DELIVERY Picked up BY:" + delivery.getNapickupby() + "!!");
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt DELIVERY Picked up BY:" + delivery.getNapickupby() + "!!");
 
             try {
-                //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt DELIVERY Picked up BY BEING SET:" + delivery.getNapickupby() + "!!");
                 pickupEmployee = db.getEmployee(delivery.getNapickupby());
-                //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt DELIVERY Picked up BY WAS SET:" + delivery.getNapickupby() + "!!");
-                //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt DELIVERY Picked up BY WAS SET:" + delivery.getNapickupby() + "!!");
                 pickupEmployee.setEmployeeNameOrder(pickupEmployee.FIRST_MI_LAST_SUFFIX);
-                //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt DELIVERY Picked up BY NAME IST:" + pickupEmployee.getEmployeeName() + "!!");
                 this.napickupbyName = pickupEmployee.getEmployeeName().trim();
             } catch (SQLException sqle) {
                 log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Delivery Employee for " + delivery.getNadeliverby(), sqle);
@@ -520,11 +479,7 @@ public class EmailMoveReceipt implements Runnable {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            //System.out.println("(" + this.dbaUrl + ") Delivery no NadeliverBy now set");
-            //log.info("|" + "(" + this.dbaUrl + ") " + "Delivery no NadeliverBy now set");
         } else {
-            //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 35!!");
-            //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 35!!");
             try {
 
                 deliveryEmployee = db.getEmployee(delivery.getNadeliverby());
@@ -541,22 +496,13 @@ public class EmailMoveReceipt implements Runnable {
 
         }
 
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt delivery.getNuxraccptsign():" + delivery.getNuxraccptsign() + "!!");
         if (delivery.getNuxraccptsign() == null || delivery.getNuxraccptsign().trim().length() == 0) {
-            //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 21!!");
-            //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 21!!");
             if (this.deliveryEmployee != null && this.deliveryEmployee.getNaemail() != null && this.deliveryEmployee.getNaemail().trim().length() > 0) {
-                //log.info("!!!!!!!!!!!!!!!!!!!!!!!!(START DELIVERY)-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE  USING DELIVERY EMPLOYEE AS REMOTE USER!!");
-                //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!(START DELIVERY)-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE USING DELIVERY EMPLOYEE AS REMOTE USER!!");
                 remoteUser = this.deliveryEmployee;
             } else if (this.pickupEmployee != null && this.pickupEmployee.getNaemail() != null && this.pickupEmployee.getNaemail().trim().length() > 0) {
-                //log.info("!!!!!!!!!!!!!!!!!!!!!!!!(START DELIVERY)-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE USING PICKUP EMPLOYEE AS REMOTE USER!!");
-                //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!(START DELIVERY)-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE USING PICKUP EMPLOYEE AS REMOTE USER!!");
                 remoteUser = this.pickupEmployee;
             }
         } else {
-            //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 22!!");
-            //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 22!!");
             try {
                 signingEmployee = db.getEmployeeWhoSigned(delivery.getNuxraccptsign(), false, userFallback);
                 signingEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
@@ -566,16 +512,7 @@ public class EmailMoveReceipt implements Runnable {
 
         }
 
-        //System.out.println("(" + this.dbaUrl + ") Call sendEmailReciept PART II " + emailType);
-        //log.info("|" + "(" + this.dbaUrl + ") " + "Call sendEmailReciept PART II " + emailType);
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 40!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 40!!");
-
         int emailReturnStatus = sendEmailReceipt(emailType);
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 45!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendDeliveryEmailReceipt 45!!");
-        //System.out.println("(" + this.dbaUrl + ") After call sendEmailReciept PART II " + emailType + " emailReturnStatus:" + emailReturnStatus);
-        //log.info("|" + "(" + this.dbaUrl + ") " + "After call sendEmailReciept PART II " + emailType + " emailReturnStatus:" + emailReturnStatus);
 
         return emailReturnStatus;
     }
@@ -586,8 +523,6 @@ public class EmailMoveReceipt implements Runnable {
      * 
      */
     private int sendEmailReceipt(int emailType) {
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 1!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 1!!");
         String emailTypeString = "";
 
         int nuxrpdOrig = -1;
@@ -601,9 +536,6 @@ public class EmailMoveReceipt implements Runnable {
                 emailTypeString = "D";
                 break;
         }
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 2!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 2!!");
-        //log.info("{0}" + "|" + "(" + this.dbaUrl + ") sendEmailReciept nuxrpd:" + nuxrpdOrig);
 
         final int nuxrpd = nuxrpdOrig;
         this.nuxrpd = nuxrpd;
@@ -611,8 +543,6 @@ public class EmailMoveReceipt implements Runnable {
         StringBuilder sbTestMsg = new StringBuilder();
         byte[] attachment = null;
         String msgBody = "";
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 10!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 10!!");
         receiptFilename = nuxrpd + "_" + formatDate(dtreceipt, "yyMMddHHmmss") + emailTypeString;
         int returnStatus = 0;
 
@@ -623,22 +553,14 @@ public class EmailMoveReceipt implements Runnable {
             log.error(null, ex);
             returnStatus = 1;
         }
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 15!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 15!!");
 
         String smtpServer = properties.getProperty("smtpServer");
         final String receiptURL = properties.getProperty("pickupReceiptURL");
         this.receiptURL = receiptURL;
 
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 20!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 20!!");
-
         Properties props = new Properties();
         props.setProperty("mail.smtp.host", smtpServer);
         Session session = Session.getDefaultInstance(props, null);
-
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 25!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 25!!");
 
         this.naemailTo2 = properties.getProperty("pickupEmailTo2");
         naemailFrom = null;
@@ -647,12 +569,8 @@ public class EmailMoveReceipt implements Runnable {
         naemailNameFrom = properties.getProperty("pickupEmailNameFrom");
         reportRetryLimitString = properties.getProperty("report.gen.retry_limit");
         reportWaitIntervalString = properties.getProperty("report.gen.wait_interval");
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 40!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 40!!");
-        //log.info("{0}" + "|" + "(" + this.dbaUrl + ") pickupEmailFrom: " + naemailNameFrom);
         if (reportRetryLimitString == null || reportWaitIntervalString.isEmpty()) {
             reportRetryLimit = REPORTRETRYLIMITDEFAULT;
-            //log.info("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: report.gen.retry_limit was not found in config.properties file defaulting to " + reportRetryLimit);
         } else {
             try {
                 reportRetryLimit = Integer.parseInt(reportRetryLimitString);
@@ -662,8 +580,6 @@ public class EmailMoveReceipt implements Runnable {
                 log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: report.gen.retry_limit was found with an invalid numeric value of (" + reportRetryLimitString + ") in config.properties file defaulting to " + reportRetryLimit + ".[{3}] at {4}", e);
             }
         }
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 50!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 50!!");
 
         if (reportWaitIntervalString == null || reportWaitIntervalString.isEmpty()) {
             reportWaitInterval = REPORTWAITINTERVALDEFAULT;
@@ -677,8 +593,6 @@ public class EmailMoveReceipt implements Runnable {
                 log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: report.gen.wait_interval was found with an invalid numeric value in config.properties", e);
             }
         }
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 60!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 60!!");
 
         try {
             naemailTo1 = properties.getProperty("pickupEmailTo1");
@@ -687,8 +601,6 @@ public class EmailMoveReceipt implements Runnable {
         } catch (Exception e) {
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ****PARAMETER pickupEmailTo1 COULD NOT BE PROCESSED Pickup.processRequest ");
         }
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 65!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 65!!");
 
         try {
             naemailNameTo1 = properties.getProperty("pickupEmailNameTo1");
@@ -697,8 +609,6 @@ public class EmailMoveReceipt implements Runnable {
         } catch (Exception e) {
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ****PARAMETER pickupEmailNameTo1 COULD NOT BE PROCESSED Pickup.processRequest ");
         }
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 70!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 70!!");
 
         try {
             naemailTo2 = properties.getProperty("pickupEmailTo2");
@@ -707,8 +617,6 @@ public class EmailMoveReceipt implements Runnable {
         } catch (Exception e) {
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ****PARAMETER pickupEmailTo2 COULD NOT BE PROCESSED Pickup.processRequest ");
         }
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 75!!");
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 75!!");
 
         try {
             naemailNameTo2 = properties.getProperty("pickupEmailNameTo2");
@@ -717,8 +625,6 @@ public class EmailMoveReceipt implements Runnable {
         } catch (Exception e) {
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ****PARAMETER pickupEmailNameTo2 COULD NOT BE PROCESSED Pickup.processRequest ");
         }
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 80!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 80!!");
 
         try {
             testingModeProperty = properties.getProperty("testingMode").toUpperCase();
@@ -731,8 +637,6 @@ public class EmailMoveReceipt implements Runnable {
             testingModeProperty = "TRUE";
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to find testingMode Property ({1}) TESTING MODE WILL BE DEFAULTED TO TRUE Pickup.processRequest ", e);
         }
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 85!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 85!!");
 
         /*
          *  If either E-mail to field is filled, then the server is meant to e-mail that specific user
@@ -753,9 +657,6 @@ public class EmailMoveReceipt implements Runnable {
             sbTestMsg.append("<br /><br />");
             log.info("{0}" + "|" + "(" + this.dbaUrl + ") ***Testing Mode add testing information:"+sbTestMsg);
         }
-        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 90!!");
-        //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 90!!");
-        //log.info("{0}" + "|" + "(" + this.dbaUrl + ") sendEmailReciept before emailData");
 
         EmailData emailData = null;
 
@@ -764,14 +665,8 @@ public class EmailMoveReceipt implements Runnable {
                 /*
                  * Pickup Receipt for Remote Pickup 
                  */
-                //log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP START(A), PAPERWORK:" + this.paperworkType);
-                //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 95!!");
-                //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 95!!");
 
                 if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
-                    //log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) REMOTE PICKUP (PICKUP)");
-                    //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 100!!");
-                    //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 100!!");
                     emailData = new EmailData(db, "RMTPCKPPICKUPRCPT");
                     try {
                         emailData.put("ShipType", pickup.getShipType());
@@ -784,7 +679,6 @@ public class EmailMoveReceipt implements Runnable {
                     }
 
                     try {
-                        //log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) REMOTE PICKUP ShipTyepDesc:" + pickup.getShipTypeDesc());
 
                         emailData.put("ShipTypeDesc", pickup.getShipTypeDesc());
                     } catch (InvalidParameterException ex) {
@@ -797,9 +691,6 @@ public class EmailMoveReceipt implements Runnable {
                 } /*
                  * Pickup Receipt for Remote Delivery 
                  */ else if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
-                    //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 110!!");
-                    //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 110!!");
-                    //log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) REMOTE DELIVERY (PICKUP)");
 
                     /*
                      * BH 4/9/14. 
@@ -832,25 +723,18 @@ public class EmailMoveReceipt implements Runnable {
                 } /*
                  * Pickup Receipt for normal Pickup/Delivery (Neither are remote) 
                  */ else {
-                    //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 120!!");
-                    //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 120!!");
-                    //log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) (PICKUP)");
                     emailData = new EmailData(db, "PICKUPRCPT");
                 }
-                //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 125!!");
-                //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 125!!");
 
                 try {
                     if (testingMode) {
                         emailData.setPreMessage(sbTestMsg.toString());
                     }
                     if (signingEmployee != null && signingEmployee.getEmployeeName() != null && signingEmployee.getEmployeeName().trim().length() > 0) {
-                        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(2A) sendEmailReceipt EmployeeName(SigningEmployee)" + signingEmployee.getEmployeeName() + "!!");
                         emailData.put("Employee", signingEmployee.getEmployeeName());
                     } else if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
                         emailData.put("Employee", remoteVerByEmployee.getEmployeeName());
                     } else if (remoteUser != null && remoteUser.getEmployeeName() != null && remoteUser.getEmployeeName().trim().length() > 0) {
-                        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(2A) sendEmailReceipt EmployeeName(remoteUser)" + remoteUser.getEmployeeName() + "!!");
                         emailData.put("Employee", remoteUser.getEmployeeName());
                     } else {
                         //log.warn("***WARNING: Both signing employee and remote user employee names are blank. {Employee} cannot be set.");
@@ -859,7 +743,6 @@ public class EmailMoveReceipt implements Runnable {
                          * (ie: the user who logged into the tablet to send the paperwork for the remote office)
                          *  If neither are filled, then we will just default to a Generic Name
                          */
-                        //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(2C) sendEmailReceipt EmployeeName(NinComPoop):Senate Employee!!");
                         emailData.put("Employee", "Senate Employee");
                     }
 
@@ -870,8 +753,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                //log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 130!!");
-                //System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 130!!");
 
                 try {
                     emailData.put("FromAddress", pickupAddress);
@@ -882,8 +763,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 135!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 135!!");
 
                 try {
                     emailData.put("FromLocat", pickup.getOrigin().getCdlocat());
@@ -894,8 +773,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 140!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 140!!");
 
                 try {
                     emailData.put("PickupDate", formatDate(dtreceipt, "dd-MMM-yy"));
@@ -906,8 +783,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 145!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 145!!");
 
                 try {
                     emailData.put("RefDoc", receiptFilename);
@@ -918,8 +793,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 150!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 150!!");
 
                 try {
                     emailData.put("ToAddress", deliverAddress);
@@ -930,8 +803,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 155!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 155!!");
 
                 try {
                     emailData.put("ToLocat", pickup.getDestination().getCdlocat());
@@ -942,8 +813,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 160!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 160!!");
 
                 try {
                     emailData.put("UserID", pickup.getNapickupby());
@@ -954,8 +823,7 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 165!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 165!!");
+                
                 try {
                     emailData.put("UserName", napickupbyName);
                 } catch (InvalidParameterException ex) {
@@ -965,8 +833,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 170!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 170!!");
                 try {
                     if (serverInfo != null) {
                         emailData.put("ServerInfo", serverInfo);
@@ -980,8 +846,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 175!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 175!!");
 
                 break;
             case DELIVERY:
@@ -989,12 +853,17 @@ public class EmailMoveReceipt implements Runnable {
                  * Delivery Receipt for Remote Delivery
                  */
 
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 180!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 180!!");
-                log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: DELIVERY(A) START, PAPERWORK:" + this.paperworkType);
                 if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
-                    log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) REMOTE DELIVERY (DELIVERY)");
-                    emailData = new EmailData(db, "RMTDLRYDELIVERYRCPT");
+                    if (remoteDeliveryNoSigDelivered) {
+                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE SEND Remote Delivery No Signature E-mail");
+                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE SEND Remote Delivery No Signature E-mail");
+                        emailData = new EmailData(db, "RMTDLRYDLRYNSRCPT");
+                    }
+                    else {
+                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE SEND Remote Delivery Standard E-mail");
+                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE SEND Remote Delivery Standard E-mail");
+                        emailData = new EmailData(db, "RMTDLRYDELIVERYRCPT");
+                    }
                     try {
                         emailData.put("ShipType", delivery.getShipType());
                     } catch (InvalidParameterException ex) {
@@ -1004,8 +873,6 @@ public class EmailMoveReceipt implements Runnable {
                     } catch (BlankMessageException ex) {
                         log.error(null, ex);
                     }
-                    log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 185!!");
-                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 185!!");
 
                     try {
                         emailData.put("ShipTypeDesc", delivery.getShipTypeDesc());
@@ -1016,17 +883,11 @@ public class EmailMoveReceipt implements Runnable {
                     } catch (BlankMessageException ex) {
                         log.error(null, ex);
                     }
-                    log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 197!!");
-                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 197!!");
 
                     try {
                         if (initialPickup != null && initialPickup.getPickupDate() != null) {
-                            log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup Date(From Pickup):" + formatDate(initialPickup.getPickupDate(), "dd-MMM-yy") + "!!");
-                            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup Date(From Pickup):" + formatDate(initialPickup.getPickupDate(), "dd-MMM-yy") + "!!");
                             emailData.put("PickupDate", formatDate(initialPickup.getPickupDate(), "dd-MMM-yy"));
                         } else {
-                            log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup Date(From dtreceipt):" + formatDate(dtreceipt, "dd-MMM-yy") + "!!");
-                            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup Date(From dtreceipt):" + formatDate(dtreceipt, "dd-MMM-yy") + "!!");
                             emailData.put("PickupDate", formatDate(dtreceipt, "dd-MMM-yy"));
                         }
                     } catch (InvalidParameterException ex) {
@@ -1037,16 +898,9 @@ public class EmailMoveReceipt implements Runnable {
                         log.error(null, ex);
                     }
 
-                    log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198!!");
-                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198!!");
-
                     if (initialPickup != null && initialPickup.getOrigin() != null) {
-                        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198A!!");
-                        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198A!!");
                         try {
                             if (initialPickup.getOrigin().getCdlocat() != null) {
-                                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup From Locat:" + initialPickup.getOrigin().getCdlocat() + "!!");
-                                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup From Locat:" + initialPickup.getOrigin().getCdlocat() + "!!");
                                 emailData.put("FromLocat", initialPickup.getOrigin().getCdlocat());
                             }
                         } catch (InvalidParameterException ex) {
@@ -1056,13 +910,9 @@ public class EmailMoveReceipt implements Runnable {
                         } catch (BlankMessageException ex) {
                             log.error(null, ex);
                         }
-                        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198B!!");
-                        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198B!!");
 
                         try {
                             if (initialPickup.getOrigin().getFullAddress() != null) {
-                                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup From Address:" + initialPickup.getOrigin().getFullAddress() + "!!");
-                                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") Pickup From Address:" + initialPickup.getOrigin().getFullAddress() + "!!");
                                 emailData.put("FromAddress", initialPickup.getOrigin().getFullAddress());
                             }
                         } catch (InvalidParameterException ex) {
@@ -1073,12 +923,9 @@ public class EmailMoveReceipt implements Runnable {
                             log.error(null, ex);
                         }
                     }
-                    log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198B DONE!!");
-                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 198B DONE!!");
                 } /*
                  * Delivery Receipt for Remote Pickup
                  */ else if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
-                    log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) REMOTE PICKUP (DELIVERY)");
 
                     /*
                      * BH 4/9/14. 
@@ -1089,8 +936,6 @@ public class EmailMoveReceipt implements Runnable {
 
                     emailData = new EmailData(db, "DELIVERYRCPT");
                     /*                    emailData = new EmailData(db, "RMTPCKPDELIVERYRCPT");
-                     log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 190!!");
-                     System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 190!!");
 
                      try {
                      emailData.put("ShipType", delivery.getShipType());
@@ -1102,8 +947,6 @@ public class EmailMoveReceipt implements Runnable {
                      log.error(null, ex);
                      }
 
-                     log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 195!!");
-                     System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 195!!");
                      try {
                      emailData.put("ShipTypeDesc", delivery.getShipTypeDesc());
                      } catch (InvalidParameterException ex) {
@@ -1113,19 +956,12 @@ public class EmailMoveReceipt implements Runnable {
                      } catch (BlankMessageException ex) {
                      log.error(null, ex);
                      }*/
-                    log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 200!!");
-                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 200!!");
 
                 } /*
                  * Delivery Receipt for normal Pickup/Delivery (Neither are remote) 
                  */ else {
-                    log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 205!!");
-                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 205!!");
-                    log.info("(LOG)-=-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE: PICKUP(A) DELIVERY (DELIVERY)");
                     emailData = new EmailData(db, "DELIVERYRCPT");
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 210!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 210!!");
 
                 try {
                     if (testingMode) {
@@ -1140,17 +976,12 @@ public class EmailMoveReceipt implements Runnable {
                     log.error(null, ex);
                 }
 
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 216!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 216!!");
-
                 try {
                     if (signingEmployee != null && signingEmployee.getEmployeeName() != null) {
-                        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(1A) sendEmailReceipt EmployeeName(SigningEmployee)" + signingEmployee.getEmployeeName() + "!!");
                         emailData.put("Employee", signingEmployee.getEmployeeName());
                     } else if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
                         emailData.put("Employee", remoteVerByEmployee.getEmployeeName());
                     } else if (remoteUser != null && remoteUser.getEmployeeName() != null) {
-                        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(1B) sendEmailReceipt EmployeeName(RemoteUser)" + remoteUser.getEmployeeName() + "!!");
                         emailData.put("Employee", remoteUser.getEmployeeName());
                     } else {
                         /*
@@ -1158,7 +989,6 @@ public class EmailMoveReceipt implements Runnable {
                          * (ie: the user who logged into the tablet to send the paperwork for the remote office)
                          *  If neither are filled, then we will just default to a Generic Name
                          */
-                        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE(1C) sendEmailReceipt EmployeeName(NinComPoop):Senate Employee!!");
                         emailData.put("Employee", "Senate Employee");
                     }
                 } catch (InvalidParameterException ex) {
@@ -1170,8 +1000,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (NullPointerException ex) {
                     log.info(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 220!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 220!!");
 
                 try {
                     emailData.put("RefDoc", receiptFilename);
@@ -1182,8 +1010,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 225!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 225!!");
                 try {
                     emailData.put("ToAddress", deliverAddress);
                 } catch (InvalidParameterException ex) {
@@ -1193,8 +1019,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 230!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 230!!");
                 try {
                     emailData.put("ToLocat", delivery.getDestination().getCdlocat());
                 } catch (InvalidParameterException ex) {
@@ -1204,8 +1028,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 235!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 235!!");
                 try {
                     emailData.put("UserID", delivery.getNapickupby());
                 } catch (InvalidParameterException ex) {
@@ -1215,8 +1037,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 240!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 240!!");
                 try {
                     emailData.put("UserName", nadeliverbyName);
                 } catch (InvalidParameterException ex) {
@@ -1226,8 +1046,6 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 245!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 245!!");
                 try {
                     if (serverInfo != null) {
                         emailData.put("ServerInfo", serverInfo);
@@ -1242,14 +1060,10 @@ public class EmailMoveReceipt implements Runnable {
                 } catch (BlankMessageException ex) {
                     log.error(null, ex);
                 }
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 250!!");
-                System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 250!!");
 
                 break;
         }
         String error = null;
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 255!! emailData:" + emailData.getFormattedMessage());
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE sendEmailReceipt(" + emailType + ") 255!! emailData:" + emailData.getFormattedMessage());
 
         /*    sb.append("Dear ");
          sb.append(signingEmployee.getEmployeeName());
@@ -1312,19 +1126,18 @@ public class EmailMoveReceipt implements Runnable {
         //Logger.getLogger(EmailMoveReceipt.class.getName()).info("***EMAIL:+"+sb.toString());
 
         try {
-            //System.out.println("-=-=-=-=-=-=-=-=-=TRACE nuxrpd: "+ nuxrpd);
-            if (this.emailType == this.PICKUP) {
+/*            if (this.emailType == this.PICKUP) {
                 System.out.println("-=-=-=-=-=-=-=-=-=TRACE PICKUP BEFORE READ FILE TO WRITE:" + receiptPath + receiptFilename);
             } else if (this.emailType == this.DELIVERY) {
                 System.out.println("-=-=-=-=-=-=-=-=-=TRACE DELIVERY BEFORE READ FILE TO WRITE:" + receiptPath + receiptFilename);
-            }
+            }*/
             // If the Attachment does not return a pdf, then it will be null since it expects a PDF, so we can tag on .pdf as a filename
             attachment = bytesFromUrlWithJavaIO(receiptURL + nuxrpd + transTypeParam, receiptPath + receiptFilename); // +"&destype=CACHE&desformat=PDF
-            if (this.emailType == this.PICKUP) {
+/*            if (this.emailType == this.PICKUP) {
                 System.out.println("-=-=-=-=-=-=-=-=-=TRACE PICKUP AFTER READ FILE TO WRITE:" + receiptPath + receiptFilename);
             } else if (this.emailType == this.DELIVERY) {
                 System.out.println("-=-=-=-=-=-=-=-=-=TRACE DELIVERY AFTER READ FILE TO WRITE:" + receiptPath + receiptFilename);
-            }
+            }*/
             //System.out.println("-=-=-=-=-=-=-=-=-=TRACE AFTER GETTING ATTACHMENT");
 
             // Attachment needs to be checked to ensure that there were no issues with the Reports Server
@@ -1338,8 +1151,6 @@ public class EmailMoveReceipt implements Runnable {
             if (returnStatus == 0) {
                 returnStatus = 2;
             }
-            System.out.println("call email error (1)");
-            log.info("call email error (1A)");
             error = invUtil.stackTraceAsMsg(ex);
             emailError(emailType, "<html><body>Email Error URL was MALFORMED: <b>" + receiptURL + nuxrpd + transTypeParam + "</b><br/><br/></body></html>");
 
@@ -1358,85 +1169,72 @@ public class EmailMoveReceipt implements Runnable {
 
             emailError(emailType);
             return returnStatus;
-            //System.out.println("-=-=-=-=-=-=-=-=-=TRACE AFTER E-MAIL ERROR ReportNotGeneratedException1");
         }
 
-        if (this.emailType == this.PICKUP) {
+/*        if (this.emailType == this.PICKUP) {
             System.out.println("-=-=-=-=-=-=-=-=-=TRACE PICKUP(2) AFTER READ FILE TO WRITE:" + receiptPath + receiptFilename);
         } else if (this.emailType == this.DELIVERY) {
             System.out.println("-=-=-=-=-=-=-=-=-=TRACE DELIVERY(2) AFTER READ FILE TO WRITE:" + receiptPath + receiptFilename);
-        }
+        }*/
 
         if (attachment == null) {
             //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ERROR attachment == null 1");
-            if (this.emailType == this.PICKUP) {
+/*            if (this.emailType == this.PICKUP) {
                 System.out.println("-=-=-=-=-=-=-=-=-=TRACE PICKUP NULL ATTACHMENT AFTER READ FILE TO WRITE:" + receiptPath + receiptFilename);
             } else if (this.emailType == this.DELIVERY) {
                 System.out.println("-=-=-=-=-=-=-=-=-=TRACE DELIVERY NULL ATTACHMEN AFTER READ FILE TO WRITE:" + receiptPath + receiptFilename);
-            }
+            }*/
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") " + "****ATTACHMENT was null Pickup.processRequest ");
             if (returnStatus == 0) {
                 returnStatus = 4;
             }
-            System.out.println("call email error (3)");
-            log.info("call email error (3A)");
             error = "<br/> Error: Null Attachment";
             emailError(emailType);
             return returnStatus;
 
-            //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ERROR attachment == null 2");
         } else if (attachment.length == 0) {
-            if (this.emailType == this.PICKUP) {
+/*            if (this.emailType == this.PICKUP) {
                 System.out.println("-=-=-=-=-=-=-=-=-=TRACE PICKUP 0 LENGTH ATTACHMENT AFTER READ FILE TO WRITE:" + receiptPath + receiptFilename);
             } else if (this.emailType == this.DELIVERY) {
                 System.out.println("-=-=-=-=-=-=-=-=-=TRACE DELIVERY  0 LENGTH ATTACHMEN AFTER READ FILE TO WRITE:" + receiptPath + receiptFilename);
-            }
+            }*/
             //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ERROR attachment.length==0 1");
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") " + "****ATTACHMENT was a ZERO LENGTH Pickup.processRequest ");
             if (returnStatus == 0) {
                 returnStatus = 5;
             }
             error = "<br/> Error: Attachment with a length of 0";
-            System.out.println("call email error (4)");
-            log.info("call email error (4A)");
 
             emailError(emailType);
             return returnStatus;
-            //System.out.println("-=-=-=-=-=-=-=-=-=TRACE AFTER E-MAIL ERROR attachment.length==0 1");
         }
-        if (this.emailType == this.PICKUP) {
+/*        if (this.emailType == this.PICKUP) {
             System.out.println("-=-=-=-=-=-=-=-=-=TRACE PICKUP BEFORE MULTIPART FILE TO WRITE:" + receiptPath + receiptFilename);
         } else if (this.emailType == this.DELIVERY) {
             System.out.println("-=-=-=-=-=-=-=-=-=TRACE DELIVERY BEFORE MULTIPART  AFTER READ FILE TO WRITE:" + receiptPath + receiptFilename);
-        }
+        }*/
 
-        //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT");
         MimeMultipart mimeMultipart = new MimeMultipart();
-        if (this.emailType == this.PICKUP) {
+/*        if (this.emailType == this.PICKUP) {
             //log.info("-=-=-=-=-=-=-=-=-=TRACE PICKUP ATTACHMENT BEFORE GENERATION NUXRPD:" + nuxrpd + "  URL:" + receiptURL);
         } else if (this.emailType == this.DELIVERY) {
             //log.info("-=-=-=-=-=-=-=-=-=TRACE DELIVERY ATTACHMENT BEFORE GENERATION NUXRPD:" + nuxrpd + "  URL:" + receiptURL);
-        }
+        }*/
         //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT");
         attachmentPart = getOracleReportResponse(receiptURL, nuxrpd);
-        if (this.emailType == this.PICKUP) {
+/*        if (this.emailType == this.PICKUP) {
             //log.info("-=-=-=-=-=-=-=-=-=TRACE PICKUP ATTACHMENT AFTER GENERATION NUXRPD:" + nuxrpd + "  URL:" + receiptURL);
         } else if (this.emailType == this.DELIVERY) {
             //log.info("-=-=-=-=-=-=-=-=-=TRACE DELIVERY ATTACHMENT AFTER GENERATION NUXRPD:" + nuxrpd + "  URL:" + receiptURL);
-        }
+        }*/
 
         try {
-            System.out.println("(" + this.dbaUrl + ") -=-=-=-=-=-=-=-=-=TRACE ATTACHMENT (before) FILENAME:" + attachmentPart.getFileName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
             attachmentPart.setFileName(receiptFilename + ".pdf");
-            if (this.emailType == this.PICKUP) {
+/*            if (this.emailType == this.PICKUP) {
                 System.out.println("(" + this.dbaUrl + ") -=-=-=-=-=-=-=-=-=TRACE ATTACHMENT(after) PICKUP FILENAME:" + attachmentPart.getFileName());
             } else if (this.emailType == this.DELIVERY) {
                 System.out.println("(" + this.dbaUrl + ") -=-=-=-=-=-=-=-=-=TRACE ATTACHMENT(after) DELIVERY FILENAME:" + attachmentPart.getFileName());
-            }
+            }*/
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1446,32 +1244,21 @@ public class EmailMoveReceipt implements Runnable {
             properties.load(in);
 
             msgBody = emailData.getFormattedMessage();
-            System.out.println("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY(" + this.paperworkType + "):" + msgBody);
-            //log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY(" + this.paperworkType + "):" + msgBody);
 
             MimeMessage msg = new MimeMessage(session);
-            //log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 2(" + this.paperworkType + ")");
-            //System.out.println("EMAILING FROM:" + naemailFrom + ":" + naemailNameFrom);
             try {
                 msg.setFrom(new InternetAddress(naemailFrom, naemailNameFrom));
             } catch (UnsupportedEncodingException | MessagingException e) {
                 e.printStackTrace();
             }
-            //log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 3(" + this.paperworkType + ")");
 
             int recipientCount = 0;
             recipientCount = addDistributionRecipients(msg);
-            //log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 4(" + this.paperworkType + ")");
             recipientCount = recipientCount + addEmailSupervisors(msg);
-            //log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 4(" + this.paperworkType + ")");
             if (this.emailType == PICKUP) {
-                //log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 6(" + this.paperworkType + ")");
                 if (pickupEmployee != null && pickupEmployee.getNaemail() != null) {
-                    //log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 7(" + this.paperworkType + ")");
                     try {
                         if (emailValidator.validate(pickupEmployee.getNaemail())) {
-                            System.out.println("-=-=-=-=-=-=-=-=-=TRACE PICKUP EMAIL SEND TO USER:" + pickupEmployee.getNaemail());
-                            //log.info("-=-=-=-=-=-=-=-=-=TRACE PICKUP EMAIL SEND TO USER:" + pickupEmployee.getNaemail());
                             msg.addRecipient(Message.RecipientType.TO,
                                     new InternetAddress(pickupEmployee.getNaemail(), pickupEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                             recipientCount++;
@@ -1481,14 +1268,9 @@ public class EmailMoveReceipt implements Runnable {
                     } catch (UnsupportedEncodingException | MessagingException e) {
                         addProblemEmailAddr(pickupEmployee.getNaemail(), pickupEmployee.getEmployeeName(), e.getStackTrace(), e.getMessage());
                     }
-                    ////log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 10(" + this.paperworkType + ")");
                 } else if (remoteUser != null && remoteUser.getNaemail() != null) {
-                    //log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 15(" + this.paperworkType + ")");
                     try {
                         if (emailValidator.validate(remoteUser.getNaemail())) {
-                            ////log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 16(" + this.paperworkType + "):");
-                            //System.out.println("-=-=-=-=-=-=-=-=-=TRACE PICKUP EMAIL SEND TO REMOTE USER:" + remoteUser.getNaemail());
-                            ////log.info("-=-=-=-=-=-=-=-=-=TRACE PICKUP EMAIL SEND TO REMOTE USER:" + remoteUser.getNaemail());
                             msg.addRecipient(Message.RecipientType.TO,
                                     new InternetAddress(remoteUser.getNaemail(), remoteUser.getEmployeeName()));  //naemailTo, naemployeeTo
                             recipientCount++;
@@ -1511,23 +1293,17 @@ public class EmailMoveReceipt implements Runnable {
                             addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), e2.getStackTrace(), e2.getMessage());
                         }
                     }
-                    ////log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 25(" + this.paperworkType + "):");
                 } else if (pickupEmployee == null) {
                     log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Pickup Employee was null so can''t add Pickup Employee as recipient.");
                 } else if (pickupEmployee.getNaemail() == null) {
                     addProblemEmailAddr(pickupEmployee.getNaemail(), pickupEmployee.getEmployeeName(), null, "Invalid E-mail Address");
                     log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Pickup Employee " + pickupEmployee.getEmployeeName() + " E-mail Field was null so can''t add Pickup Employee as recipient.");
                 }
-                //log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 40(" + this.paperworkType + "):");
             } else if (this.emailType == DELIVERY) {
-                //log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 50(" + this.paperworkType + "):");
 
                 if (deliveryEmployee != null && deliveryEmployee.getNaemail() != null) {
-                    ////log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 55(" + this.paperworkType + "):");
                     try {
                         if (emailValidator.validate(deliveryEmployee.getNaemail())) {
-                            //System.out.println("-=-=-=-=-=-=-=-=-=TRACE DELIVERY EMAIL SEND TO USER:" + deliveryEmployee.getNaemail());
-                            ////log.info("-=-=-=-=-=-=-=-=-=TRACE DELIVERY EMAIL SEND TO USER:" + deliveryEmployee.getNaemail());
                             msg.addRecipient(Message.RecipientType.TO,
                                     new InternetAddress(deliveryEmployee.getNaemail(), deliveryEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                             recipientCount++;
@@ -1537,13 +1313,9 @@ public class EmailMoveReceipt implements Runnable {
                     } catch (UnsupportedEncodingException | MessagingException e) {
                         addProblemEmailAddr(deliveryEmployee.getNaemail(), deliveryEmployee.getEmployeeName(), e.getStackTrace(), e.getMessage());
                     }
-                    ////log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 70(" + this.paperworkType + "):");
                 } else if (remoteUser != null && remoteUser.getNaemail() != null) {
-                    ////log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 75(" + this.paperworkType + "):");
                     try {
                         if (emailValidator.validate(remoteUser.getNaemail())) {
-                            //System.out.println("-=-=-=-=-=-=-=-=-=TRACE DELIVERY EMAIL SEND TO REMOTE USER:" + remoteUser.getNaemail());
-                            ////log.info("-=-=-=-=-=-=-=-=-=TRACE DELIVERY EMAIL SEND TO REMOTE USER:" + remoteUser.getNaemail());
                             msg.addRecipient(Message.RecipientType.TO,
                                     new InternetAddress(remoteUser.getNaemail(), remoteUser.getEmployeeName()));  //naemailTo, naemployeeTo
                             recipientCount++;
@@ -1566,17 +1338,13 @@ public class EmailMoveReceipt implements Runnable {
                             addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), e2.getStackTrace(), e2.getMessage());
                         }
                     }
-                    ////log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 90(" + this.paperworkType + ")");
                 } else if (deliveryEmployee == null) {
                     log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Delivery Employee was null so can''t add Delivery Employee as recipient.");
                 } else if (deliveryEmployee.getNaemail() == null) {
                     log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Delivery Employee " + deliveryEmployee.getEmployeeName() + " E-mail Field was null so can''t add Delivery Employee as recipient.");
                 }
-                //log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 100(" + this.paperworkType + ")");
             }
-            //log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 101(" + this.paperworkType + ")");
             if (testingMode) {
-                //log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL TESTINGMODE");
                 if (naemailTo1 != null && naemailTo1.trim().length() > 0) {
                     try {
                         System.out.println("(" + this.dbaUrl + ") TESTINGMODE EMAILING TO:" + naemailTo1 + ":" + naemailNameTo1);
@@ -1608,7 +1376,6 @@ public class EmailMoveReceipt implements Runnable {
 
                 }
             } else {
-                ////log.info("-=-=-=-=-=-=-=-=-=TRACE EMAIL BODY 188(" + this.paperworkType + ")");
 
                 try {
                     if ((this.paperworkType == null)
@@ -1623,8 +1390,6 @@ public class EmailMoveReceipt implements Runnable {
                             } else {
                                 addProblemEmailAddr(signingEmployee.getNaemail(), signingEmployee.getEmployeeName(), null, "Invalid E-mail Address");
                             }
-                            //System.out.println("(" + this.dbaUrl + ") ADDED REAL addRecipient: email:" + signingEmployee.getNaemail() + ", Email Name:" + signingEmployee.getEmployeeName());
-                            //log.warn("(" + this.dbaUrl + ") ADDED REAL addRecipient: email:" + signingEmployee.getNaemail() + ", Email Name:" + signingEmployee.getEmployeeName());
 
                         } else if (remoteUser != null && remoteUser.getNaemail() != null) {
                             if (emailValidator.validate(remoteUser.getNaemail())) {
@@ -1647,8 +1412,6 @@ public class EmailMoveReceipt implements Runnable {
                                     addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), e2.getStackTrace(), e2.getMessage());
                                 }
                             }
-                            //System.out.println("(" + this.dbaUrl + ") ADDED Remote User addRecipient: email:" + remoteUser.getNaemail() + ", Email Name:" + remoteUser.getEmployeeName());
-                            //log.warn("(" + this.dbaUrl + ") ADDED Remote User  addRecipient: email:" + remoteUser.getNaemail() + ", Email Name:" + remoteUser.getEmployeeName());
                         }
                     }
                 } catch (UnsupportedEncodingException | MessagingException e) {
@@ -1672,19 +1435,18 @@ public class EmailMoveReceipt implements Runnable {
              }*/
 
 
-            //System.out.println("EMAILING BEFORE SUBJECT");
             if (emailType == DELIVERY) {
                 msg.setSubject("Equipment Delivery Receipt" + subjectAddText);
             } else {
                 msg.setSubject("Equipment Pickup Receipt" + subjectAddText);
             }
-            if (this.emailType == this.PICKUP) {
+/*            if (this.emailType == this.PICKUP) {
                 System.out.println("-=-=-=-=-=-=-=-=-=TRACE PICKUP AFTER SET SUBJECT!!!!!!");
                 //log.info("-=-=-=-=-=-=-=-=-=TRACE PICKUP AFTER SET SUBJECT!!!!!!");
             } else if (this.emailType == this.DELIVERY) {
                 System.out.println("-=-=-=-=-=-=-=-=-=TRACE DELIVERY AFTER SET SUBJECT!!!!!!");
                 //log.info("-=-=-=-=-=-=-=-=-=TRACE DELIVERY AFTER SET SUBJECT!!!!!!");
-            }
+            }*/
 
 
             //msg.setText(msgBody, "utf-8", "html");
@@ -1694,13 +1456,13 @@ public class EmailMoveReceipt implements Runnable {
             mimeMultipart.addBodyPart(mbp1);
             mimeMultipart.addBodyPart(attachmentPart);
             msg.setContent(mimeMultipart);
-            if (this.emailType == this.PICKUP) {
+/*            if (this.emailType == this.PICKUP) {
                 System.out.println("-=-=-=-=-=-=-=-=-=TRACE PICKUP AFTER SET CONTENT!!!!!!");
                 //log.info("-=-=-=-=-=-=-=-=-=TRACE PICKUP AFTER SET CONTENT!!!!!!");
             } else if (this.emailType == this.DELIVERY) {
                 System.out.println("-=-=-=-=-=-=-=-=-=TRACE DELIVERY AFTER SET CONTENT!!!!!!");
                 //log.info("-=-=-=-=-=-=-=-=-=TRACE DELIVERY AFTER SET CONTENT!!!!!!");
-            }
+            }*/
 
             if (attachmentPart == null || attachmentPart.getSize() == 0) {
                 System.out.println("(" + this.dbaUrl + ") ***E-mail NOT sent because attachment was malformed.");
@@ -1714,26 +1476,25 @@ public class EmailMoveReceipt implements Runnable {
                     }
                     System.out.println("(" + this.dbaUrl + ") ***E-mail NOT sent because attachment was malformed(2).");
                 } else {
-                    //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT BEFORE SENDING E-MAIL");
-
+ 
                     if (recipientCount == 0) {
-                        if (this.emailType == this.PICKUP) {
+/*                        if (this.emailType == this.PICKUP) {
                             System.out.println("-=-=-=-=-=-=-=-=-=TRACE NO RECIPIENTS NOT SENDING PICKUP EMAIL!!!!!!");
                             //log.info("-=-=-=-=-=-=-=-=-=TRACE NO RECIPIENTS NOT SENDING PIKCUP EMAIL!!!!!!");
                         } else if (this.emailType == this.DELIVERY) {
                             System.out.println("-=-=-=-=-=-=-=-=-=TRACE NO RECIPIENTS NOT SENDING DELIVERY EMAIL!!!!!!");
                             //log.info("-=-=-=-=-=-=-=-=-=TRACE NO RECIPIENTS NOT SENDING DELIVERY EMAIL!!!!!!");
-                        }
+                        }*/
                         log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: There were no e-mail recipients for a Report. No e-mail will be sent!!!");
                     } else {
 
-                        if (this.emailType == this.PICKUP) {
+ /*                       if (this.emailType == this.PICKUP) {
                             System.out.println("-=-=-=-=-=-=-=-=-=TRACE YES!!! SENDING PICKUP EMAIL!!!!!!");
                             //log.info("-=-=-=-=-=-=-=-=-=TRACE YES!!! SENDING PICKUP EMAIL!!!!!!");
                         } else if (this.emailType == this.DELIVERY) {
                             System.out.println("-=-=-=-=-=-=-=-=-=TRACE YES!!! SENDING DELIVERY EMAIL!!!!!!");
                             //log.info("-=-=-=-=-=-=-=-=-=TRACE YES!!! SENDING DELIVERY EMAIL!!!!!!");
-                        }
+                        }*/
                         Transport.send(msg);
                         //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT AFTER SENDING E-MAIL");
                     }
@@ -1747,8 +1508,6 @@ public class EmailMoveReceipt implements Runnable {
                 returnStatus = 10;
                 try {
                     error = invUtil.stackTraceAsMsg(e);
-                    System.out.println("call email error (5)");
-                    log.info("call email error (5A)");
                     emailError(emailType, "(" + this.dbaUrl + ") ADDRESS EXCEPTION:+" + e.getMessage() + " [" + e.getStackTrace()[0].toString() + "]");
                     emailWarning(emailType);
                 } catch (Exception e2) {
@@ -1763,8 +1522,6 @@ public class EmailMoveReceipt implements Runnable {
                 returnStatus = 11;
                 try {
                     error = invUtil.stackTraceAsMsg(e);
-                    //System.out.println("call email error (6)");
-                    //Logger.getLogger(EmailMoveReceipt.class.getName()).log(Level.INFO, "call email error (6A)");
                     emailError(emailType, "(" + this.dbaUrl + ") MESSAGING EXCEPTION:+" + e.getMessage());
                     emailWarning(emailType);
                 } catch (Exception e2) {
@@ -1778,8 +1535,6 @@ public class EmailMoveReceipt implements Runnable {
                 returnStatus = 20;
                 try {
                     error = invUtil.stackTraceAsMsg(e);
-                    System.out.println("call email error (7A) " + e.getMessage());
-                    log.info("call email error (7A) " + e.getMessage() + " ERROR:" + error);
                     emailError(emailType, "(" + this.dbaUrl + ") GENERAL EXCEPTION:+" + e.getMessage());
                     emailWarning(emailType);
                 } catch (Exception e2) {
@@ -1804,7 +1559,6 @@ public class EmailMoveReceipt implements Runnable {
         MimeBodyPart attachmentPart = new MimeBodyPart();
         try {
 
-            //System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ADD ATTACHMENT");
             attachmentPart.setDataHandler(
                     new DataHandler(
                     new DataSource() {
@@ -1816,11 +1570,9 @@ public class EmailMoveReceipt implements Runnable {
                 @Override
                 public InputStream getInputStream() throws IOException {
                     try {
-                        ////System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT getInputStream()");
 
                         return new ByteArrayInputStream(bytesFromUrlWithJavaIO(receiptURL + nuxrpd + transTypeParam));
                     } catch (ReportNotGeneratedException e) {
-                        ////System.out.println("-=-=-=-=-=-=-=-=-=TRACE BEFORE E-MAIL ATTACHMENT getInputStream() ReportNotGeneratedException");
                         log.warn("Oracle Reports Server failed to generate a PDF Report for the Pickup Receipt. Please contact STS/BAC.", e);
                         return new ByteArrayInputStream(new byte[0]);
                     }
@@ -1837,8 +1589,6 @@ public class EmailMoveReceipt implements Runnable {
                     return null;
                 }
             }));
-            //System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME:"+attachmentPart.getDataHandler().getName());
-            //System.out.println ("EMAILMOVERECEIPT ATTACHMENT NAME(2):"+attachmentPart.getDataHandler().getDataSource().getName());
 
         } catch (MessagingException ex) {
             log.error(null, ex);
@@ -1936,8 +1686,8 @@ public class EmailMoveReceipt implements Runnable {
                 /*if (testingMode) {
                  emailData.setPreMessage(sbTestMsg.toString());
                  }*/
-                log.warn("(AA)!!!!EMAILERROR BEFORE SET MESSAGE ERROR:" + error);
-                System.out.println("(AB)!!!!!!!!!!!!!EMAILERROR BEFORE SET MESSAGE ERROR:" + error);
+                //log.warn("(AA)!!!!EMAILERROR BEFORE SET MESSAGE ERROR:" + error);
+                //System.out.println("(AB)!!!!!!!!!!!!!EMAILERROR BEFORE SET MESSAGE ERROR:" + error);
                 errorEmailData.put("EmailType", sEmailType);
                 errorEmailData.put("ReceiptURL", receiptURL + nuxrpd);
                 errorEmailData.put("ReceiptURL", receiptURL + nuxrpd);
@@ -1961,8 +1711,8 @@ public class EmailMoveReceipt implements Runnable {
 
             msgHeader = errorEmailData.getFormattedMessage();
 
-            log.warn("(B)!!!!EMAILERROR BEFORE SET MESSAGE:" + msgHeader);
-            System.out.println("(A)!!!!!!!!!!!!!EMAILERROR BEFORE SET MESSAGE:" + msgHeader);
+            //log.warn("(B)!!!!EMAILERROR BEFORE SET MESSAGE:" + msgHeader);
+            //System.out.println("(A)!!!!!!!!!!!!!EMAILERROR BEFORE SET MESSAGE:" + msgHeader);
             // Now set the actual message
             if (msgOverride == null) {
                 message.setText(msgHeader, "utf-8", "html");
@@ -1973,8 +1723,8 @@ public class EmailMoveReceipt implements Runnable {
                     message.setText(msgOverride + error, "utf-8", "html");
                 }
             }
-            log.warn("{0}" + "|" + "!!!!EMAILERROR AFTER SET MESSAGE");
-            log.info("{0}| EMAIL ERRORR MSG: " + message);
+            //log.warn("{0}" + "|" + "!!!!EMAILERROR AFTER SET MESSAGE");
+            //log.info("{0}| EMAIL ERRORR MSG: " + message);
             // Send message
             Transport.send(message);
             System.out.println("Sent error message successfully....");
@@ -2179,7 +1929,16 @@ public class EmailMoveReceipt implements Runnable {
         String curNaemailErrorTo = null;
         String curNameErrorTo = null;
 
-        if (this.naemailErrorTo == null) {
+        /*
+         * If a second Remote Delivery E-mail is being sent and information has not
+         * been entered then only send the e-mail to the user (no one else) as discussed
+         * with Sheila 4/24/14. We don't need to worry about siging employee since there
+         * is no signature. We don't need to worry about Remote Verified By Employee because
+         * the information has not been entered for the Remote Verified By Employee.
+         * 
+         */
+        
+        if (this.naemailErrorTo == null||remoteDeliveryNoSigDelivered) {
             //Logger.getLogger(EmailMoveReceipt.class.getName()).info("addErrorRecipients NO RECIPIENTS");
             return cnt;
         }
@@ -2192,8 +1951,6 @@ public class EmailMoveReceipt implements Runnable {
             log.error(null, ex);
         }
 
-        //Logger.getLogger(EmailMoveReceipt.class.getName()).info("addErrorRecipients "+naemailErrorTo.length+" RECIPIENTS");
-
         for (int x = 0; x < emailSupervisors.size(); x++) {
             Employee currentEmailSupervisor = emailSupervisors.get(x);
             currentEmailSupervisor.setEmployeeNameOrder(currentEmailSupervisor.FIRST_MI_LAST_SUFFIX);
@@ -2201,7 +1958,7 @@ public class EmailMoveReceipt implements Runnable {
             curNameErrorTo = currentEmailSupervisor.getEmployeeName();
             curNaemailErrorTo = currentEmailSupervisor.getNaemail();
 
-            System.out.println("(" + this.dbaUrl + ") " + x + ": EMAIL:" + curNaemailErrorTo + " NAME:" + curNameErrorTo);
+            //System.out.println("(" + this.dbaUrl + ") " + x + ": EMAIL:" + curNaemailErrorTo + " NAME:" + curNameErrorTo);
             try {
                 if (emailValidator.validate(curNaemailErrorTo)) {
                     msg.addRecipient(Message.RecipientType.TO,
@@ -2219,8 +1976,18 @@ public class EmailMoveReceipt implements Runnable {
 
     private int addDistributionRecipients(MimeMessage msg) throws MessagingException, UnsupportedEncodingException {
         int cnt = 0;
+        
+        /*
+         * If a second Remote Delivery E-mail is being sent and information has not
+         * been entered then only send the e-mail to the user (no one else) as discussed
+         * with Sheila 4/24/14. We don't need to worry about siging employee since there
+         * is no signature. We don't need to worry about Remote Verified By Employee because
+         * the information has not been entered for the Remote Verified By Employee.
+         * 
+         */
 
-        if (this.naemailGenTo == null) {
+
+        if (this.naemailGenTo == null||remoteDeliveryNoSigDelivered) {
             return cnt;
         }
         for (int x = 0; x < naemailGenTo.length; x++) {
@@ -2244,20 +2011,15 @@ public class EmailMoveReceipt implements Runnable {
         int cnt = 0;
         String curNaemailErrorTo = null;
         String curNameErrorTo = null;
-        //Logger.getLogger(EmailMoveReceipt.class.getName()).info("addErrorRecipients");
 
         if (this.naemailErrorTo == null) {
-            //Logger.getLogger(EmailMoveReceipt.class.getName()).info("addErrorRecipients NO RECIPIENTS");
             return cnt;
         }
-
-        //Logger.getLogger(EmailMoveReceipt.class.getName()).info("addErrorRecipients "+naemailErrorTo.length+" RECIPIENTS");
 
         for (int x = 0; x < naemailErrorTo.length; x++) {
             curNaemailErrorTo = naemailErrorTo[x];
             curNameErrorTo = getName(x, this.naemailErrorNameTo);
 
-            //Logger.getLogger(EmailMoveReceipt.class.getName()).info("EMAIL ERRORR TO:" + curNaemailErrorTo + " NAME:"+curNameErrorTo);
             try {
                 if (emailValidator.validate(curNaemailErrorTo)) {
                     msg.addRecipient(Message.RecipientType.TO,
