@@ -1201,8 +1201,14 @@ public class EmailMoveReceipt implements Runnable {
             } else if (this.emailType == DELIVERY) {
 
                 if (deliveryEmployee != null && deliveryEmployee.getNaemail() != null) {
+                    if (remoteVerByEmployee==null) {
+                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY SIGNING EMPLOYEE:  ---REMOTE VER EMPLOYEE INFO: NULL");
+                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY SIGNING EMPLOYEE:  ---REMOTE VER EMPLOYEE INFO: NULL");
+                    }
+                    else {
                     System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY SIGNING EMPLOYEE:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                     log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY SIGNING EMPLOYEE:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
+                    }
                     try {
                         if (emailValidator.validate(deliveryEmployee.getNaemail())) {
                             msg.addRecipient(Message.RecipientType.TO,
@@ -1215,8 +1221,14 @@ public class EmailMoveReceipt implements Runnable {
                         addProblemEmailAddr(deliveryEmployee.getNaemail(), deliveryEmployee.getEmployeeName(), e.getStackTrace(), e.getMessage());
                     }
                 } else if (remoteUser != null && remoteUser.getNaemail() != null) {
-                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE USER:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE USER:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
+                    if (remoteVerByEmployee==null) {
+                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE USER:  ---REMOTE VER EMPLOYEE INFO: NULL");
+                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE USER:  ---REMOTE VER EMPLOYEE INFO: NULL");
+                    }
+                    else {
+                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE USER:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
+                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE USER:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
+                    }
                     try {
                         if (emailValidator.validate(remoteUser.getNaemail())) {
                             msg.addRecipient(Message.RecipientType.TO,
@@ -1382,7 +1394,7 @@ public class EmailMoveReceipt implements Runnable {
                 returnStatus = 10;
                 try {
                     error = invUtil.stackTraceAsMsg(e);
-                    emailError(emailType, "(" + this.dbaUrl + ") ADDRESS EXCEPTION:+" + e.getMessage() + " [" + e.getStackTrace()[0].toString() + "]");
+                    emailError(emailType, "(" + this.dbaUrl + ") ADDRESS EXCEPTION:+" + e.getMessage()  + "<br />" + error);
                     emailWarning(emailType);
                 } catch (Exception e2) {
                     e2.printStackTrace();
@@ -1396,7 +1408,7 @@ public class EmailMoveReceipt implements Runnable {
                 returnStatus = 11;
                 try {
                     error = invUtil.stackTraceAsMsg(e);
-                    emailError(emailType, "(" + this.dbaUrl + ") MESSAGING EXCEPTION:+" + e.getMessage());
+                    emailError(emailType, "(" + this.dbaUrl + ") MESSAGING EXCEPTION:+" + e.getMessage() + "<br />" + error);
                     emailWarning(emailType);
                 } catch (Exception e2) {
                     e2.printStackTrace();
@@ -1409,7 +1421,9 @@ public class EmailMoveReceipt implements Runnable {
                 returnStatus = 20;
                 try {
                     error = invUtil.stackTraceAsMsg(e);
-                    emailError(emailType, "(" + this.dbaUrl + ") GENERAL EXCEPTION:+" + e.getMessage());
+                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** GENERAL EXCEPTION STACKTRACE:"+error);
+                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** GENERAL EXCEPTION STACKTRACE:"+error);
+                    emailError(emailType, "(" + this.dbaUrl + ") GENERAL EXCEPTION:+" + e.getMessage() + "<br />" + error);
                     emailWarning(emailType);
                 } catch (Exception e2) {
                     e2.printStackTrace();
