@@ -1839,52 +1839,58 @@ public class DbConnect extends DbManager
     public String pullEmailMessage(String cdemlmsg) throws ClassNotFoundException, SQLException
     {
         String deemlmsg = null;
-        boolean foundInDBA = false;
-        Connection conn = getDbConnection();
-
         String qry1 = "Select deemlmsg\n" +
                 "From Sl16emlmsg\n" +
                 "Where Cdemlmsg = ? \n" +
                 "  AND cdstatus = 'A'";
 
-        PreparedStatement ps = conn.prepareStatement(qry1);
-        ps.setString(1, cdemlmsg);
-        ResultSet res1 = ps.executeQuery();
-        System.out.println ("DBCONNECT EMAIL MESSAGE CODE:"+cdemlmsg);
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet res1 = null;
+        try {
+            conn = getDbConnection();
+            ps = conn.prepareStatement(qry1);
+            ps.setString(1, cdemlmsg);
+            res1 = ps.executeQuery();
+            System.out.println("DBCONNECT EMAIL MESSAGE CODE:" + cdemlmsg);
 
-        while (res1.next()) {
-            deemlmsg = res1.getString("deemlmsg");
-            System.out.println ("    DBCONNECT EMAIL MSG:"+deemlmsg);
-            foundInDBA = true;
+            while (res1.next()) {
+                deemlmsg = res1.getString("deemlmsg");
+                System.out.println("    DBCONNECT EMAIL MSG:" + deemlmsg);
+            }
+        } finally {
+            closeResultSet(res1);
+            closeStatement(ps);
+            closeConnection(conn);
         }
-
-        res1.close();
-        ps.close();
 
         return deemlmsg;
     }
 
     public ArrayList<String>  pullEmailParams() throws ClassNotFoundException, SQLException
     {
-        boolean foundInDBA = false;
         ArrayList<String> validEmailParams = new ArrayList<String>();
-        Connection conn = getDbConnection();
-        Statement stmt;
-        stmt = conn.createStatement();
         String qry1 = "Select cdemailparam\n"
                 + "FROM Sl16emlparam \n"
                 + "WHERE cdstatus = 'A' ";
 
-
-        ResultSet res1 = stmt.executeQuery(qry1);
-        while (res1.next()) {
-            String emailParam;
-            emailParam = res1.getString("cdemailparam");
-            validEmailParams.add(emailParam);
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet res1 = null;
+        try {
+            conn = getDbConnection();
+            stmt = conn.createStatement();
+            res1 = stmt.executeQuery(qry1);
+            while (res1.next()) {
+                String emailParam;
+                emailParam = res1.getString("cdemailparam");
+                validEmailParams.add(emailParam);
+            }
+        } finally {
+            closeResultSet(res1);
+            closeStatement(stmt);
+            closeConnection(conn);
         }
-
-        res1.close();
-        stmt.close();
 
         return validEmailParams;
     }
@@ -1892,28 +1898,29 @@ public class DbConnect extends DbManager
     public String getShipTypeDesc(String cdshiptyp) throws ClassNotFoundException, SQLException
     {
         String deshiptyp = null;
-        boolean foundInDBA = false;
-        Connection conn = getDbConnection();
-
         String qry1 = "Select deshiptyp\n" +
                 "From fl12shiptyp\n" +
                 "Where cdshiptyp = ? \n" +
                 "  AND cdstatus = 'A'";
 
-        PreparedStatement ps = conn.prepareStatement(qry1);
-        ps.setString(1, cdshiptyp);
-        ResultSet res1 = ps.executeQuery();
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet res1 = null;
+        try {
+            conn = getDbConnection();
+            ps = conn.prepareStatement(qry1);
+            ps.setString(1, cdshiptyp);
+            res1 = ps.executeQuery();
 
-        while (res1.next()) {
-            deshiptyp = res1.getString("deshiptyp");
-            foundInDBA = true;
+            while (res1.next()) {
+                deshiptyp = res1.getString("deshiptyp");
+            }
+        } finally {
+            closeResultSet(res1);
+            closeStatement(ps);
+            closeConnection(conn);
         }
-
-        res1.close();
-        ps.close();
 
         return deshiptyp;
     }
-    
-    
 }
