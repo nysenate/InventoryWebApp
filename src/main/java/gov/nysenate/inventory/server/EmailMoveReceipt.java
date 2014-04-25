@@ -1619,8 +1619,13 @@ public class EmailMoveReceipt implements Runnable {
 
     public void emailWarning(int emailType, String msgOverride) {
         if (problemEmailAddrs == null || problemEmailAddrs.size() == 0) {
+            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** EMAILWARNING:  No problematic emails found, so no warning needed.");
+            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** EMAILWARNING:  No problematic emails found, so no warning needed.");
             return;
         }
+        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** EMAILWARNING:  problematic emails found:"+problemEmailAddrs.size()+": FIRST PROBLEM:"+problemEmailAddrs.get(0).getNaemailName());
+        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** EMAILWARNING:  problematic emails found:"+problemEmailAddrs.size()+": FIRST PROBLEM:"+problemEmailAddrs.get(0).getNaemailName());
+        
         Properties props = new Properties();
         String smtpServer = properties.getProperty("smtpServer");
         props.setProperty("mail.smtp.host", smtpServer);
@@ -1664,6 +1669,8 @@ public class EmailMoveReceipt implements Runnable {
                 }
             } else {
                 recipientCount = addErrorRecipients(message);
+                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** EMAILWARNING: addErrorRecipients Count:"+recipientCount);
+                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** EMAILWARNING: addErrorRecipients Count:"+recipientCount);
             }
 
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") !!!!EMAILWARNING BEFORE SUBJECT");
