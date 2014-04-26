@@ -171,7 +171,7 @@ public class EmailMoveReceipt implements Runnable {
                     System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE pickup remoteVerEmpNuxrefem:" + remoteVerEmpNuxrefem);
                     if (remoteVerEmpNuxrefem > 0) {
                         String remoteVerEmpNuxrefemStr = new Integer(remoteVerEmpNuxrefem).toString();
-                        remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, userFallback);
+                        remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, false, userFallback);
                         try {
                             remoteVerByEmployee.setEmployeeNameOrder(remoteVerByEmployee.FIRST_MI_LAST_SUFFIX);
                         } catch (Exception e) {
@@ -243,7 +243,7 @@ public class EmailMoveReceipt implements Runnable {
                     System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE delivery remoteVerEmpNuxrefem:" + remoteVerEmpNuxrefem);
                     if (remoteVerEmpNuxrefem > 0) {
                         String remoteVerEmpNuxrefemStr = new Integer(remoteVerEmpNuxrefem).toString();
-                        remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, userFallback);
+                        remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, false, userFallback);
                         try {
                             remoteVerByEmployee.setEmployeeNameOrder(remoteVerByEmployee.FIRST_MI_LAST_SUFFIX);
                         } catch (Exception e) {
@@ -372,7 +372,6 @@ public class EmailMoveReceipt implements Runnable {
         }
     }
 
-
     /*
      * Pickup Specific function serves as the initial setup code for the sendEmail(int emailType)
      * which handles both Pickup and Delivery
@@ -410,7 +409,7 @@ public class EmailMoveReceipt implements Runnable {
         }
 
         try {
-            pickupEmployee = db.getEmployee(pickup.getNapickupby());
+            pickupEmployee = db.getEmployee(pickup.getNapickupby(), false);
             pickupEmployee.setEmployeeNameOrder(pickupEmployee.FIRST_MI_LAST_SUFFIX);
             this.napickupbyName = pickupEmployee.getEmployeeName().trim();
         } catch (SQLException sqle) {
@@ -468,7 +467,7 @@ public class EmailMoveReceipt implements Runnable {
             this.nadeliverbyName = "N/A";
 
             try {
-                pickupEmployee = db.getEmployee(delivery.getNapickupby());
+                pickupEmployee = db.getEmployee(delivery.getNapickupby(), false);
                 pickupEmployee.setEmployeeNameOrder(pickupEmployee.FIRST_MI_LAST_SUFFIX);
                 this.napickupbyName = pickupEmployee.getEmployeeName().trim();
             } catch (SQLException sqle) {
@@ -482,7 +481,7 @@ public class EmailMoveReceipt implements Runnable {
         } else {
             try {
 
-                deliveryEmployee = db.getEmployee(delivery.getNadeliverby());
+                deliveryEmployee = db.getEmployee(delivery.getNadeliverby(), false);
                 deliveryEmployee.setEmployeeNameOrder(deliveryEmployee.FIRST_MI_LAST_SUFFIX);
                 this.nadeliverbyName = deliveryEmployee.getEmployeeName().trim();
             } catch (SQLException sqle) {
