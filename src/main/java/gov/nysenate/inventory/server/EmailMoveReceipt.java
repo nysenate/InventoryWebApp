@@ -139,9 +139,6 @@ public class EmailMoveReceipt implements Runnable {
 
         String verificationMethod = trans.getVerificationMethod();
 
-        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE verificationMethod:" + verificationMethod);
-        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE verificationMethod:" + verificationMethod);
-
         switch (type) {
             case "pickup":
                 this.emailType = PICKUP;
@@ -162,13 +159,9 @@ public class EmailMoveReceipt implements Runnable {
 
                 this.serverInfo = "";
                 this.subjectAddText = "";
-                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE pickup verificationMethod:" + verificationMethod + " paperworkType:" + this.paperworkType);
-                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE pickup verificationMethod:" + verificationMethod + " paperworkType:" + this.paperworkType);
 
                 if (verificationMethod != null && !verificationMethod.equals("") && this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
                     int remoteVerEmpNuxrefem = trans.getEmployeeId();
-                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE pickup remoteVerEmpNuxrefem:" + remoteVerEmpNuxrefem);
-                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE pickup remoteVerEmpNuxrefem:" + remoteVerEmpNuxrefem);
                     if (remoteVerEmpNuxrefem > 0) {
                         String remoteVerEmpNuxrefemStr = new Integer(remoteVerEmpNuxrefem).toString();
                         remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, false, userFallback);
@@ -235,12 +228,8 @@ public class EmailMoveReceipt implements Runnable {
                 this.serverInfo = "";
                 this.subjectAddText = "";
 
-                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE delivery verificationMethod:" + verificationMethod + " paperworkType:" + this.paperworkType);
-                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE delivery verificationMethod:" + verificationMethod + " paperworkType:" + this.paperworkType);
                 if (verificationMethod != null && !verificationMethod.equals("") && this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
                     int remoteVerEmpNuxrefem = trans.getEmployeeId();
-                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE delivery remoteVerEmpNuxrefem:" + remoteVerEmpNuxrefem);
-                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE delivery remoteVerEmpNuxrefem:" + remoteVerEmpNuxrefem);
                     if (remoteVerEmpNuxrefem > 0) {
                         String remoteVerEmpNuxrefemStr = new Integer(remoteVerEmpNuxrefem).toString();
                         remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, false, userFallback);
@@ -996,9 +985,9 @@ public class EmailMoveReceipt implements Runnable {
                     if (signingEmployee != null && signingEmployee.getEmployeeName() != null) {
                         emailData.put("Employee", signingEmployee.getEmployeeName());
                     } else if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
+                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** Remote Verification Employee Info:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
+                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** Remote Verification Employee Info:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                         emailData.put("Employee", remoteVerByEmployee.getEmployeeName());
-                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** Remote Verofication Employee Info:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** Remote Verofication Employee Info:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                     } else if (remoteUser != null && remoteUser.getEmployeeName() != null) {
                         emailData.put("Employee", remoteUser.getEmployeeName());
                     } else {
@@ -1163,32 +1152,30 @@ public class EmailMoveReceipt implements Runnable {
                     if (pickupEmployee != null && pickupEmployee.getNaemail() != null) {
                         try {
                             if (emailValidator.validate(pickupEmployee.getNaemail())) {
+                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Employee:"+pickupEmployee.getNaemail());
+                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Employee:"+pickupEmployee.getNaemail());
                                 msg.addRecipient(Message.RecipientType.TO,
                                         new InternetAddress(pickupEmployee.getNaemail(), pickupEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                                 recipientCount++;
                             } else {
+                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Employee Invalid E-mail Address:"+pickupEmployee.getNaemail());
+                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Employee Invalid E-mail Address:"+pickupEmployee.getNaemail());
                                 addProblemEmailAddr(pickupEmployee.getNaemail(), pickupEmployee.getEmployeeName(), null, "Invalid E-mail Address");
                             }
                             if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
-                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(1) REMOTE VER EMPLOYEE :  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP REMOTE(1) VER EMPLOYEE:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                                 try {
                                     if (emailValidator.validate(remoteVerByEmployee.getNaemail())) {
-                                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(1) REMOTE VER EMPLOYEE VALID ADD EMAIL RECIPIENT :  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(1) REMOTE VER EMPLOYEE VALID ADD EMAIL RECIPIENT:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
+                                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Remote Ver Employee:"+remoteVerByEmployee.getNaemail());
+                                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Remote Ver Employee:"+remoteVerByEmployee.getNaemail());
                                         msg.addRecipient(Message.RecipientType.TO,
                                                 new InternetAddress(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                                         recipientCount++;
-                                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(1) REMOTE VER EMPLOYEE VALID EMAIL ADDED :  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(1) REMOTE VER EMPLOYEE VALID EMAIL ADDED:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                                     } else {
-                                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(1) REMOTE VER EMPLOYEE INVALID EMAIL:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(1) REMOTE VER EMPLOYEE VALID EMAIL:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
+                                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Remote Ver Employee Invalid E-mail Address:"+remoteVerByEmployee.getNaemail());
+                                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Remote Ver Employee Invalid E-mail Address:"+remoteVerByEmployee.getNaemail());
                                         addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), null, "Invalid E-mail Address");
                                     }
                                 } catch (UnsupportedEncodingException | MessagingException e2) {
-                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(1) REMOTE VER EMPLOYEE INVALID EMAIL(2):  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(1) REMOTE VER EMPLOYEE VALID EMAIL(2):  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                                     addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), e2.getStackTrace(), e2.getMessage());
                                 }
                             }
@@ -1198,32 +1185,30 @@ public class EmailMoveReceipt implements Runnable {
                     } else if (remoteUser != null && remoteUser.getNaemail() != null) {
                         try {
                             if (emailValidator.validate(remoteUser.getNaemail())) {
+                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Remote User:"+remoteUser.getNaemail());
+                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Remote User:"+remoteUser.getNaemail());
                                 msg.addRecipient(Message.RecipientType.TO,
                                         new InternetAddress(remoteUser.getNaemail(), remoteUser.getEmployeeName()));  //naemailTo, naemployeeTo
                                 recipientCount++;
                             } else {
+                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Remote User Invalid E-mail Address:"+remoteUser.getNaemail());
+                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Remote User Invalid E-mail Address:"+remoteUser.getNaemail());                                
                                 addProblemEmailAddr(remoteUser.getNaemail(), remoteUser.getEmployeeName(), null, "Invalid E-mail Address");
                             }
                             if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
-                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(2) REMOTE VER EMPLOYEE :  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP REMOTE(2) VER EMPLOYEE:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                                 try {
                                     if (emailValidator.validate(remoteVerByEmployee.getNaemail())) {
-                                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(2) REMOTE VER EMPLOYEE VALID ADD EMAIL RECIPIENT :  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(2) REMOTE VER EMPLOYEE VALID ADD EMAIL RECIPIENT:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
+                                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Remote Ver Employee:"+remoteVerByEmployee.getNaemail());
+                                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Pickup Remote Ver Employee:"+remoteVerByEmployee.getNaemail());
                                         msg.addRecipient(Message.RecipientType.TO,
                                                 new InternetAddress(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                                         recipientCount++;
-                                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(2) REMOTE VER EMPLOYEE VALID EMAIL ADDED :  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(2) REMOTE VER EMPLOYEE VALID EMAIL ADDED:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                                     } else {
-                                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(2) REMOTE VER EMPLOYEE INVALID EMAIL:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(2) REMOTE VER EMPLOYEE VALID EMAIL:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
+                                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Remote Ver Employee Invalid E-mail Address:"+remoteVerByEmployee.getNaemail());
+                                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Pickup Remote Ver Employee Invalid E-mail Address:"+remoteVerByEmployee.getNaemail());
                                         addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), null, "Invalid E-mail Address");
                                     }
                                 } catch (UnsupportedEncodingException | MessagingException e2) {
-                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(2) REMOTE VER EMPLOYEE INVALID EMAIL(2):  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** PICKUP(2) REMOTE VER EMPLOYEE VALID EMAIL(2):  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                                     addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), e2.getStackTrace(), e2.getMessage());
                                 }
                             }
@@ -1233,9 +1218,15 @@ public class EmailMoveReceipt implements Runnable {
                         if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
                             try {
                                 if (emailValidator.validate(remoteVerByEmployee.getNaemail())) {
+                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Remote Ver Employee(2):"+remoteVerByEmployee.getNaemail());
+                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Pickup Remote Ver Employee(2):"+remoteVerByEmployee.getNaemail());
                                     msg.addRecipient(Message.RecipientType.TO,
                                             new InternetAddress(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                                     recipientCount++;
+                                }
+                                else {
+                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Remote Ver Employee(2) Invalid E-mail Address:"+remoteVerByEmployee.getNaemail());
+                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (PICKUP) addrecipient Pickup Pickup Remote Ver Employee(2) Invalid E-mail Address:"+remoteVerByEmployee.getNaemail());
                                     addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), null, "Invalid E-mail Address");
                                 }
                             } catch (UnsupportedEncodingException | MessagingException e2) {
@@ -1252,88 +1243,68 @@ public class EmailMoveReceipt implements Runnable {
             } else if (this.emailType == DELIVERY) {
                 if (!testingMode) {
                     if (deliveryEmployee != null && deliveryEmployee.getNaemail() != null && deliveryEmployee.getNaemail().trim().length() > 0) {
-                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY EMPLOYEE INFO: " + deliveryEmployee.getNaemail());
-                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY EMPLOYEE INFO: " + deliveryEmployee.getNaemail());
-                        if (remoteVerByEmployee == null) {
-                            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY EMPLOYEE:  ---REMOTE VER EMPLOYEE INFO: NULL");
-                            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY EMPLOYEE:  ---REMOTE VER EMPLOYEE INFO: NULL");
-                        } else {
-                            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY EMPLOYEE:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY EMPLOYEE:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                        }
                         try {
                             if (emailValidator.validate(deliveryEmployee.getNaemail())) {
+                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Employee:"+deliveryEmployee.getNaemail());
+                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Employee:"+deliveryEmployee.getNaemail());
                                 msg.addRecipient(Message.RecipientType.TO,
                                         new InternetAddress(deliveryEmployee.getNaemail(), deliveryEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                                 recipientCount++;
                             } else {
+                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Employee Invalid E-mail Address:"+deliveryEmployee.getNaemail());
+                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Employee Invalid E-mail Address:"+deliveryEmployee.getNaemail());
                                 addProblemEmailAddr(deliveryEmployee.getNaemail(), deliveryEmployee.getEmployeeName(), null, "Invalid E-mail Address");
                             }
                         } catch (UnsupportedEncodingException | MessagingException e) {
                             addProblemEmailAddr(deliveryEmployee.getNaemail(), deliveryEmployee.getEmployeeName(), e.getStackTrace(), e.getMessage());
                         }
                         if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
-                            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY(1) REMOTE VER EMPLOYEE :  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE(1) VER EMPLOYEE:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                             try {
                                 if (emailValidator.validate(remoteVerByEmployee.getNaemail())) {
-                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY(1) REMOTE VER EMPLOYEE VALID ADD EMAIL RECIPIENT :  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY(1) REMOTE VER EMPLOYEE VALID ADD EMAIL RECIPIENT:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
+                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Remote Ver Employee(1):"+remoteVerByEmployee.getNaemail());
+                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Pickup Delivery Remote Ver Employee(1):"+remoteVerByEmployee.getNaemail());
                                     msg.addRecipient(Message.RecipientType.TO,
                                             new InternetAddress(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                                     recipientCount++;
-                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY(1) REMOTE VER EMPLOYEE VALID EMAIL ADDED :  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY(1) REMOTE VER EMPLOYEE VALID EMAIL ADDED:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                                 } else {
-                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY(1) REMOTE VER EMPLOYEE INVALID EMAIL:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY(1) REMOTE VER EMPLOYEE VALID EMAIL:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
+                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Remote Ver Employee(1) Invalid E-mail Address:"+remoteVerByEmployee.getNaemail());
+                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Remote Ver Employee(1) Invalid E-mail Address:"+remoteVerByEmployee.getNaemail());
                                     addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), null, "Invalid E-mail Address");
                                 }
                             } catch (UnsupportedEncodingException | MessagingException e2) {
-                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY(1) REMOTE VER EMPLOYEE INVALID EMAIL(2):  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY(1) REMOTE VER EMPLOYEE VALID EMAIL(2):  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                                 addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), e2.getStackTrace(), e2.getMessage());
                             }
                         }
                     } else if (remoteUser != null && remoteUser.getNaemail() != null) {
-                        if (remoteVerByEmployee == null) {
-                            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE USER:  ---REMOTE VER EMPLOYEE INFO: NULL");
-                            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE USER:  ---REMOTE VER EMPLOYEE INFO: NULL");
-                        } else {
-                            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE USER:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE USER:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                        }
                         try {
                             if (emailValidator.validate(remoteUser.getNaemail())) {
+                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Remote User:"+remoteUser.getNaemail());
+                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Remote User:"+remoteUser.getNaemail());
                                 msg.addRecipient(Message.RecipientType.TO,
                                         new InternetAddress(remoteUser.getNaemail(), remoteUser.getEmployeeName()));  //naemailTo, naemployeeTo
                                 recipientCount++;
                             } else {
-                                addProblemEmailAddr(remoteUser.getNaemail(), remoteUser.getEmployeeName(), null, "Invalid E-mail Address");
+                                  System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Remote User Invalid E-mail Address:"+remoteUser.getNaemail());
+                                  log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Remote User Invalid E-mail Address:"+remoteUser.getNaemail());
+                                  addProblemEmailAddr(remoteUser.getNaemail(), remoteUser.getEmployeeName(), null, "Invalid E-mail Address");
                             }
                         } catch (UnsupportedEncodingException | MessagingException e) {
                             addProblemEmailAddr(remoteUser.getNaemail(), remoteUser.getEmployeeName(), e.getStackTrace(), e.getMessage());
                         }
                         if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
-                            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE VER EMPLOYEE :  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE VER EMPLOYEE:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                             try {
                                 if (emailValidator.validate(remoteVerByEmployee.getNaemail())) {
-                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE VER EMPLOYEE VALID ADD EMAIL RECIPIENT :  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE VER EMPLOYEE VALID ADD EMAIL RECIPIENT:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
+                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Remote Ver Employee:"+remoteVerByEmployee.getNaemail());
+                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Ver Employee:"+remoteVerByEmployee.getNaemail());
                                     msg.addRecipient(Message.RecipientType.TO,
                                             new InternetAddress(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                                     recipientCount++;
-                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE VER EMPLOYEE VALID EMAIL ADDED :  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE VER EMPLOYEE VALID EMAIL ADDED:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                                 } else {
-                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE VER EMPLOYEE INVALID EMAIL:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE VER EMPLOYEE VALID EMAIL:  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
+                                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Remote Ver Employee Invalid E-mail Address:"+remoteVerByEmployee.getNaemail());
+                                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** (DELIVERY) addrecipient Delivery Ver Employee Invalid E-mail Address:"+remoteVerByEmployee.getNaemail());                                    
                                     addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), null, "Invalid E-mail Address");
                                 }
                             } catch (UnsupportedEncodingException | MessagingException e2) {
-                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE VER EMPLOYEE INVALID EMAIL(2):  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
-                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** DELIVERY REMOTE VER EMPLOYEE VALID EMAIL(2):  ---REMOTE VER EMPLOYEE INFO:" + remoteVerByEmployee.getEmployeeName() + " E-mail Addr:" + remoteVerByEmployee.getNaemail());
                                 addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), e2.getStackTrace(), e2.getMessage());
                             }
                         }
@@ -1347,12 +1318,16 @@ public class EmailMoveReceipt implements Runnable {
             if (testingMode) {
                 if (naemailTo1 != null && naemailTo1.trim().length() > 0) {
                     try {
-                        System.out.println("(" + this.dbaUrl + ") TESTINGMODE EMAILING TO:" + naemailTo1 + ":" + naemailNameTo1);
+//                        System.out.println("(" + this.dbaUrl + ") TESTINGMODE EMAILING TO:" + naemailTo1 + ":" + naemailNameTo1);
                         if (emailValidator.validate(naemailTo1)) {
+                            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient TESTING EMAIL1:"+naemailTo1);
+                            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient TESTING EMAIL1:"+naemailTo1);
                             msg.addRecipient(Message.RecipientType.TO,
                                     new InternetAddress(naemailTo1, naemailNameTo1));  //naemailTo, naemployeeTo
                             recipientCount++;
                         } else {
+                            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient TESTING EMAIL1 Invalid E-mail Address:"+naemailTo1);
+                            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient TESTING EMAIL1 Invalid E-mail Address:"+naemailTo1);
                             addProblemEmailAddr(naemailTo1, naemailNameTo1, null, "Invalid E-mail Address");
                         }
                     } catch (UnsupportedEncodingException | MessagingException e) {
@@ -1361,13 +1336,15 @@ public class EmailMoveReceipt implements Runnable {
                 }
                 if (naemailTo2 != null && naemailTo2.trim().length() > 0) {
                     try {
-                        System.out.println("(" + this.dbaUrl + ") TESTINGMODE EMAILING TO:" + naemailTo2 + ":" + naemailNameTo2);
-                        log.warn("(" + this.dbaUrl + ") TESTINGMODE EMAILING TO:" + naemailTo2 + ":" + naemailNameTo2);
                         if (emailValidator.validate(naemailTo2)) {
+                            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient TESTING EMAIL2:"+naemailTo2);
+                            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient TESTING EMAIL2:"+naemailTo2);                            
                             msg.addRecipient(Message.RecipientType.TO,
                                     new InternetAddress(naemailTo2, naemailNameTo2));  //naemailTo, naemployeeTo
                             recipientCount++;
                         } else {
+                            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient TESTING EMAIL2 Invalid E-mail Address:"+naemailTo2);
+                            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient TESTING EMAIL2 Invalid E-mail Address:"+naemailTo2);    
                             addProblemEmailAddr(naemailTo2, naemailNameTo2, null, "Invalid E-mail Address");
                         }
                     } catch (UnsupportedEncodingException | MessagingException e) {
@@ -1384,28 +1361,40 @@ public class EmailMoveReceipt implements Runnable {
                             || (this.emailType == this.DELIVERY && (!this.paperworkType.equalsIgnoreCase("RDL")))) {
                         if (signingEmployee != null && signingEmployee.getNaemail() != null) {
                             if (emailValidator.validate(signingEmployee.getNaemail())) {
+                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient REAL Signing Employee:"+signingEmployee.getNaemail());
+                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient REAL Signing Employee:"+signingEmployee.getNaemail());                            
                                 msg.addRecipient(Message.RecipientType.TO,
                                         new InternetAddress(signingEmployee.getNaemail(), signingEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                                 recipientCount++;
                             } else {
+                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient REAL Signing Employee Invalid E-mail Address:"+signingEmployee.getNaemail());
+                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient REAL Signing Employee Invalid E-mail Address:"+signingEmployee.getNaemail());                            
                                 addProblemEmailAddr(signingEmployee.getNaemail(), signingEmployee.getEmployeeName(), null, "Invalid E-mail Address");
                             }
 
                         } else if (remoteUser != null && remoteUser.getNaemail() != null) {
                             if (emailValidator.validate(remoteUser.getNaemail())) {
+                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient REAL Remote User:"+remoteUser.getNaemail());
+                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient REAL Remote User:"+remoteUser.getNaemail());                            
                                 msg.addRecipient(Message.RecipientType.TO,
                                         new InternetAddress(remoteUser.getNaemail(), remoteUser.getEmployeeName()));  //naemailTo, naemployeeTo
                                 recipientCount++;
                             } else {
+                                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient REAL Remote User Invalid E-mail Address:"+remoteUser.getNaemail());
+                                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient REAL Remote User Invalid E-mail Address:"+remoteUser.getNaemail());                            
                                 addProblemEmailAddr(remoteUser.getNaemail(), remoteUser.getEmployeeName(), null, "Invalid E-mail Address");
                             }
                             if (this.remoteVerByEmployee != null && remoteVerByEmployee.getNaemail() != null) {
                                 try {
                                     if (emailValidator.validate(remoteVerByEmployee.getNaemail())) {
+                                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient REAL Remote Ver Employee:"+remoteVerByEmployee.getNaemail());
+                                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient REAL Remote Ver Employee:"+remoteVerByEmployee.getNaemail());                            
                                         msg.addRecipient(Message.RecipientType.TO,
                                                 new InternetAddress(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName()));  //naemailTo, naemployeeTo
                                         recipientCount++;
                                     } else {
+                                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient REAL Remote Ver Employee Invalid E-mail Address:"+remoteVerByEmployee.getNaemail());
+                                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** addrecipient REAL Remote Ver Employee Invalid E-mail Address:"+remoteVerByEmployee.getNaemail());                            
                                         addProblemEmailAddr(remoteVerByEmployee.getNaemail(), remoteVerByEmployee.getEmployeeName(), null, "Invalid E-mail Address");
                                     }
                                 } catch (UnsupportedEncodingException | MessagingException e2) {
@@ -1451,14 +1440,23 @@ public class EmailMoveReceipt implements Runnable {
                     if (returnStatus == 0) {
                         returnStatus = 9;
                     }
+                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** NO EMAIL-ATTACHMENT MALFORMED");
+                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** NO EMAIL-ATTACHMENT MALFORMED");                            
+                    
                     System.out.println("(" + this.dbaUrl + ") ***E-mail NOT sent because attachment was malformed(2).");
                 } else {
 
                     if (recipientCount == 0) {
+                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** NO EMAIL-NO EMAIL RECIPIENTS");
+                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** NO EMAIL-NO EMAIL RECIPIENTS");                            
                         log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: There were no e-mail recipients for a Report. No e-mail will be sent!!!");
                     } else {
+                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** EMAILING....");
+                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** EMAILING....");                            
                         Transport.send(msg);
                     }
+                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** CALL EMAIL WARNING....");
+                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** CALL EMAIL WARNING....");                            
                     emailWarning(emailType);
                 }
             }
@@ -1496,8 +1494,6 @@ public class EmailMoveReceipt implements Runnable {
                 returnStatus = 20;
                 try {
                     error = invUtil.stackTraceAsMsg(e);
-                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** GENERAL EXCEPTION STACKTRACE:" + error);
-                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** GENERAL EXCEPTION STACKTRACE:" + error);
                     emailError(emailType, "(" + this.dbaUrl + ") GENERAL EXCEPTION:+" + e.getMessage() + "<br />" + error);
                     emailWarning(emailType);
                 } catch (Exception e2) {
@@ -1758,8 +1754,6 @@ public class EmailMoveReceipt implements Runnable {
                 }
             } else {
                 recipientCount = addErrorRecipients(message);
-                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** EMAILWARNING: addErrorRecipients Count:" + recipientCount);
-                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ** EMAILWARNING: addErrorRecipients Count:" + recipientCount);
             }
 
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") !!!!EMAILWARNING BEFORE SUBJECT");
@@ -1933,7 +1927,6 @@ public class EmailMoveReceipt implements Runnable {
          * the information has not been entered for the Remote Verified By Employee.
          * 
          */
-
 
         if (this.naemailGenTo == null || remoteDeliveryNoSigDelivered) {
             return cnt;
@@ -2144,12 +2137,6 @@ public class EmailMoveReceipt implements Runnable {
                     log.warn(null, ex);
                 }
 
-                /*returnString.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Email:</b> ");
-                 returnString.append(emailRecord.getNaemail());
-                 returnString.append("&nbsp;&nbsp;&nbsp<b>Name:</b> ");
-                 returnString.append(emailRecord.getNaemailName());
-                 returnString.append("&nbsp;&nbsp;&nbsp<b>Error Message:</b> ");
-                 returnString.append(emailRecord.getErrorMessage());*/
                 StringBuffer stackTraceString = new StringBuffer();
                 StackTraceElement[] errorStackTrace = emailRecord.getErrorStackTrace();
                 if (errorStackTrace != null) {
