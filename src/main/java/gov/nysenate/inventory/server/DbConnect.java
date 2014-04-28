@@ -653,7 +653,6 @@ public class DbConnect extends DbManager
               + "GROUP BY a2.nuserial HAVING COUNT(*)=1)\n"
               + "ORDER BY b.nuserial";
 
-
       log.info("getNuSerialList() qry:" + qry);
       System.out.println("getNuSerialList() qry:" + qry);
 
@@ -669,6 +668,7 @@ public class DbConnect extends DbManager
 
         log.info("getNuSerialList() qry loop:" + nuserial);
         System.out.println("getNuSerialList() qry loop:" + nuserial);
+        
         InvSerialNumber invSerialNumber = new InvSerialNumber();
         invSerialNumber.setNuxrefsn(nuxrefsn);
         invSerialNumber.setNuserial(nuserial);
@@ -1145,7 +1145,7 @@ public class DbConnect extends DbManager
               + "  AND a.nalast LIKE'" + nalast + "%'"
               + " AND a.naemail IS NOT null"
               + " ORDER BY  a.nalast||DECODE(a.nasuffix, NULL, NULL, ' '||a.nasuffix)||', '||a.nafirst||DECODE(a.namidinit, NULL, NULL, ' '||a.namidinit)";
-
+      
       result = stmt.executeQuery(qry);
       while (result.next()) {
 

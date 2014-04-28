@@ -3,7 +3,6 @@ package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.model.Employee;
 import com.google.gson.Gson;
-import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -12,7 +11,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;
@@ -30,7 +28,7 @@ public class EmployeeList extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-
+        
         try {
             DbConnect db = HttpUtils.getHttpSession(request, response, out);
 

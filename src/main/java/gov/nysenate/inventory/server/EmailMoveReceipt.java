@@ -667,7 +667,12 @@ public class EmailMoveReceipt implements Runnable {
                  */
 
                 if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
-                    emailData = new EmailData(db, "RMTPCKPPICKUPRCPT");
+                    if (this.remoteVerByEmployee == null || this.remoteVerByEmployee.getNaemail() == null || this.remoteVerByEmployee.getNaemail().trim().length() == 0) {
+                        emailData = new EmailData(db, "RMTPCKPPICKUPRCPT");
+                    }
+                    else {
+                        emailData = new EmailData(db, "RMTPCKPPCKPVERRCPT");
+                    }
                     try {
                         emailData.put("ShipType", pickup.getShipType());
                     } catch (InvalidParameterException ex) {
