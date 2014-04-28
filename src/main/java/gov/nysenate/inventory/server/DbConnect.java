@@ -1524,7 +1524,11 @@ public class DbConnect extends DbManager
     //System.out.println ("DBCONNECT Location "+location.getCdlocat()+" SET: "+location.getAdstreet1());
   }
 
-  public Employee getEmployee(String nauser) throws SQLException, ClassNotFoundException
+  public Employee getEmployee(String nauser) throws SQLException, ClassNotFoundException {
+      return getEmployee(nauser, true);
+  }
+  
+  public Employee getEmployee(String nauser, boolean upperCase) throws SQLException, ClassNotFoundException
   {
     Employee employee = new Employee();
 
@@ -1535,11 +1539,23 @@ public class DbConnect extends DbManager
       conn = getDbConnection();
       stmt = conn.createStatement();
       // Get location info for this transaction.
-      String qry1 = "SELECT b.nuxrefem, b.nafirst, b.nalast, b.namidinit, b.nasuffix, b.naemail, SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) nauser\n"
+      String qry1 = null;
+      
+      if (upperCase) {
+          qry1 = "SELECT b.nuxrefem, b.nafirst, b.nalast, b.namidinit, b.nasuffix, b.naemail, SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) nauser\n"
               + " FROM  pm21personn b  "
               + " WHERE SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) = '" + nauser.toUpperCase() + "' "
               + "   AND b.cdempstatus = 'A'"
               + " ORDER BY DECODE( INSTR(b.naemail, '@'), -1, 1, 0)";
+      }
+      else {
+          qry1 = "SELECT b.nuxrefem, b.ffnafirst, b.ffnalast, b.ffnamidinit, b.ffnasuffix, b.naemail, SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) nauser\n"
+              + " FROM  pm21personn b  "
+              + " WHERE SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) = '" + nauser.toUpperCase() + "' "
+              + "   AND b.cdempstatus = 'A'"
+              + " ORDER BY DECODE( INSTR(b.naemail, '@'), -1, 1, 0)";
+          
+      }
 
       //System.out.println ("getEmployee qry1:"+qry1);
 
