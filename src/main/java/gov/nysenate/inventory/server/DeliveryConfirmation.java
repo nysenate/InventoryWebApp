@@ -27,13 +27,14 @@ import org.apache.log4j.Logger;
 public class DeliveryConfirmation extends HttpServlet {
 
     private static final Logger log = Logger.getLogger(DeliveryConfirmation.class.getName());
+    protected DbConnect db = null;
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
 
-        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        db = HttpUtils.getHttpSession(request, response, out);
         Transaction delivery = null;
         try {
             String deliveryJson = request.getParameter("Delivery");
@@ -85,6 +86,36 @@ public class DeliveryConfirmation extends HttpServlet {
             //emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(delivery);
             //if (emailReceiptStatus==0) {
             out.println("Database updated successfully");
+
+            if (delivery.getRemoteType().equalsIgnoreCase("RPK") && delivery.getShipType()!=null && delivery.getShipType().trim().length()>0) {
+                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Generating Email for Remote Pickup Part");
+                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Generating Email for Remote Pickup Part");
+
+                if (db == null) {
+                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE DeliveryConfirmation: Remote Pickup Part Email db is NULL!!");
+                }
+
+                Transaction remotePickup = null;
+                TransactionMapper transactionMapper = new TransactionMapper();
+                try {
+                    remotePickup = transactionMapper.queryTransaction(db, delivery.getNuxrpd());
+                    if (remotePickup == null) {
+                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE DeliveryConfirmation(a): Remote Pickup Part Email remotePickup==NULL!!");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (remotePickup == null) {
+                    log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE DeliveryConfirmation(b): Remote Pickup Part Email remotePickup==NULL!!");
+                }
+                //remoteDelivery = db.getDelivery(pickup.getNuxrpd()); 
+                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE DeliveryConfirmation(b): Remote Pickup Part user:" + user + ", pwd:" + pwd);
+                EmailMoveReceipt emailRemotePickupReceipt = new EmailMoveReceipt(request, user, pwd, "pickup", remotePickup);
+                Thread threadEmailRemotePickupReceipt = new Thread(emailRemotePickupReceipt);
+                threadEmailRemotePickupReceipt.start();
+                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE DeliveryConfirmation: Remote Pickup Part Email Started");
+                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE DeliveryConfirmation: Remote Pickup Part Email Started");
+            }
             /*}
              else {
              out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+").");
