@@ -1502,7 +1502,7 @@ public class EmailMoveReceipt implements Runnable {
            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** sendToValidAddresses invalidAddress count:"+invalidAddresses.length);
            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** sendToValidAddresses invalidAddress count:"+invalidAddresses.length);                            
            for (int x=0;x<invalidAddresses.length;x++) {
-               addProblemEmailAddr(((InternetAddress)invalidAddresses[x]).getAddress(), invalidAddresses[x].toString(), null, "Invalid E-mail Address");
+               addProblemEmailAddr(((InternetAddress)invalidAddresses[x]).getAddress(), invalidAddresses[x].toString(), e.getStackTrace(), "Invalid E-mail Address");
            }
            if (validAddresses!=null && validAddresses.length>0) {
                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** sendToValidAddresses validAddress count:"+validAddresses.length);
