@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
+import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -1434,8 +1435,12 @@ public class EmailMoveReceipt implements Runnable {
                         log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: There were no e-mail recipients for a Report. No e-mail will be sent!!!");
                     } else {
                         System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** EMAILING....");
-                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** EMAILING....");                            
-                        Transport.send(msg);
+                        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** EMAILING....");    
+                        try {
+                            Transport.send(msg);
+                        } catch (javax.mail.SendFailedException e) {
+                            this.sendToValidAddresses(e, msg);
+                        }
                     }
                     System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** CALL EMAIL WARNING....");
                     log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** CALL EMAIL WARNING....");                            
@@ -1444,7 +1449,7 @@ public class EmailMoveReceipt implements Runnable {
             }
             System.out.println("(" + this.dbaUrl + ") E-mail sent with no errors.");
 
-        } catch (AddressException e) {
+        }  catch (AddressException e) {
             if (returnStatus == 0) {
                 returnStatus = 10;
                 try {
@@ -1486,6 +1491,33 @@ public class EmailMoveReceipt implements Runnable {
             e.printStackTrace();
         }
         return returnStatus;
+    }
+    
+    public void sendToValidAddresses (javax.mail.SendFailedException e, MimeMessage message) throws MessagingException  {
+        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** sendToValidAddresses start");
+        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** sendToValidAddresses start");                            
+        try {
+           Address[] validAddresses = e.getValidUnsentAddresses();
+           Address[] invalidAddresses = e.getInvalidAddresses();
+           System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** sendToValidAddresses invalidAddress count:"+invalidAddresses.length);
+           log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** sendToValidAddresses invalidAddress count:"+invalidAddresses.length);                            
+           for (int x=0;x<invalidAddresses.length;x++) {
+               addProblemEmailAddr(invalidAddresses[x].toString(), "N/A", null, "Invalid E-mail Address");
+           }
+           if (validAddresses!=null && validAddresses.length>0) {
+               System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** sendToValidAddresses validAddress count:"+validAddresses.length);
+               log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** sendToValidAddresses validAddress count:"+validAddresses.length);                            
+               Transport.send(message, validAddresses);
+           }                   
+           else {
+                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** sendToValidAddresses-NO VALID EMAIL RECIPIENTS");
+                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** sendToValidAddresses-NO VALID EMAIL RECIPIENTS");                            
+                log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: (sendToValidAddresses)There were no valid e-mail recipients for a Report. No e-mail will be sent!!!");
+           }
+        }
+        catch (javax.mail.SendFailedException sfe) {
+            sendToValidAddresses(sfe, message);
+        }
     }
 
     public String formatDate(Date d, String format) {
