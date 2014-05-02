@@ -180,6 +180,7 @@ public class ChangeRemoteStatus extends HttpServlet {
                 System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE processEmails: sendEmailsFromPickupTransaction(ONLY DELIVERY EMAIL)");
                 log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE processEmails: sendEmailsFromPickupTransaction(ONLY DELIVERY EMAIL)");
                 sendEmailsFromPickupTransaction(HandleEmails.DELIVERYEMAIL);
+                break;
             case SEND_PICKUP_EMAIL:
                 System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE processEmails: sendEmailsFromPickupTransaction(ONLY PICKUP EMAIL)");
                 log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE processEmails: sendEmailsFromPickupTransaction(ONLY PICKUP EMAIL)");
