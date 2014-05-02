@@ -92,8 +92,7 @@ public class PickupServlet extends HttpServlet
     }
 
     if (dbResponse > -1) {
-       boolean testingMode = (testingModeParam!=null && testingModeParam.substring(0, 1).equalsIgnoreCase("T"));
-       HandleEmails handleEmails = new HandleEmails(pickup, HandleEmails.PICKUPTRANSACTION, request, response,  testingMode, db);
+       HandleEmails handleEmails = new HandleEmails(pickup, HandleEmails.PICKUPTRANSACTION, request, response,  db);
        handleEmails.sendEmails();
     } else {
       out.println("Database not updated");

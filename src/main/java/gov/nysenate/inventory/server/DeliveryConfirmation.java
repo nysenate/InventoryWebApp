@@ -66,7 +66,7 @@ public class DeliveryConfirmation extends HttpServlet {
                 log.error("DeliveryConfirmation Json Syntax Exception: ", e);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
-            HandleEmails handleEmails = new HandleEmails(delivery, HandleEmails.DELIVERYTRANSACTION, request, response,  false, db);
+            HandleEmails handleEmails = new HandleEmails(delivery, HandleEmails.DELIVERYTRANSACTION, request, response, db);
             handleEmails.sendEmails("delivery");
 
             //emailDeliveryReceipt(out, "Database updated successfully", delivery, request);

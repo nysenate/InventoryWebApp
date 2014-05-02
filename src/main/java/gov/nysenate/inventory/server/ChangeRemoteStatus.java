@@ -9,7 +9,6 @@ import gov.nysenate.inventory.util.TransactionParser;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URLDecoder;
 import java.sql.SQLException;
 
 import javax.servlet.annotation.WebServlet;
@@ -196,7 +195,7 @@ public class ChangeRemoteStatus extends HttpServlet {
     }
 
     private void sendEmailsFromPickupTransaction(int emailType) throws IOException {
-        HandleEmails handleEmails = new HandleEmails(trans, HandleEmails.PICKUPTRANSACTION, request, response, false, db);
+        HandleEmails handleEmails = new HandleEmails(trans, HandleEmails.PICKUPTRANSACTION, request, response, db);
         handleEmails.sendEmails(emailType);
     }
 

@@ -29,19 +29,17 @@ public class HandleEmails {
     public static final int ALLEMAILS = 201, PICKUPEMAIL = 202, DELIVERYEMAIL = 203;    
     int currentTransType = PICKUPTRANSACTION;
     HttpServletRequest request = null;
-    boolean testingModeParam = false;
     DbConnect db = null;
     private static final Logger log = Logger.getLogger(HandleEmails.class.getName());
     private PrintWriter out = null;
     private HttpServletResponse response = null;
 
-    public HandleEmails(Transaction trans, int currentTransType, HttpServletRequest request, HttpServletResponse response, boolean testingModeParam, DbConnect db) throws IOException {
+    public HandleEmails(Transaction trans, int currentTransType, HttpServletRequest request, HttpServletResponse response, DbConnect db) throws IOException {
         this.trans = trans;
         this.currentTransType = currentTransType;
         this.request = request;
         this.response = response;
         out = response.getWriter();
-        this.testingModeParam = testingModeParam;
         this.db = db;
         switch (currentTransType) {
             case PICKUPTRANSACTION:
