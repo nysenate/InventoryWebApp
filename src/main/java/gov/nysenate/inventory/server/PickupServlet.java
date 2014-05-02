@@ -11,7 +11,6 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.logging.Level;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -93,78 +92,9 @@ public class PickupServlet extends HttpServlet
     }
 
     if (dbResponse > -1) {
-      /* HandleEmails handleEmails = new HandleEmails(pickup, "pickup", request, testingModeParam, db);
-       Thread threadHandleEmails = new Thread(handleEmails);
-       threadHandleEmails.start();*/
-      int emailReceiptStatus = 0;
-      try {
-        System.out.println("Before E-mail Receipt");
-        HttpSession httpSession = request.getSession(false);
-        String user = (String) httpSession.getAttribute("user");
-        String pwd = (String) httpSession.getAttribute("pwd");        
-
-        EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(request, user, pwd, "pickup" ,pickup);
-
-//        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: comment code below back in");
-        System.out.println("RIGHT Before E-mail Receipt");
-        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Generating Email for Pickup Part");
-        //emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(pickup);
-        Thread threadEmailMoveReceipt = new Thread(emailMoveReceipt);
-        threadEmailMoveReceipt.start();
-        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: PickupPart Email Started");
-        
-        /*
-         * If user is doing a pickup of a remote delivery, we need to also send the paperwork
-         * for the remote delivery at the time if pickup. The remote delivery paperwork will be
-         * printed and sent to the remote location for signature.
-         * 
-         */
-        
-        //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: *******pickup remote delivery commented out for now");        
-       
-        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: *******pickup remote:"+pickup.isRemote()+", shiptype:"+pickup.getShipType()+", RemoteType:"+pickup.getRemoteType()+", Origin Remote:"+pickup.getOrigin().isRemote()+", Destination Remote:"+pickup.getDestination().isRemote()+", Dest City:"+pickup.getDestination().getAdcity());
-        if (pickup.getRemoteType().equalsIgnoreCase("RDL")) {
-            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Generating Email for Remote Delivery Part");
-            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Generating Email for Remote Delivery Part");
-            
-            if (db==null) {
-                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Remote Delivery Part Email db is NULL!!");              
-            }
-            
-            Transaction remoteDelivery = null;
-            TransactionMapper transactionMapper = new TransactionMapper();
-            try {
-                remoteDelivery = transactionMapper.queryTransaction(db, pickup.getNuxrpd());
-                if (remoteDelivery==null) {
-                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet(a): Remote Delivery Part Email remoteDelivery==NULL!!");              
-                }
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            } 
-                if (remoteDelivery==null) {
-                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet(b): Remote Delivery Part Email remoteDelivery==NULL!!");              
-                }
-            //remoteDelivery = db.getDelivery(pickup.getNuxrpd()); 
-            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet(b): Remote Delivery Part user:"+user+", pwd:"+pwd);                          
-            EmailMoveReceipt emailRemoteDeliveryReceipt = new EmailMoveReceipt(request, user, pwd, "delivery" ,remoteDelivery);
-            Thread threadEmailRemoteDeliveryReceipt = new Thread(emailRemoteDeliveryReceipt);
-            threadEmailRemoteDeliveryReceipt.start();
-            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Remote Delivery Part Email Started");
-            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE PickupServlet: Remote Delivery Part Email Started");
-        }
-        user = null;
-        pwd = null;       
-        //System.out.println("emailReceiptStatus:" + emailReceiptStatus);
-
-//        if (emailReceiptStatus == 0) {
-          //System.out.println("Database updated successfully");
-          out.println("Database updated successfully");
-      } catch (Exception e) {
-          e.printStackTrace();
-          System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).["+e.getMessage()+":"+e.getStackTrace()[0].toString()+"]");
-          out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).");
-      }       
+       boolean testingMode = (testingModeParam!=null && testingModeParam.substring(0, 1).equalsIgnoreCase("T"));
+       HandleEmails handleEmails = new HandleEmails(pickup, HandleEmails.PICKUPTRANSACTION, request, response,  testingMode, db);
+       handleEmails.sendEmails();
     } else {
       out.println("Database not updated");
     }

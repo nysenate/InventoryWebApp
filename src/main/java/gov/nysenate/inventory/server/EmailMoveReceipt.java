@@ -137,9 +137,11 @@ public class EmailMoveReceipt implements Runnable {
         if (this.calledBy == null) {
             this.calledBy = "";
         }
-
+        
+        System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
+        
         String verificationMethod = trans.getVerificationMethod();
-
+        
         switch (type) {
             case "pickup":
                 this.emailType = PICKUP;
@@ -155,7 +157,6 @@ public class EmailMoveReceipt implements Runnable {
                 // set to username (which should be set)
                 attachmentPart = null;
                 transTypeParam = "&p_transtype=PICKUP";
-                System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
                 db = new DbConnect(request, username, password);
 
                 this.serverInfo = "";
@@ -1437,6 +1438,10 @@ public class EmailMoveReceipt implements Runnable {
                         System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** EMAILING....");
                         log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** EMAILING....");    
                         try {
+                            System.out.println("BEFORE EMAIL ATTACHMENT java.net.preferIPv4Stack:"+System.getProperty("java.net.preferIPv4Stack"));
+                            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE **** SEND EMAIL:"+msgBody);
+                            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE **** SEND EMAIL:"+msgBody);                            
+                            
                             Transport.send(msg);
                         } catch (javax.mail.SendFailedException e) {
                             this.sendToValidAddresses(e, msg);
@@ -1507,6 +1512,7 @@ public class EmailMoveReceipt implements Runnable {
            if (validAddresses!=null && validAddresses.length>0) {
                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** sendToValidAddresses validAddress count:"+validAddresses.length);
                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE *** sendToValidAddresses validAddress count:"+validAddresses.length);                            
+               System.out.println("BEFORE sendToValidAddresses java.net.preferIPv4Stack:"+System.getProperty("java.net.preferIPv4Stack"));
                Transport.send(message, validAddresses);
            }                   
            else {
@@ -1699,6 +1705,8 @@ public class EmailMoveReceipt implements Runnable {
             //log.warn("{0}" + "|" + "!!!!EMAILERROR AFTER SET MESSAGE");
             //log.info("{0}| EMAIL ERRORR MSG: " + message);
             // Send message
+         System.out.println("BEFORE EMAIL ERROR java.net.preferIPv4Stack:"+System.getProperty("java.net.preferIPv4Stack"));
+            
             Transport.send(message);
             System.out.println("Sent error message successfully....");
         } catch (MessagingException mex) {
@@ -1817,7 +1825,8 @@ public class EmailMoveReceipt implements Runnable {
             }
             log.warn("{0}" + "|" + "(" + this.dbaUrl + ") !!!!EMAILWARNING AFTER SET MESSAGE");
             log.info("{0}|(" + this.dbaUrl + ")  EMAIL WARNING MSG ");
-            // Send message
+            System.out.println("BEFORE EMAIL WARNING java.net.preferIPv4Stack:"+System.getProperty("java.net.preferIPv4Stack"));
+        // Send message
             Transport.send(message);
             System.out.println("(" + this.dbaUrl + ") Sent warning message successfully....");
         } catch (MessagingException mex) {

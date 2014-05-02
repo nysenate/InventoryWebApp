@@ -12,10 +12,10 @@ import com.google.gson.Gson;
  * Adds Domain Logic methods.
  */
 public class Transaction {
+
     private int nuxrpd;
     private Location origin;
     private Location destination;
-
     // Pickup Info
     private ArrayList<InvItem> pickupItems;
     private String pickupComments;
@@ -24,7 +24,6 @@ public class Transaction {
     private String nuxrrelsign;
     private Date pickupDate;
     private int count;
-
     // Delivery Info
     private ArrayList<String> checkedItems;
     private String deliveryComments;
@@ -32,7 +31,6 @@ public class Transaction {
     private String naacceptby;
     private String nuxraccptsign;
     private Date deliveryDate;
-
     // Remote Info
     private int shipId;
     private String shipType;
@@ -93,12 +91,23 @@ public class Transaction {
 
     // shipType must exists for all remote transactions.
     public boolean isRemote() {
-        return !shipType.equals("");
+        if (shipType == null) {
+            return false;
+        } else {
+            return !shipType.equals("");
+        }
     }
 
     public boolean isRemoteDelivery() {
+
         if (this.isRemote()) {
-            return origin.getAdcity().equalsIgnoreCase("Albany");
+
+            try {
+                return origin.getAdcity().equalsIgnoreCase("Albany");
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
         }
         return false;
     }
@@ -112,8 +121,9 @@ public class Transaction {
 
     public String getRemoteType() {
         if (this.isRemote()) {
-            if (origin.getAdcity().equalsIgnoreCase("Albany"))
+            if (origin.getAdcity().equalsIgnoreCase("Albany")) {
                 return "RDL";
+            }
 
             return "RPK";
         }
@@ -127,7 +137,7 @@ public class Transaction {
 
     public ArrayList<String> getNotCheckedItems() {
         ArrayList<String> notCheckedItems = new ArrayList<String>();
-        for (InvItem item: pickupItems) {
+        for (InvItem item : pickupItems) {
             if (!checkedItems.contains(item.getNusenate())) {
                 notCheckedItems.add(item.getNusenate());
             }
@@ -377,7 +387,7 @@ public class Transaction {
 
     public void setCheckedItems(ArrayList<InvItem> checkedItems) {
         this.checkedItems.clear();
-        for (InvItem item: checkedItems) {
+        for (InvItem item : checkedItems) {
             this.checkedItems.add(item.getNusenate());
         }
     }

@@ -2,6 +2,7 @@ package gov.nysenate.inventory.server;
 
 import com.google.gson.JsonSyntaxException;
 import gov.nysenate.inventory.model.Transaction;
+import gov.nysenate.inventory.util.HandleEmails;
 import gov.nysenate.inventory.util.HttpUtils;
 import gov.nysenate.inventory.util.TransactionMapper;
 import gov.nysenate.inventory.util.TransactionParser;
@@ -65,8 +66,10 @@ public class DeliveryConfirmation extends HttpServlet {
                 log.error("DeliveryConfirmation Json Syntax Exception: ", e);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
+            HandleEmails handleEmails = new HandleEmails(delivery, HandleEmails.DELIVERYTRANSACTION, request, response,  false, db);
+            handleEmails.sendEmails("delivery");
 
-            emailDeliveryReceipt(out, "Database updated successfully", delivery, request);
+            //emailDeliveryReceipt(out, "Database updated successfully", delivery, request);
         } finally {
             out.close();
         }
