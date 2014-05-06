@@ -48,20 +48,20 @@ public class ChangeRemoteStatus extends HttpServlet {
             try {
                 trans = TransactionParser.parseTransaction(transJson);
                 int nuxrpd = trans.getNuxrpd();
-                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we query original transaction for nuxrpd:" + nuxrpd);
-                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we query original transaction for nuxrpd:" + nuxrpd);
+                //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we query original transaction for nuxrpd:" + nuxrpd);
+                //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we query original transaction for nuxrpd:" + nuxrpd);
                 transOrg = mapperOrg.queryTransaction(db, nuxrpd);
-                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we compare transaction changes for nuxrpd:" + nuxrpd);
-                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we compare transaction changes for nuxrpd:" + nuxrpd);
+                //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we compare transaction changes for nuxrpd:" + nuxrpd);
+                //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we compare transaction changes for nuxrpd:" + nuxrpd);
                 compareRemoteInfo(trans, transOrg, response, out);
-                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we update changes for nuxrpd:" + nuxrpd);
-                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we update changes for nuxrpd:" + nuxrpd);
+                //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we update changes for nuxrpd:" + nuxrpd);
+                //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we update changes for nuxrpd:" + nuxrpd);
                 mapper.updateTransaction(db, trans);
-                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we process emails for nuxrpd:" + nuxrpd);
-                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we process emails  for nuxrpd:" + nuxrpd);
+                //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we process emails for nuxrpd:" + nuxrpd);
+                //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: before we process emails  for nuxrpd:" + nuxrpd);
                 processEmails(trans, transOrg);
-                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: after we process emails for nuxrpd:" + nuxrpd);
-                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: after we process emails  for nuxrpd:" + nuxrpd);
+                //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: after we process emails for nuxrpd:" + nuxrpd);
+                //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE ChangeRemoteStatus: after we process emails  for nuxrpd:" + nuxrpd);
             } catch (ClassNotFoundException | SQLException e) {
                 log.error("Error updating remote status: ", e);
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -78,25 +78,25 @@ public class ChangeRemoteStatus extends HttpServlet {
     }
 
     private void compareRemoteInfo(Transaction trans, Transaction transOrg, HttpServletResponse response, PrintWriter out) {
-        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: start");
-        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: start");
+        //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: start");
+        //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: start");
 
         if (transOrg == null) {
             emailActionNeeded = NO_ACTION_NEEDED;
-            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: original transaction is null");
-            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: original transaction is null");
+            //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: original transaction is null");
+            //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: original transaction is null");
             return;
         }
 
         if (trans == null) {
             emailActionNeeded = NO_ACTION_NEEDED;
-            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: new transaction is null");
-            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: new transaction is null");
+            //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: new transaction is null");
+            //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: new transaction is null");
             return;
         }
 
-        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: before compare " + transOrg.isRemoteDelivery() + ", " + trans.isRemoteDelivery());
-        log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: before compare " + transOrg.isRemoteDelivery() + ", " + trans.isRemoteDelivery());
+        //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: before compare " + transOrg.isRemoteDelivery() + ", " + trans.isRemoteDelivery());
+        //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: before compare " + transOrg.isRemoteDelivery() + ", " + trans.isRemoteDelivery());
 
         if (transOrg.isRemoteDelivery() && !trans.isRemoteDelivery()) {
 
@@ -104,9 +104,8 @@ public class ChangeRemoteStatus extends HttpServlet {
              * Remote Delivery changed to a standard Delivery. No email needs to be sent because on delivery
              * the user will have to get the employee to sign. We can ignore the printed signed paperwork.
              */
-            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: No longer a REMOTE DELIVERY");
-            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: No longer a REMOTE DELIVERY");
-
+            //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: No longer a REMOTE DELIVERY");
+            //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: No longer a REMOTE DELIVERY");
 
             emailActionNeeded = NO_ACTION_NEEDED;
 
@@ -117,8 +116,8 @@ public class ChangeRemoteStatus extends HttpServlet {
              * user so he/she can send it to the user for signoff.
              */
 
-            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: STANDARD DELIVERY changed to  REMOTE DELIVERY");
-            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: STANDARD DELIVERY changed to  REMOTE DELIVERY");
+            //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: STANDARD DELIVERY changed to  REMOTE DELIVERY");
+            //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: STANDARD DELIVERY changed to  REMOTE DELIVERY");
 
             emailActionNeeded = SEND_DELIVERY_EMAIL;
 
@@ -128,8 +127,8 @@ public class ChangeRemoteStatus extends HttpServlet {
              * Pickup Remote flag is changed. This should not be allowed due
              * to data integrity.
              */
-            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: REMOTE FLAG ON PICKUP CHANGED!!! NO NO!!");
-            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: REMOTE FLAG ON PICKUP CHANGED!!! NO NO!!");
+            //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: REMOTE FLAG ON PICKUP CHANGED!!! NO NO!!");
+            //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: REMOTE FLAG ON PICKUP CHANGED!!! NO NO!!");
 
             log.warn("Pickup Remote flag cannot be changed after pickup was initiated.");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -141,8 +140,8 @@ public class ChangeRemoteStatus extends HttpServlet {
              * Remote Delivery e-mail out with updated shiptype. 
              */
 
-            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: REMOTE DELIVERY SHIPTYPE CHANGED");
-            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: REMOTE DELIVERY SHIPTYPE CHANGED");
+            //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: REMOTE DELIVERY SHIPTYPE CHANGED");
+            //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: REMOTE DELIVERY SHIPTYPE CHANGED");
             emailActionNeeded = SEND_DELIVERY_EMAIL;
 
         } else if (trans.isRemotePickup() && !trans.getShipType().equalsIgnoreCase(transOrg.getShipType())) {
@@ -151,8 +150,8 @@ public class ChangeRemoteStatus extends HttpServlet {
              * Remote flags were not changed but ShipType has changed for Pickup. We will later need to send
              * Remote Pickup e-mail out with updated shiptype. 
              */
-            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: REMOTE PICKUP SHIPTYPE CHANGED");
-            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: REMOTE PICKUP SHIPTYPE CHANGED");
+            //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: REMOTE PICKUP SHIPTYPE CHANGED");
+            //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: REMOTE PICKUP SHIPTYPE CHANGED");
 
             emailActionNeeded = SEND_PICKUP_EMAIL;
 
@@ -164,8 +163,8 @@ public class ChangeRemoteStatus extends HttpServlet {
              * not display the comments.
              */
 
-            System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: NO IMPORTANT REMOTE INFO CHANGED");
-            log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: NO IMPORTANT REMOTE INFO CHANGED");
+            //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: NO IMPORTANT REMOTE INFO CHANGED");
+            //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE compareRemoteInfo: NO IMPORTANT REMOTE INFO CHANGED");
             emailActionNeeded = NO_ACTION_NEEDED;
 
         }
@@ -177,13 +176,13 @@ public class ChangeRemoteStatus extends HttpServlet {
             case SEND_IGNORE_REMOTE_DELIVERY_EMAIL:
                 break;
             case SEND_DELIVERY_EMAIL:
-                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE processEmails: sendEmailsFromPickupTransaction(ONLY DELIVERY EMAIL)");
-                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE processEmails: sendEmailsFromPickupTransaction(ONLY DELIVERY EMAIL)");
+                //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE processEmails: sendEmailsFromPickupTransaction(ONLY DELIVERY EMAIL)");
+                //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE processEmails: sendEmailsFromPickupTransaction(ONLY DELIVERY EMAIL)");
                 sendEmailsFromPickupTransaction(HandleEmails.DELIVERYEMAIL);
                 break;
             case SEND_PICKUP_EMAIL:
-                System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE processEmails: sendEmailsFromPickupTransaction(ONLY PICKUP EMAIL)");
-                log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE processEmails: sendEmailsFromPickupTransaction(ONLY PICKUP EMAIL)");
+                //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE processEmails: sendEmailsFromPickupTransaction(ONLY PICKUP EMAIL)");
+                //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE processEmails: sendEmailsFromPickupTransaction(ONLY PICKUP EMAIL)");
                 sendEmailsFromPickupTransaction(HandleEmails.PICKUPEMAIL);
                 break;
             case NO_ACTION_NEEDED:
