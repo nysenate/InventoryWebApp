@@ -221,6 +221,7 @@ public class EmailMoveReceipt implements Runnable {
                 if (this.paperworkType == null || this.paperworkType.trim().length() == 0 && this.delivery != null) {
                     this.paperworkType = this.delivery.getRemoteType();
                 }
+                
                 userFallback = username; // userfallback is not really being used
                 // but it needs to be passed so it is being
                 // set to username (which should be set)
@@ -941,27 +942,6 @@ public class EmailMoveReceipt implements Runnable {
                      */
 
                     emailData = new EmailData(db, "DELIVERYRCPT");
-                    /*                    emailData = new EmailData(db, "RMTPCKPDELIVERYRCPT");
-
-                     try {
-                     emailData.put("ShipType", delivery.getShipType());
-                     } catch (InvalidParameterException ex) {
-                     log.error(null, ex);
-                     } catch (ParameterNotUsedException ex) {
-                     //log.info(null, ex);
-                     } catch (BlankMessageException ex) {
-                     log.error(null, ex);
-                     }
-
-                     try {
-                     emailData.put("ShipTypeDesc", delivery.getShipTypeDesc());
-                     } catch (InvalidParameterException ex) {
-                     log.error(null, ex);
-                     } catch (ParameterNotUsedException ex) {
-                     //log.info(null, ex);
-                     } catch (BlankMessageException ex) {
-                     log.error(null, ex);
-                     }*/
 
                 } /*
                  * Delivery Receipt for normal Pickup/Delivery (Neither are remote) 
@@ -1037,7 +1017,7 @@ public class EmailMoveReceipt implements Runnable {
                     log.error(null, ex);
                 }
                 try {
-                    emailData.put("UserID", delivery.getNapickupby());
+                    emailData.put("UserID", delivery.getNadeliverby());
                 } catch (InvalidParameterException ex) {
                     log.error(null, ex);
                 } catch (ParameterNotUsedException ex) {
