@@ -1,8 +1,6 @@
 package gov.nysenate.inventory.db;
 
 import gov.nysenate.inventory.model.AdjustCode;
-import gov.nysenate.inventory.server.DbConnect;
-import gov.nysenate.inventory.util.DbManager;
 import org.apache.log4j.Logger;
 
 import java.sql.Connection;

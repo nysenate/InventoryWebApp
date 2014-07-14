@@ -2,6 +2,7 @@ package gov.nysenate.inventory.server;
 
 import com.google.gson.Gson;
 import gov.nysenate.inventory.db.AdjustCodeMapper;
+import gov.nysenate.inventory.db.DbConnect;
 import gov.nysenate.inventory.model.AdjustCode;
 import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;
