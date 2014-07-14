@@ -1,4 +1,4 @@
-package gov.nysenate.inventory.server;
+package gov.nysenate.inventory.db;
 
 import java.security.InvalidParameterException;
 
@@ -29,13 +29,14 @@ import javax.imageio.ImageIO;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
+import gov.nysenate.inventory.server.PickupGroup;
+import gov.nysenate.inventory.server.VerList;
 import oracle.sql.BLOB;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.google.gson.reflect.TypeToken;
-import gov.nysenate.inventory.util.DbManager;
 
 import java.awt.Graphics2D;
 import java.math.BigDecimal;

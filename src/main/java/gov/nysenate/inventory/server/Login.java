@@ -2,6 +2,7 @@ package gov.nysenate.inventory.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import gov.nysenate.inventory.db.DbConnect;
 import gov.nysenate.inventory.model.LoginStatus;
 import java.io.IOException;
 import java.io.PrintWriter;

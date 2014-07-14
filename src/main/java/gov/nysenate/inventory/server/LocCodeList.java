@@ -1,6 +1,7 @@
 package gov.nysenate.inventory.server;
 
 import com.google.gson.Gson;
+import gov.nysenate.inventory.db.DbConnect;
 import gov.nysenate.inventory.model.Location;
 import gov.nysenate.inventory.util.HttpUtils;
 

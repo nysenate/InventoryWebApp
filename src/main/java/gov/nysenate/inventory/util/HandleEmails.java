@@ -4,8 +4,9 @@
  */
 package gov.nysenate.inventory.util;
 
+import gov.nysenate.inventory.db.TransactionMapper;
 import gov.nysenate.inventory.model.Transaction;
-import gov.nysenate.inventory.server.DbConnect;
+import gov.nysenate.inventory.db.DbConnect;
 import gov.nysenate.inventory.server.EmailMoveReceipt;
 import java.io.IOException;
 import java.io.PrintWriter;

@@ -4,6 +4,7 @@
  */
 package gov.nysenate.inventory.server;
 
+import gov.nysenate.inventory.db.DbConnect;
 import gov.nysenate.inventory.exception.BlankMessageException;
 import gov.nysenate.inventory.exception.InvalidParameterException;
 import gov.nysenate.inventory.exception.ParameterNotUsedException;
@@ -14,7 +15,7 @@ import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.model.EmailRecord;
 import gov.nysenate.inventory.util.EmailValidator;
 import gov.nysenate.inventory.util.InvUtil;
-import gov.nysenate.inventory.util.TransactionMapper;
+import gov.nysenate.inventory.db.TransactionMapper;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;

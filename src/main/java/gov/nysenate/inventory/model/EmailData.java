@@ -5,7 +5,7 @@
 package gov.nysenate.inventory.model;
 
 import gov.nysenate.inventory.exception.BlankMessageException;
-import gov.nysenate.inventory.server.DbConnect;
+import gov.nysenate.inventory.db.DbConnect;
 import gov.nysenate.inventory.util.MapFormat;
 import java.sql.SQLException;
 import java.util.ArrayList;
