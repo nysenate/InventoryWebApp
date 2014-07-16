@@ -1,11 +1,11 @@
 package gov.nysenate.inventory.server;
 
 import com.google.gson.JsonSyntaxException;
-import gov.nysenate.inventory.db.DbConnect;
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HandleEmails;
 import gov.nysenate.inventory.util.HttpUtils;
-import gov.nysenate.inventory.db.TransactionMapper;
+import gov.nysenate.inventory.dao.TransactionMapper;
 import gov.nysenate.inventory.util.TransactionParser;
 import org.apache.log4j.Logger;
 

@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import gov.nysenate.inventory.db.DbConnect;
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.InvItem;
 import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;

@@ -7,7 +7,7 @@ package gov.nysenate.inventory.server;
 
 import java.util.ArrayList;
 
-import gov.nysenate.inventory.db.DbConnect;
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.exception.BlankMessageException;
 import gov.nysenate.inventory.exception.InvalidParameterException;
 import gov.nysenate.inventory.exception.ParameterNotUsedException;

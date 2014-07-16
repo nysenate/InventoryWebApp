@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.JsonObject;
-import gov.nysenate.inventory.db.DbConnect;
+import gov.nysenate.inventory.dao.DbConnect;
 import org.apache.log4j.Logger;
 
 /**

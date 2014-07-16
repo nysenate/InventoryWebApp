@@ -1,4 +1,4 @@
-package gov.nysenate.inventory.db;
+package gov.nysenate.inventory.dao;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

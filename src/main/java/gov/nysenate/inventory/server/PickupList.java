@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.gson.Gson;
-import gov.nysenate.inventory.db.DbConnect;
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.SimpleListItem;
 
 import gov.nysenate.inventory.util.HttpUtils;

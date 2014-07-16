@@ -1,6 +1,6 @@
 package gov.nysenate.inventory.server;
 
-import gov.nysenate.inventory.db.DbConnect;
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.util.HttpUtils;
 import java.io.IOException;
 import java.io.PrintWriter;

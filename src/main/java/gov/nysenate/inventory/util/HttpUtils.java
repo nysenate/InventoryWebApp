@@ -1,6 +1,6 @@
 package gov.nysenate.inventory.util;
 
-import gov.nysenate.inventory.db.DbConnect;
+import gov.nysenate.inventory.dao.DbConnect;
 import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
