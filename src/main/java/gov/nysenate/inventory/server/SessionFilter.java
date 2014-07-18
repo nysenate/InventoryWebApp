@@ -29,38 +29,6 @@ public class SessionFilter implements Filter {
 
     private static final Logger log = Logger.getLogger(SessionFilter.class.getName());
 
-   /* public void doFilter(ServletRequest request, ServletResponse response,
-            FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest req = (HttpServletRequest) request;
-
-
-        try {
-            chain.doFilter(request, response);
-        } finally {
-        }
-
-        PrintWriter out = null;
-        out = response.getWriter();
-        log.info("SessionFilter running(log)");
-        System.out.println("SessionFilter running(println)");
-        String path = req.getRequestURI();
-        log.info("SessionFilter url path:" + path);
-        System.out.println("SessionFilter url path:" + path);
-        if (req.getSession() == null && !path.startsWith("/InventoryWebApp/Login")) {
-            System.out.println("****(SessionFilter) SESSION NOT FOUND");
-               log.info("(SessionFilter)Session not found/timed out.");
-                out.println("(SessionFilter)Session timed out");
-            } else {
-            System.out.println("****(SessionFilter) SESSION FOUND!!!");                
-            try {
-                chain.doFilter(request, response);
-            }
-            finally {
-            }
-            }
-
-    }*/
-    
     public void doFilter(ServletRequest req, ServletResponse res,
             FilterChain chain) throws IOException, ServletException {
  
