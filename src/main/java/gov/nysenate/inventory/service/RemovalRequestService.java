@@ -21,6 +21,7 @@ public class RemovalRequestService
                 //itemDAO can get items from a nusenate or nuxrefsn!
                 //itemDAO logic - Pickup2Activity line: ~600.
         }
+        return null;  // Coded for now, not being used at the moment.
     }
 
 
