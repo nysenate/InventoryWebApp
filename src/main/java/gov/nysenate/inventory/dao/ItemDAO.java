@@ -1,4 +1,6 @@
 package gov.nysenate.inventory.dao;
 
-public class ItemDAO {
+public class ItemDAO
+{
+
 }
