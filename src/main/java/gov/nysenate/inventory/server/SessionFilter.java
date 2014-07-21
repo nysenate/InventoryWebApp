@@ -37,10 +37,12 @@ public class SessionFilter implements Filter {
         String url = request.getServletPath();
         boolean allowedRequest = false;
         System.out.println("(SessionFilter)");
+        log.info("(SessionFilter)");
         
         PrintWriter out = response.getWriter();
         String path = request.getRequestURI();
         System.out.println("(SessionFilter) Path:"+path);
+        log.info("(SessionFilter) Path:"+path);
         if(path.equals("/InventoryWebApp/")|| path.startsWith("/InventoryWebApp/Login")) {
             allowedRequest = true;
         }
@@ -49,6 +51,7 @@ public class SessionFilter implements Filter {
             HttpSession session = request.getSession(false);
             if (null == session) {
                   System.out.println("(SessionFilter)Session timed out");
+                  log.info("(SessionFilter)Session timed out");
                   out.println("Session timed out");
                   return;
             }
