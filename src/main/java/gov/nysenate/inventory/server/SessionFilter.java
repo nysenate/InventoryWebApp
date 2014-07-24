@@ -41,7 +41,13 @@ public class SessionFilter implements Filter {
         PrintWriter out = response.getWriter();
         String path = request.getRequestURI();
         log.debug("(SessionFilter) Path:"+path);
-        if(path.equals("/InventoryWebApp/")|| path.startsWith("/InventoryWebApp/Login")||path.equals("/InventoryWebApp/CheckAppVersion")) {
+        
+        /*
+         * Servlets/URLs where there would be no Sessions will set allowRequest = true so this filter will
+         * not attempt to circumvent the request if no Session is found.
+         */
+        
+        if(path.equals("/InventoryWebApp/")|| path.startsWith("/InventoryWebApp/Login")||path.equals("/InventoryWebApp/CheckAppVersion")||path.equals("/InventoryWebApp/DownloadServlet")) {
             allowedRequest = true;
         }
              
