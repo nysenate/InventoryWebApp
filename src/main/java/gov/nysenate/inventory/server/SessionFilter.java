@@ -41,7 +41,6 @@ public class SessionFilter implements Filter {
         PrintWriter out = response.getWriter();
         String path = request.getRequestURI();
         log.debug("(SessionFilter) Path:"+path);
-        System.out.println ("(SessionFilter) Path:"+path);
         if(path.equals("/InventoryWebApp/")|| path.startsWith("/InventoryWebApp/Login")||path.equals("/InventoryWebApp/CheckAppVersion")) {
             allowedRequest = true;
         }
