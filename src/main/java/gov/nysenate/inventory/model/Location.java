@@ -2,6 +2,8 @@ package gov.nysenate.inventory.model;
 
 import com.google.gson.Gson;
 
+import java.util.List;
+
 public class Location
 {
     private String cdloctype;
@@ -13,6 +15,7 @@ public class Location
     private String adstate;
     private String description;
     private String department;
+    private List<Item> inventory;
 
     public Location() {
         cdloctype = "";
@@ -120,6 +123,14 @@ public class Location
 
     public String getLocationSummaryString() {
         return getCdlocat() + "-" + getCdloctype()+ ": " + getAdstreet1();
+    }
+
+    public List<Item> getInventory() {
+        return inventory;
+    }
+
+    public void setInventory(List<Item> inventory) {
+        this.inventory = inventory;
     }
 
     public String getLocationSummaryStringRemoteAppended() {

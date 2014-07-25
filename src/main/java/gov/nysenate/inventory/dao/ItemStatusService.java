@@ -1,7 +1,5 @@
-package gov.nysenate.inventory.service;
+package gov.nysenate.inventory.dao;
 
-import gov.nysenate.inventory.dao.DbConnect;
-import gov.nysenate.inventory.dao.ItemStatusDAO;
 import gov.nysenate.inventory.model.Item;
 import gov.nysenate.inventory.model.ItemStatus;
 import org.apache.commons.dbutils.DbUtils;
@@ -15,22 +13,22 @@ public class ItemStatusService
     private static final Logger log = Logger.getLogger(ItemStatusService.class.getName());
 
     public ItemStatus getItemStatus(DbConnect db, Item item) throws SQLException, ClassNotFoundException {
-        ItemStatusDAO dao = new ItemStatusDAO();
-
-        boolean isInactive;
-        boolean inTransit;
-        boolean pendingRemoval;
         Connection conn = null;
         try {
             conn = db.getDbConnection();
-            isInactive = dao.isItemInActive(conn, item.getId());
-            inTransit = dao.isItemInTransit(conn, item.getBarcode());
-            pendingRemoval = dao.isItemPendingRemoval(conn, item.getId());
+            return getItemStatus(conn, item);
         } finally {
             DbUtils.close(conn);
         }
+    }
 
-        log.info("isincative= " + isInactive + " intransit= " + inTransit + " pending= " + pendingRemoval);
+    public ItemStatus getItemStatus(Connection conn, Item item) throws SQLException {
+        ItemStatusDAO dao = new ItemStatusDAO();
+
+        boolean isInactive = dao.isItemInactive(conn, item.getId());
+        boolean inTransit = dao.isItemInTransit(conn, item.getBarcode());
+        boolean pendingRemoval = dao.isItemPendingRemoval(conn, item.getId());
+
         ItemStatus status;
         if (isInactive) {
             status = ItemStatus.INACTIVE;

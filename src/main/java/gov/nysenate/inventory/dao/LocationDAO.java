@@ -20,37 +20,38 @@ public class LocationDAO
             "FROM sl16location \n" +
             "WHERE cdstatus = 'A'";
 
-    public List<Location> getAllLocations(DbConnect db) throws SQLException, ClassNotFoundException {
+    protected List<Location> getLocations(Connection conn) throws SQLException, ClassNotFoundException {
         List<Location> locations;
         QueryRunner run = new QueryRunner();
-        Connection conn = null;
-        try {
-            conn = db.getDbConnection();
-            locations = run.query(conn, SELECT_ALL_LOCATIONS_SQL, new LocationHandler());
-        } finally {
-            DbUtils.close(conn);
-        }
+        locations = run.query(conn, SELECT_ALL_LOCATIONS_SQL, new LocationHandler());
         return locations;
     }
 
-    private String SELECT_LOCATION_BY_CODE_SQL =
+    private String SELECT_LOCATION_SQL =
             "SELECT cdlocat, cdloctype, adstreet1, adstreet2, " +
             "adcity, adzipcode, adstate, delocat, cdrespctrhd \n" +
             "FROM sl16location \n" +
             "WHERE cdstatus = 'A' \n" +
-            "AND cdlocat = ?";
+            "AND cdlocat = ? AND cdloctype = ?";
 
-    public Location getLocation(DbConnect db, String code) throws SQLException, ClassNotFoundException {
+    protected Location getLocation(Connection conn, String code, String type) throws SQLException, ClassNotFoundException {
         List<Location> locations;
         QueryRunner run = new QueryRunner();
-        Connection conn = null;
-        try {
-            conn = db.getDbConnection();
-            locations = run.query(conn, SELECT_LOCATION_BY_CODE_SQL, new LocationHandler(), code);
-        } finally {
-            DbUtils.close(conn);
-        }
+        locations = run.query(conn, SELECT_LOCATION_SQL, new LocationHandler(), code, type);
         return locations.get(0);
+    }
+
+    private String SELECT_LOCATION_OF_ITEM_SQL =
+            "SELECT cdlocat, cdloctype, adstreet1, adstreet2,\n" +
+            "adcity, adzipcode, adstate, delocat, cdrespctrhd \n" +
+            "FROM sl16location INNER JOIN fd12issue ON\n" +
+            "(cdlocat = cdlocatto AND cdloctype = cdloctypeto)\n" +
+            "WHERE nuxrefsn = ?";
+
+    protected Location getLocationOfItem(Connection conn, int itemId) throws SQLException {
+        QueryRunner run = new QueryRunner();
+        List<Location> locs =  run.query(conn, SELECT_LOCATION_OF_ITEM_SQL, new LocationHandler(), itemId);
+        return locs.get(0);
     }
 
     private class LocationHandler implements ResultSetHandler<List<Location>> {

@@ -7,13 +7,12 @@ package gov.nysenate.inventory.server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import gov.nysenate.inventory.dao.CommodityDAO;
+import gov.nysenate.inventory.dao.CommodityService;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.Commodity;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -47,8 +46,8 @@ public class CommodityList extends HttpServlet
 
             //TODO: should prob check for keywords here, how should app respond if there are none?
 
-            CommodityDAO dao = new CommodityDAO();
-            List<Commodity> commodityResults = dao.getCommoditiesByKeywords(db, keywords.trim());
+            CommodityService service = new CommodityService();
+            List<Commodity> commodityResults = service.getCommoditiesByKeywords(db, keywords.trim());
 
             log.info("Commodity results = " + commodityResults);
             String json = gson.toJson(commodityResults);

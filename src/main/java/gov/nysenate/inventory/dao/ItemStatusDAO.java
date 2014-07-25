@@ -21,7 +21,7 @@ public class ItemStatusDAO
             "END AS in_transit \n" +
             "FROM dual";
 
-    public boolean isItemInTransit(Connection conn, String barcode) throws SQLException, ClassNotFoundException {
+    protected boolean isItemInTransit(Connection conn, String barcode) throws SQLException {
         boolean inTransit;
         QueryRunner run = new QueryRunner();
         inTransit = run.query(conn, IS_ITEM_IN_TRANSIT_SQL, new ItemTransitHandler(), barcode);
@@ -47,7 +47,7 @@ public class ItemStatusDAO
             "FROM fd12issue \n" +
             "WHERE nuxrefsn = ?";
 
-    public boolean isItemInActive(Connection conn, int id) throws SQLException, ClassNotFoundException {
+    protected boolean isItemInactive(Connection conn, int id) throws SQLException {
         boolean isInactive;
         QueryRunner run = new QueryRunner();
         isInactive = run.query(conn, IS_ITEM_INACTIVE_SQL, new ItemInactiveHandler(), id);
@@ -83,7 +83,7 @@ public class ItemStatusDAO
             "END AS pending_removal \n" +
             "FROM dual";
 
-    public boolean isItemPendingRemoval(Connection conn, int id) throws SQLException, ClassNotFoundException {
+    protected boolean isItemPendingRemoval(Connection conn, int id) throws SQLException {
         boolean isPendingRemvoal;
         QueryRunner run = new QueryRunner();
         isPendingRemvoal = run.query(conn, IS_ITEM_PENDING_REMOVAL_SQL, new ItemPendingRemovalHandler(), id);

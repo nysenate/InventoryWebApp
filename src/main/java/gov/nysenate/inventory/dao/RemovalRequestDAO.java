@@ -14,57 +14,83 @@ import java.util.List;
 
 public class RemovalRequestDAO extends DbManager
 {
+    private String SELECT_ALL_PENDING_SQL =
+            "SELECT nuinvadjreq, nauser, dtinvadjreq, cdinvreqstatm\n" +
+            "FROM fm12invadjreq\n" +
+            "WHERE cdstatus = 'A'\n" +
+            "AND cdinvreqstatm = 'PE'";
 
-    // TODO: dont need status, sysdate, user stuff?
-
-    private String SELECT_ALL_PENDING =
-            "SELECT nuinvadjreq, nauser, dtinvadjreq, cdadjusted, deadjust, cdinvreqstatm \n" +
-            "FROM fm12invadjreq requests\n" +
-            "INNER JOIN fl12adjustcd ON requests.cdadjusted = fl12adjustcd.cdadjust\n" +
-            "WHERE requests.cdstatus = 'A'\n" +
-            "AND requests.cdinvreqstatm = 'PE'";
-
-    public List<RemovalRequest> getPendingRequests(DbConnect db) throws SQLException, ClassNotFoundException {
-        List<RemovalRequest> requests;
+    protected List<RemovalRequest> getPendingRequests(Connection conn) throws SQLException {
         QueryRunner run = new QueryRunner();
-        Connection conn = null;
-        try {
-            conn = db.getDbConnection();
-            requests = run.query(conn, SELECT_ALL_PENDING, new RemovalRequestHandler());
-        } finally {
-            DbUtils.close(conn);
-        }
+        List<RemovalRequest> requests = run.query(conn, SELECT_ALL_PENDING_SQL, new RemovalRequestHandler());
         return requests;
     }
 
-    private String UPDATE_REMOVAL_REQUEST =
+    private String SELECT_ALL_SUBMITTED_TO_INVENTORY_CONTROL_SQL =
+            "SELECT nuinvadjreq, nauser, dtinvadjreq, cdinvreqstatm\n" +
+            "FROM fm12invadjreq\n" +
+            "WHERE cdstatus = 'A'\n" +
+            "AND cdinvreqstatm = 'SI'";
+
+    protected List<RemovalRequest> getSubmittedToInventoryControl(Connection conn) throws SQLException {
+        QueryRunner run = new QueryRunner();
+        List<RemovalRequest> requests = run.query(conn, SELECT_ALL_SUBMITTED_TO_INVENTORY_CONTROL_SQL, new RemovalRequestHandler());
+        return requests;
+    }
+
+    private String SELECT_ALL_SUBMITTED_TO_MANAGEMENT_SQL =
+            "SELECT nuinvadjreq, nauser, dtinvadjreq, cdinvreqstatm\n" +
+            "FROM fm12invadjreq\n" +
+            "WHERE cdstatus = 'A'\n" +
+            "AND cdinvreqstatm = 'SM'";
+
+    protected List<RemovalRequest> getSubmittedToManagement(Connection conn) throws SQLException {
+        QueryRunner run = new QueryRunner();
+        List<RemovalRequest> requests = run.query(conn, SELECT_ALL_SUBMITTED_TO_MANAGEMENT_SQL, new RemovalRequestHandler());
+        return requests;
+    }
+
+    private String SELECT_ALL_APPROVED_SQL =
+            "SELECT nuinvadjreq, nauser, dtinvadjreq, cdinvreqstatm\n" +
+            "FROM fm12invadjreq\n" +
+            "WHERE cdstatus = 'A'\n" +
+            "AND cdinvreqstatm = 'AP'";
+
+    protected List<RemovalRequest> getApproved(Connection conn) throws SQLException {
+        QueryRunner run = new QueryRunner();
+        List<RemovalRequest> requests = run.query(conn, SELECT_ALL_APPROVED_SQL, new RemovalRequestHandler());
+        return requests;
+    }
+
+    private String SELECT_ALL_REJECTED_SQL =
+            "SELECT nuinvadjreq, nauser, dtinvadjreq, cdinvreqstatm\n" +
+            "FROM fm12invadjreq\n" +
+            "WHERE cdstatus = 'A'\n" +
+            "AND cdinvreqstatm = 'RJ'";
+
+    protected List<RemovalRequest> getRejected(Connection conn) throws SQLException {
+        QueryRunner run = new QueryRunner();
+        List<RemovalRequest> requests = run.query(conn, SELECT_ALL_REJECTED_SQL, new RemovalRequestHandler());
+        return requests;
+    }
+
+    // TODO: dont need status, sysdate, user stuff?
+    private String UPDATE_REMOVAL_REQUEST_SQL =
             "INSERT INTO fm12invadjreq (nuinvadjreq, nauser, dtinvadjreq, cdadjusted, cdinvreqstatm, \n" +
             "cdstatus, dttxnorigin, dttxnupdate, natxnorguser, natxnupduser)\n" +
             "VALUES(NUINVADJREQ_SQNC.nextval, USER, SYSDATE, ?, ?, 'A', SYSDATE, SYSDATE, USER, USER)";
 
-    public void updateRmovalRequest(DbConnect db, RemovalRequest rr) throws SQLException, ClassNotFoundException {
+    protected void update(Connection conn, RemovalRequest rr) throws SQLException, ClassNotFoundException {
         QueryRunner run = new QueryRunner();
-        Connection conn = null;
-        try {
-            conn = db.getDbConnection();
-            run.update(conn, UPDATE_REMOVAL_REQUEST, rr.getAdjustCode().getCode(), rr.getStatus());
-        } finally {
-            DbUtils.close(conn);
-        }
+        run.update(conn, UPDATE_REMOVAL_REQUEST_SQL, rr.getAdjustCode().getCode(), rr.getStatus());
     }
 
-    private String DELETE_REMOVAL_REQUEST =
-            "INSERT INTO fm12invadjreq (cdstatus) VALUES('I')";
+    private String DELETE_REMOVAL_REQUEST_SQL =
+            "INSERT INTO fm12invadjreq (cdstatus) VALUES('I')"; // TODO: where nuinvadjreq = ?
 
-    public void deleteRemovalRequest(DbConnect db, RemovalRequest rr) throws SQLException, ClassNotFoundException {
+    protected void delete(Connection conn, RemovalRequest rr) throws SQLException, ClassNotFoundException {
         QueryRunner run = new QueryRunner();
-        Connection conn = null;
-        try {
-            conn = db.getDbConnection();
-            run.update(conn, DELETE_REMOVAL_REQUEST);
-        } finally {
-            DbUtils.close(conn);
-        }
+        run.update(conn, DELETE_REMOVAL_REQUEST_SQL);
     }
 
     private class RemovalRequestHandler implements ResultSetHandler<List<RemovalRequest>> {
@@ -77,10 +103,6 @@ public class RemovalRequestDAO extends DbManager
                 req.setTransactionNum(rs.getInt("nuinvadjreq"));
                 req.setDate(rs.getDate("dtinvadjreq"));
                 req.setStatus(rs.getString("cdinvreqstatm"));
-
-                // TODO: do adjustcode dao separately?
-                AdjustCode code = new AdjustCode(rs.getString("cdadjusted"), rs.getString("deadjust"));
-                req.setAdjustCode(code);
 
                 requests.add(req);
             }

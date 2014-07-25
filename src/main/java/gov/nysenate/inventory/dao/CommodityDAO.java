@@ -3,6 +3,7 @@ package gov.nysenate.inventory.dao;
 import gov.nysenate.inventory.model.Commodity;
 import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.log4j.Logger;
 
 import java.sql.Connection;
@@ -15,8 +16,8 @@ public class CommodityDAO extends DbManager
 {
     private static final Logger log = Logger.getLogger(CommodityDAO.class.getName());
 
-    public List<Commodity> getCommoditiesByKeywords(DbConnect db, String keywords) throws SQLException, ClassNotFoundException {
-        // FIXME: improve this query... keyword of 'table' -> first result is 'tablet'... method takes 1.5 sec to run.
+    protected List<Commodity> getCommodityByKeywords(Connection conn, String keywords) throws SQLException, ClassNotFoundException {
+        // FIXME: improve this query... keyword of 'table' -> first result is 'tablet'
         String SELECT_BY_KEYWORDS = " WITH results AS "
                 + " (SELECT a.nuxrefco, a.cdcommodity, b.cdissunit, b.cdcategory, b.cdtype, b.decommodityf, c.keyword"
                 + " FROM fm12comxref a, fm12commodty b, (select column_value keyword"
@@ -32,37 +33,36 @@ public class CommodityDAO extends DbManager
 
         List<Commodity> commodities;
         QueryRunner run = new QueryRunner();
-        Connection conn = null;
-        try {
-            conn = db.getDbConnection();
-            commodities = run.query(conn, SELECT_BY_KEYWORDS, new CommodityHandler());
-        } finally {
-            DbUtils.close(conn);
-        }
+        commodities = run.query(conn, SELECT_BY_KEYWORDS, new CommodityHandler());
         return commodities;
     }
 
-    private String SELECT_COMMODITY_BY_ID =
+    private String SELECT_COMMODITY_BY_ID_SQL =
             "SELECT fm12commodty.nuxrefco, cdtype, cdcategory, cdcommodity, decommodityf \n" +
             "FROM fm12commodty INNER JOIN fm12comxref ON fm12commodty.nuxrefco = fm12comxref.nuxrefco \n" +
             "WHERE fm12commodty.cdstatus = 'A' \n" +
             "AND fm12comxref.cdstatus = 'A' \n" +
             "AND fm12commodty.nuxrefco = ?";
 
-    public List<Commodity> getCommodityById(DbConnect db, int id) throws SQLException, ClassNotFoundException {
-        List<Commodity> commodities;
+    protected Commodity getCommodityById(Connection conn, int id) throws SQLException {
         QueryRunner run = new QueryRunner();
-        Connection conn = null;
-        try {
-            conn = db.getDbConnection();
-            commodities = run.query(conn, SELECT_COMMODITY_BY_ID, new CommodityHandler(), id);
-        } finally {
-            DbUtils.close(conn);
-        }
-        return commodities;
+        List<Commodity> commodities = run.query(conn, SELECT_COMMODITY_BY_ID_SQL, new CommodityHandler(), id);
+        return commodities.get(0);
     }
 
-    private class CommodityHandler implements org.apache.commons.dbutils.ResultSetHandler<List<Commodity>> {
+    private String SELECT_COMMODITY_BY_ITEM_ID_SQL =
+            "SELECT fm12commodty.nuxrefco, cdtype, cdcategory, cdcommodity, decommodityf\n" +
+            "FROM fm12commodty INNER JOIN fm12comxref ON fm12commodty.nuxrefco = fm12comxref.nuxrefco \n" +
+            "INNER JOIN fd12issue ON fd12issue.nuxrefco = fm12commodty.nuxrefco\n" +
+            "WHERE nuxrefsn = ?";
+
+    protected Commodity getCommodityByItemId(Connection conn, int id) throws SQLException {
+        QueryRunner run = new QueryRunner();
+        List<Commodity> commodities = run.query(conn, SELECT_COMMODITY_BY_ITEM_ID_SQL, new CommodityHandler(), id);
+        return commodities.get(0);
+    }
+
+    private class CommodityHandler implements ResultSetHandler<List<Commodity>> {
 
         @Override
         public List<Commodity> handle(ResultSet rs) throws SQLException {

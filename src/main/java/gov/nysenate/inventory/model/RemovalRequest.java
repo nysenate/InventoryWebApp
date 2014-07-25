@@ -7,15 +7,15 @@ import java.util.List;
 public class RemovalRequest
 {
     private int transactionNum;
-    private List<InvItem> items;
+    private List<Item> items;
     private AdjustCode adjustCode;
-    private final String employee;
+    private String employee;
     private Date date;
     private String status;
 
     public RemovalRequest(String employee) {
         this.employee = employee;
-        this.items = new ArrayList<InvItem>();
+        this.items = new ArrayList<Item>();
     }
 
     public int getTransactionNum() {
@@ -26,15 +26,19 @@ public class RemovalRequest
         this.transactionNum = transactionNum;
     }
 
-    public List<InvItem> getItems() {
+    public List<Item> getItems() {
         return items;
     }
 
-    public void addItem(InvItem item) {
+    public void setItems(List<Item> items) {
+        this.items = items;
+    }
+
+    public void addItem(Item item) {
         items.add(item);
     }
 
-    public void deleteItem(InvItem item) {
+    public void deleteItem(Item item) {
         items.remove(item);
     }
 

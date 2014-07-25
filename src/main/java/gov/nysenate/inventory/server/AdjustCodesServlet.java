@@ -1,7 +1,7 @@
 package gov.nysenate.inventory.server;
 
 import com.google.gson.Gson;
-import gov.nysenate.inventory.dao.AdjustCodeDAO;
+import gov.nysenate.inventory.dao.AdjustCodeService;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.AdjustCode;
 import gov.nysenate.inventory.util.HttpUtils;
@@ -29,7 +29,7 @@ public class AdjustCodesServlet extends HttpServlet
 
         List<AdjustCode> adjustCodes = null;
         try {
-            adjustCodes = new AdjustCodeDAO().getAllAdjustCodes(db);
+            adjustCodes = new AdjustCodeService().getAdjustCodes(db);
         } catch (SQLException | ClassNotFoundException e) {
             log.error(e.getMessage(), e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
