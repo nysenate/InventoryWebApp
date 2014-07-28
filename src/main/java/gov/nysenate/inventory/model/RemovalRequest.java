@@ -13,8 +13,9 @@ public class RemovalRequest
     private Date date;
     private String status;
 
-    public RemovalRequest(String employee) {
+    public RemovalRequest(String employee, Date date) {
         this.employee = employee;
+        this.date = date;
         this.items = new ArrayList<Item>();
     }
 
@@ -56,10 +57,6 @@ public class RemovalRequest
 
     public Date getDate() {
         return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
     }
 
     public String getStatus() {

@@ -86,11 +86,12 @@ public class RemovalRequestDAO extends DbManager
     }
 
     private String DELETE_REMOVAL_REQUEST_SQL =
-            "INSERT INTO fm12invadjreq (cdstatus) VALUES('I')"; // TODO: where nuinvadjreq = ?
+            "INSERT INTO fm12invadjreq (cdstatus) VALUES('I')\n" +
+            "WHERE nuinvadjreq = ?";
 
     protected void delete(Connection conn, RemovalRequest rr) throws SQLException, ClassNotFoundException {
         QueryRunner run = new QueryRunner();
-        run.update(conn, DELETE_REMOVAL_REQUEST_SQL);
+        run.update(conn, DELETE_REMOVAL_REQUEST_SQL, rr.getTransactionNum());
     }
 
     private class RemovalRequestHandler implements ResultSetHandler<List<RemovalRequest>> {
@@ -99,9 +100,8 @@ public class RemovalRequestDAO extends DbManager
         public List<RemovalRequest> handle(ResultSet rs) throws SQLException {
             List<RemovalRequest> requests = new ArrayList<RemovalRequest>();
             while(rs.next()) {
-                RemovalRequest req = new RemovalRequest(rs.getString("nauser"));
+                RemovalRequest req = new RemovalRequest(rs.getString("nauser"), rs.getDate("dtinvadjreq"));
                 req.setTransactionNum(rs.getInt("nuinvadjreq"));
-                req.setDate(rs.getDate("dtinvadjreq"));
                 req.setStatus(rs.getString("cdinvreqstatm"));
 
                 requests.add(req);

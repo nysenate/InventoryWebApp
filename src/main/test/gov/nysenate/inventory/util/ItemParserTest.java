@@ -1,34 +1,50 @@
 package gov.nysenate.inventory.util;
 
 import com.google.gson.Gson;
-import gov.nysenate.inventory.model.InvItem;
-import org.junit.Ignore;
+import gov.nysenate.inventory.model.Commodity;
+import gov.nysenate.inventory.model.Item;
+import gov.nysenate.inventory.model.ItemStatus;
+import gov.nysenate.inventory.model.Location;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 public class ItemParserTest
 {
-    @Test
-    public void correctlyParsesJson() {
-        Gson gson = new Gson();
-        InvItem expected = new InvItem();
-        expected.setNusenate("123456");
-        expected.setCdlocat("Albany");
 
-        InvItem actual = ItemParser.parseItem(gson.toJson(expected));
-        assertEquals(actual.getNusenate(), "123456");
-        assertEquals(actual.getCdlocat(), "Albany");
+    @Test
+    public void parsesIndividualCorrectly() {
+        Item expected = new Item(1, "123456");
+        expected.setSerialNumber("1a2b3c4D");
+        expected.setCommodity(new Commodity(4, "subtype", "tech", "dj3"));
+        expected.setLocation(new Location());
+        expected.setStatus(ItemStatus.IN_TRANSIT);
+
+        String json = new Gson().toJson(expected);
+        Item actual = ItemParser.parseItem(json);
+
+        assertEquals(1, actual.getId());
+        assertEquals("123456", actual.getBarcode());
+        assertEquals(ItemStatus.IN_TRANSIT, actual.getStatus());
+        assertNotNull(actual.getCommodity());
+        assertNotNull(actual.getLocation());
     }
 
-    // Manually made json representing and InvItem in ItemDetails servlet needs to be parsable.
     @Test
-    public void correctlyParsesManuallyMadeJson() {
-        String manuallyMadeJson = "{\"nusenate\":\"070963\",\"nuxrefsn\":\"63015\",\"dtissue\":\"04-MAY-01\",\"cdlocatto\":\"L905\",\"cdloctypeto\":\"W\",\"cdcategory\":\"TELEPHONE\",\"adstreet1to\":\"RM. 905 LOB\",\"decommodityf\":\"TELEPHONE- #8410D- LUCENT DIGITAL BLACK - DESK TYPE- W/ BUILT IN DISPLAY - PART # 323505BK..\",\"cdlocatfrom\":\"L215\",\"cdstatus\":\"I\",\"cdintransit\":\"N\"}";
+    public void parsesListCorrectly() {
+        List<Item> expectedItems = new ArrayList<Item>();
+        expectedItems.add(new Item(1, "111111"));
+        expectedItems.add(new Item(2, "123456"));
+        expectedItems.add(new Item(2831, "8271"));
 
-        InvItem item = ItemParser.parseItem(manuallyMadeJson);
-        assertEquals(item.getNusenate(), "070963");
-        assertEquals(item.getCdlocatto(), "L905");
+        String json = new Gson().toJson(expectedItems);
+        List<Item> actualItems = ItemParser.parseItems(json);
+
+        assertEquals(expectedItems.size(), actualItems.size());
+        assertEquals(expectedItems.get(2).getId(), actualItems.get(2).getId());
     }
+
 }
