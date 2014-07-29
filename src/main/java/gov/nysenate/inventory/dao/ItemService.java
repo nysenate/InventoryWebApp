@@ -44,7 +44,7 @@ public class ItemService
         return item;
     }
 
-    public List<Item> getItemsByRemovalRequest(Connection conn, int transactionNum) throws SQLException {
+    public List<Item> getItemsInRemovalRequest(Connection conn, int transactionNum) throws SQLException {
         List<Item> items = new ItemDAO().getItemsInRemovalRequest(conn, transactionNum);
 
         for (Item item : items) {
@@ -60,10 +60,10 @@ public class ItemService
     }
 
     private Location serveLocation(Connection conn, int id) throws SQLException {
-        return new LocationDAO().getLocationOfItem(conn, id);
+        return new LocationService().getLocationOfItem(conn, id);
     }
 
     private Commodity serveCommodity(Connection conn, int id) throws SQLException {
-        return new CommodityDAO().getCommodityByItemId(conn, id);
+        return new CommodityService().getCommodityByItemId(conn, id);
     }
 }

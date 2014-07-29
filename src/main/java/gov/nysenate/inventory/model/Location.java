@@ -146,4 +146,25 @@ public class Location
         return new Gson().toJson(this);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Location location = (Location) o;
+
+        if (adcity != null ? !adcity.equals(location.adcity) : location.adcity != null) return false;
+        if (adstate != null ? !adstate.equals(location.adstate) : location.adstate != null) return false;
+        if (adstreet1 != null ? !adstreet1.equals(location.adstreet1) : location.adstreet1 != null) return false;
+        if (adzipcode != null ? !adzipcode.equals(location.adzipcode) : location.adzipcode != null) return false;
+        if (cdlocat != null ? !cdlocat.equals(location.cdlocat) : location.cdlocat != null) return false;
+        if (cdloctype != null ? !cdloctype.equals(location.cdloctype) : location.cdloctype != null) return false;
+        if (department != null ? !department.equals(location.department) : location.department != null) return false;
+        if (description != null ? !description.equals(location.description) : location.description != null)
+            return false;
+        if (inventory != null ? !inventory.equals(location.inventory) : location.inventory != null) return false;
+        if (street2 != null ? !street2.equals(location.street2) : location.street2 != null) return false;
+
+        return true;
+    }
 }

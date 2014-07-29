@@ -20,4 +20,8 @@ public class CommodityService
         }
         return commodities;
     }
+
+    public Commodity getCommodityByItemId(Connection conn, int id) throws SQLException {
+        return new CommodityDAO().getCommodityByItemId(conn, id);
+    }
 }

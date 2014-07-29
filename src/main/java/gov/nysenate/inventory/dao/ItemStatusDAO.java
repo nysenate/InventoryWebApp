@@ -77,7 +77,7 @@ public class ItemStatusDAO
             "AND (m.cdinvreqstatm = 'PE' \n" +
             "OR m.cdinvreqstatm = 'SI' \n" +
             "OR m.cdinvreqstatm = 'SM') \n" +
-            "and d.nuxrefsn = ?) \n" +
+            "AND d.nuxrefsn = ?) \n" +
             "THEN 'Y' \n" +
             "ELSE 'N' \n" +
             "END AS pending_removal \n" +

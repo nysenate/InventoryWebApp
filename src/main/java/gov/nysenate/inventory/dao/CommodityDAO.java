@@ -14,8 +14,6 @@ import java.util.List;
 
 public class CommodityDAO extends DbManager
 {
-    private static final Logger log = Logger.getLogger(CommodityDAO.class.getName());
-
     protected List<Commodity> getCommodityByKeywords(Connection conn, String keywords) throws SQLException, ClassNotFoundException {
         // FIXME: improve this query... keyword of 'table' -> first result is 'tablet'
         String SELECT_BY_KEYWORDS = " WITH results AS "

@@ -22,6 +22,8 @@ public class ItemStatusService
         }
     }
 
+    // TODO: check for deleted status?
+
     public ItemStatus getItemStatus(Connection conn, Item item) throws SQLException {
         ItemStatusDAO dao = new ItemStatusDAO();
 

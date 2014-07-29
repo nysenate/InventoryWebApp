@@ -41,7 +41,7 @@ public class ItemDAO
             "FROM fm12senxref items INNER JOIN fd12issue issued ON \n" +
             "items.nuxrefsn = issued.nuxrefsn INNER JOIN sl16location loc ON \n" +
             "(loc.cdlocat = issued.cdlocatto AND loc.cdloctype = issued.cdloctypeto)\n" +
-            "WHERE cdlocat = ? AND cdloctype = ?";
+            "WHERE items.cdstatus = 'A' AND issued.cdstatus = 'A' AND cdlocat = ? AND cdloctype = ? ";
 
     protected List<Item> getItemsAtLocation(Connection conn, String locCode, String locType) throws SQLException {
         QueryRunner run = new QueryRunner();
@@ -54,7 +54,7 @@ public class ItemDAO
             "FROM fm12senxref items INNER JOIN fd12issue issued ON \n" +
             "items.nuxrefsn = issued.nuxrefsn INNER JOIN fd12invadjreq rr\n" +
             "ON rr.nuxrefsn = items.nuxrefsn\n" +
-            "WHERE rr.nuxriareq = ?";
+            "WHERE rr.cdstatus = 'A' AND rr.nuxriareq = ?";
 
     protected List<Item> getItemsInRemovalRequest(Connection conn, int removalRequestNum) throws SQLException {
         QueryRunner run = new QueryRunner();
@@ -70,7 +70,6 @@ public class ItemDAO
             while (rs.next()) {
                 int id = rs.getInt("nuxrefsn");
                 String barcode = rs.getString("nusenate");
-
                 Item item = new Item(id, barcode);
 
                 String serialNum = rs.getString("nuserial");

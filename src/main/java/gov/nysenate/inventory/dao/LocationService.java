@@ -34,4 +34,8 @@ public class LocationService
 
         return location;
     }
+
+    public Location getLocationOfItem(Connection conn, int itemId) throws SQLException {
+        return new LocationDAO().getLocationOfItem(conn, itemId);
+    }
 }
