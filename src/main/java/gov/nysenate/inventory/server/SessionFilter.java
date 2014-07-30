@@ -76,8 +76,7 @@ public class SessionFilter implements Filter {
                 return;
             }
         }
-
-                System.out.println("(SessionFilter)next chain");
+        
         chain.doFilter(req, res);
     }
 
