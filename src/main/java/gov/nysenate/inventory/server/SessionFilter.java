@@ -66,6 +66,7 @@ public class SessionFilter implements Filter {
                 log.debug("(SessionFilter) Right before opening output stream for Session time out. "+path);
                 PrintWriter out = response.getWriter();
                 log.debug("(SessionFilter)Session timed out");
+                out.println("Session timed out");
                 try {
                     out.flush();
                     out.close();
@@ -76,6 +77,7 @@ public class SessionFilter implements Filter {
             }
         }
 
+                System.out.println("(SessionFilter)next chain");
         chain.doFilter(req, res);
     }
 
