@@ -20,4 +20,17 @@ public class AdjustCode
     public String getDescription() {
         return description;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AdjustCode that = (AdjustCode) o;
+
+        if (code != null ? !code.equals(that.code) : that.code != null) return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+
+        return true;
+    }
 }

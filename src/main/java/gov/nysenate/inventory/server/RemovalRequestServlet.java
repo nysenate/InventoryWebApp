@@ -1,6 +1,7 @@
 package gov.nysenate.inventory.server;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.dao.RemovalRequestService;
@@ -18,6 +19,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Servlet that handles all http requests related to {@link RemovalRequest}.
@@ -29,8 +32,73 @@ public class RemovalRequestServlet extends HttpServlet
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        super.doGet(request, response);
+        PrintWriter out = response.getWriter();
+        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+
+        if (request.getParameter("status") != null) {
+            getRemovalRequestsByStatus(db, request, response, out);
+        } else if (request.getParameter("id") != null) {
+            getRemovalRequestById(db, request, response, out);
+        }
     }
+
+    private void getRemovalRequestsByStatus(DbConnect db, HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
+        List<RemovalRequest> rrs = null;
+        String status = request.getParameter("status");
+        String user = request.getParameter("user");
+        try {
+            rrs = getRemovalRequests(status, user, db);
+        } catch (SQLException | ClassNotFoundException e) {
+            log.error(e.getMessage(), e);
+            response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        }
+        out.write(new Gson().toJson(rrs));
+    }
+
+    private List<RemovalRequest> getRemovalRequests(String status, String user, DbConnect db) throws SQLException, ClassNotFoundException {
+        RemovalRequestService service = new RemovalRequestService();
+        List<RemovalRequest> rrs = null;
+        switch (status) {
+            case "PE": rrs = service.getShallowPending(db); break;
+            case "SI": rrs =  service.getSubmittedToInventoryControl(db); break;
+            case "SM": rrs =  service.getSubmittedToManagement(db); break;
+            case "AP": rrs =  service.getApproved(db); break;
+            case "RJ": rrs =  service.getRejected(db); break;
+            case "CA": rrs =  null; // TODO: implement cancelled Removal Requests
+        }
+
+        if (rrs != null && user != null) {
+            rrs = deleteThoseByOtherUsers(user, rrs);
+        }
+
+        return rrs;
+    }
+
+    private List<RemovalRequest> deleteThoseByOtherUsers(String user, List<RemovalRequest> rrs) {
+        List<RemovalRequest> deleteList = new ArrayList<RemovalRequest>();
+        for (RemovalRequest rr : rrs) {
+            if (!rr.getEmployee().equalsIgnoreCase(user)) {
+                deleteList.add(rr);
+            }
+        }
+        rrs.removeAll(deleteList);
+        return rrs;
+    }
+
+    private void getRemovalRequestById(DbConnect db, HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
+        RemovalRequest rr = null;
+        String id = request.getParameter("id");
+        RemovalRequestService service = new RemovalRequestService();
+        try {
+            rr = service.getRemovalRequest(db, Integer.valueOf(id));
+        } catch (SQLException | ClassNotFoundException e) {
+            log.error(e.getMessage(), e);
+            response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        }
+
+        out.write(new Gson().toJson(rr));
+    }
+
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

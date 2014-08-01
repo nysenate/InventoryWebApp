@@ -55,6 +55,11 @@ public class ItemService
         return items;
     }
 
+    public List<Item> getShallowItemsInRemovalRequest(Connection conn, int transactionNum) throws SQLException {
+        List<Item> items = new ItemDAO().getItemsInRemovalRequest(conn, transactionNum);
+        return items;
+    }
+
     private ItemStatus serveStatus(Connection conn, Item item) throws SQLException {
         return new ItemStatusService().getItemStatus(conn, item);
     }

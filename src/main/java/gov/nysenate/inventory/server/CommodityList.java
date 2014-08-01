@@ -49,7 +49,7 @@ public class CommodityList extends HttpServlet
             CommodityService service = new CommodityService();
             List<Commodity> commodityResults = service.getCommoditiesByKeywords(db, keywords.trim());
 
-            log.info("Commodity results = " + commodityResults);
+            log.info("Commodity results size = " + commodityResults.size());
             String json = gson.toJson(commodityResults);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
