@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -113,7 +114,7 @@ public class RemovalRequestDAO extends DbManager
     protected void insertRemovalRequest(Connection conn, RemovalRequest rr) throws SQLException, ClassNotFoundException {
         QueryRunner run = new QueryRunner();
         run.update(conn, INSERT_REMOVAL_REQUEST_SQL, rr.getTransactionNum(), rr.getEmployee(),
-                new java.sql.Date(rr.getDate().getTime()), rr.getAdjustCode().getCode());
+                new Timestamp(rr.getDate().getTime()), rr.getAdjustCode().getCode());
     }
 
     private String INSERT_REMOVAL_REQUEST_ITEM_SQL = "INSERT into fd12invadjreq (nuxriareq, nuxrefsn) VALUES (?, ?)";
@@ -123,7 +124,6 @@ public class RemovalRequestDAO extends DbManager
         run.update(conn, INSERT_REMOVAL_REQUEST_ITEM_SQL, rr.getTransactionNum(), item.getId());
     }
 
-    // TODO: ensure dttxnupdate and natxnupdatuser are being updated by trigger correctly.
     private String UPDATE_REMOVAL_REQUEST_SQL =
             "UPDATE fm12invadjreq SET nauser = ?, dtinvadjreq = ?, cdadjusted = ?, cdinvreqstatm = ? \n" +
             "WHERE nuinvadjreq = ?";

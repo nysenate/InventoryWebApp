@@ -1,10 +1,11 @@
 package gov.nysenate.inventory.server;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.dao.RemovalRequestService;
+import gov.nysenate.inventory.model.Item;
+import gov.nysenate.inventory.model.ItemStatus;
 import gov.nysenate.inventory.model.RemovalRequest;
 import gov.nysenate.inventory.util.HttpUtils;
 import gov.nysenate.inventory.util.RemovalRequestParser;
@@ -30,6 +31,9 @@ public class RemovalRequestServlet extends HttpServlet
 {
     private static final Logger log = Logger.getLogger(RemovalRequestServlet.class.getName());
 
+    /**
+     * Handles querying of Removal Requests.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         PrintWriter out = response.getWriter();
@@ -68,13 +72,13 @@ public class RemovalRequestServlet extends HttpServlet
         }
 
         if (rrs != null && user != null) {
-            rrs = deleteThoseByOtherUsers(user, rrs);
+            rrs = onlyCurrentUsersRequests(user, rrs);
         }
 
         return rrs;
     }
 
-    private List<RemovalRequest> deleteThoseByOtherUsers(String user, List<RemovalRequest> rrs) {
+    private List<RemovalRequest> onlyCurrentUsersRequests(String user, List<RemovalRequest> rrs) {
         List<RemovalRequest> deleteList = new ArrayList<RemovalRequest>();
         for (RemovalRequest rr : rrs) {
             if (!rr.getEmployee().equalsIgnoreCase(user)) {
@@ -100,6 +104,9 @@ public class RemovalRequestServlet extends HttpServlet
     }
 
 
+    /**
+     * Handles updating of Removal Requests.
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         PrintWriter out = response.getWriter();
@@ -119,6 +126,8 @@ public class RemovalRequestServlet extends HttpServlet
         try {
             if (rr.getTransactionNum() == 0) {
                 service.insertRemovalRequest(db, rr);
+            } else if (allItemsDeleted(rr)){
+                service.deleteRemovalRequest(db, rr);
             } else {
                 service.updateRemovalRequest(db, rr);
             }
@@ -128,6 +137,15 @@ public class RemovalRequestServlet extends HttpServlet
         }
 
         out.write(new Gson().toJson(rr));
+    }
+
+    private boolean allItemsDeleted(RemovalRequest rr) {
+        for (Item i: rr.getItems()) {
+            if (i.getStatus() != ItemStatus.INACTIVE) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

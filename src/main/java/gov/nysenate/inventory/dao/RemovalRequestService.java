@@ -171,7 +171,6 @@ public class RemovalRequestService {
         return false;
     }
 
-    // TODO: if all items removed, logically delete master record also.
     public void updateRemovalRequest(DbConnect db, RemovalRequest rr) throws SQLException, ClassNotFoundException {
         Connection conn = null;
         try {

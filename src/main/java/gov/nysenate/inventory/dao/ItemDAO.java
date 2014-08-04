@@ -20,8 +20,8 @@ public class ItemDAO
 
     protected Item getItemById(Connection conn, int id) throws SQLException {
         QueryRunner run = new QueryRunner();
-        List<Item> items = run.query(conn, SELECT_ITEM_BY_ID_SQL, new ItemHandler(), id);
-        return items.get(0);
+        Item item = run.query(conn, SELECT_ITEM_BY_ID_SQL, new ItemHandler(), id);
+        return item;
     }
 
     private String SELECT_ITEM_BY_BARCODE_SQL =
@@ -32,8 +32,8 @@ public class ItemDAO
 
     protected Item getItemByBarcode(Connection conn, String barcode) throws SQLException {
         QueryRunner run = new QueryRunner();
-        List<Item> items = run.query(conn, SELECT_ITEM_BY_BARCODE_SQL, new ItemHandler(), barcode);
-        return items.get(0);
+        Item item = run.query(conn, SELECT_ITEM_BY_BARCODE_SQL, new ItemHandler(), barcode);
+        return item;
     }
 
     private String SELECT_ITEMS_BY_LOCATION_SQL =
@@ -45,7 +45,7 @@ public class ItemDAO
 
     protected List<Item> getItemsAtLocation(Connection conn, String locCode, String locType) throws SQLException {
         QueryRunner run = new QueryRunner();
-        List<Item> items = run.query(conn, SELECT_ITEMS_BY_LOCATION_SQL, new ItemHandler(), locCode, locType);
+        List<Item> items = run.query(conn, SELECT_ITEMS_BY_LOCATION_SQL, new ItemListHandler(), locCode, locType);
         return items;
     }
 
@@ -58,11 +58,11 @@ public class ItemDAO
 
     protected List<Item> getItemsInRemovalRequest(Connection conn, int removalRequestNum) throws SQLException {
         QueryRunner run = new QueryRunner();
-        List<Item> items = run.query(conn, SELECT_ITEMS_BY_REMOVAL_REQUEST_SQL, new ItemHandler(), removalRequestNum);
+        List<Item> items = run.query(conn, SELECT_ITEMS_BY_REMOVAL_REQUEST_SQL, new ItemListHandler(), removalRequestNum);
         return items;
     }
 
-    private class ItemHandler implements ResultSetHandler<List<Item>> {
+    private class ItemListHandler implements ResultSetHandler<List<Item>> {
 
         @Override
         public List<Item> handle(ResultSet rs) throws SQLException {
@@ -70,16 +70,27 @@ public class ItemDAO
             while (rs.next()) {
                 int id = rs.getInt("nuxrefsn");
                 String barcode = rs.getString("nusenate");
-                Item item = new Item(id, barcode);
 
-                String serialNum = rs.getString("nuserial");
-                if (serialNum != null) {
-                    item.setSerialNumber(serialNum);
-                }
+                Item item = new Item(id, barcode);
+                item.setSerialNumber(rs.getString("nuserial"));
 
                 items.add(item);
             }
             return items;
+        }
+    }
+
+    private class ItemHandler implements ResultSetHandler<Item> {
+
+        @Override
+        public Item handle(ResultSet rs) throws SQLException {
+            Item item = new Item();
+            while (rs.next()) {
+                item.setId(rs.getInt("nuxrefsn"));
+                item.setBarcode(rs.getString("nusenate"));
+                item.setSerialNumber(rs.getString("nuserial"));
+            }
+            return item;
         }
     }
 }
