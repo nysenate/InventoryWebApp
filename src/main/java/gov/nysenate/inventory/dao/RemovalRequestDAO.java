@@ -46,7 +46,7 @@ public class RemovalRequestDAO extends DbManager
     }
 
     private String SELECT_ALL_SUBMITTED_TO_INVENTORY_CONTROL_SQL =
-            "SELECT nuinvadjreq, nauser, dtinvadjreq, cdinvreqstatm\n" +
+            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm\n" +
             "FROM fm12invadjreq\n" +
             "WHERE cdstatus = 'A'\n" +
             "AND cdinvreqstatm = 'SI'";
@@ -58,7 +58,7 @@ public class RemovalRequestDAO extends DbManager
     }
 
     private String SELECT_ALL_SUBMITTED_TO_MANAGEMENT_SQL =
-            "SELECT nuinvadjreq, nauser, dtinvadjreq, cdinvreqstatm\n" +
+            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm\n" +
             "FROM fm12invadjreq\n" +
             "WHERE cdstatus = 'A'\n" +
             "AND cdinvreqstatm = 'SM'";
@@ -70,7 +70,7 @@ public class RemovalRequestDAO extends DbManager
     }
 
     private String SELECT_ALL_APPROVED_SQL =
-            "SELECT nuinvadjreq, nauser, dtinvadjreq, cdinvreqstatm\n" +
+            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm\n" +
             "FROM fm12invadjreq\n" +
             "WHERE cdstatus = 'A'\n" +
             "AND cdinvreqstatm = 'AP'";
@@ -82,7 +82,7 @@ public class RemovalRequestDAO extends DbManager
     }
 
     private String SELECT_ALL_REJECTED_SQL =
-            "SELECT nuinvadjreq, nauser, dtinvadjreq, cdinvreqstatm\n" +
+            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm\n" +
             "FROM fm12invadjreq\n" +
             "WHERE cdstatus = 'A'\n" +
             "AND cdinvreqstatm = 'RJ'";
@@ -130,7 +130,7 @@ public class RemovalRequestDAO extends DbManager
 
     protected void updateRemovalRequest(Connection conn, RemovalRequest rr) throws SQLException, ClassNotFoundException {
         QueryRunner run = new QueryRunner();
-        run.update(conn, UPDATE_REMOVAL_REQUEST_SQL, rr.getEmployee(), new java.sql.Date(rr.getDate().getTime()), rr.getAdjustCode().getCode(), rr.getStatus(), rr.getTransactionNum());
+        run.update(conn, UPDATE_REMOVAL_REQUEST_SQL, rr.getEmployee(), new Timestamp(rr.getDate().getTime()), rr.getAdjustCode().getCode(), rr.getStatus(), rr.getTransactionNum());
     }
 
     private String DELETE_REMOVAL_REQUEST_ITEM_SQL =
