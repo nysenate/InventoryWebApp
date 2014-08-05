@@ -20,4 +20,8 @@ public class AdjustCodeService
         }
         return codes;
     }
+
+    public AdjustCode getRemovalRequestAdjustCode(Connection conn, int id) throws SQLException {
+        return new AdjustCodeDAO().getRemovalRequestAdjustCode(conn, id);
+    }
 }

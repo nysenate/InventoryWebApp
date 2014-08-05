@@ -18,10 +18,13 @@ public class ItemService
         try {
             conn = db.getDbConnection();
             item = new ItemDAO().getItemById(conn, id);
-
-            item.setCommodity(serveCommodity(conn, item.getId()));
-            item.setLocation(serveLocation(conn, item.getId()));
             item.setStatus(serveStatus(conn, item));
+
+            // Only populate rest the item if it exists in our database.
+            if (item.getId() != 0) {
+                item.setCommodity(serveCommodity(conn, item.getId()));
+                item.setLocation(serveLocation(conn, item.getId()));
+            }
         } finally {
             DbUtils.close(conn);
         }
@@ -34,10 +37,13 @@ public class ItemService
         try {
             conn = db.getDbConnection();
             item = new ItemDAO().getItemByBarcode(conn, barcode);
-
-            item.setCommodity(serveCommodity(conn, item.getId()));
-            item.setLocation(serveLocation(conn, item.getId()));
             item.setStatus(serveStatus(conn, item));
+
+            // Only populate rest the item if it exists in our database.
+            if (item.getId() != 0) {
+                item.setCommodity(serveCommodity(conn, item.getId()));
+                item.setLocation(serveLocation(conn, item.getId()));
+            }
         } finally {
             DbUtils.close(conn);
         }
@@ -52,6 +58,11 @@ public class ItemService
             item.setLocation(serveLocation(conn, item.getId()));
             item.setStatus(serveStatus(conn, item));
         }
+        return items;
+    }
+
+    public List<Item> getShallowItemsInRemovalRequest(Connection conn, int transactionNum) throws SQLException {
+        List<Item> items = new ItemDAO().getItemsInRemovalRequest(conn, transactionNum);
         return items;
     }
 

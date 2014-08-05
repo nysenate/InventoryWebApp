@@ -11,6 +11,16 @@ import java.util.List;
 
 public class RemovalRequestService {
 
+    public RemovalRequest getRemovalRequest(DbConnect db, int id) throws SQLException, ClassNotFoundException {
+        Connection conn = null;
+        try {
+            conn = db.getDbConnection();
+            return getRemovalRequest(conn, id);
+        } finally {
+            DbUtils.close(conn);
+        }
+    }
+
     public RemovalRequest getRemovalRequest(Connection conn, int id) throws SQLException, ClassNotFoundException {
         RemovalRequest rr;
         RemovalRequestDAO rrDao = new RemovalRequestDAO();
@@ -29,6 +39,22 @@ public class RemovalRequestService {
             conn = db.getDbConnection();
             rrs = rrDao.getPendingRequests(conn);
             rrs = populateRequestList(rrs, conn);
+        } finally {
+            DbUtils.close(conn);
+        }
+
+        return rrs;
+    }
+
+    public List<RemovalRequest> getShallowPending(DbConnect db) throws SQLException, ClassNotFoundException {
+        List<RemovalRequest> rrs;
+        RemovalRequestDAO rrDao = new RemovalRequestDAO();
+
+        Connection conn = null;
+        try {
+            conn = db.getDbConnection();
+            rrs = rrDao.getPendingRequests(conn);
+            rrs = shallowPopulateRequestList(rrs, conn);
         } finally {
             DbUtils.close(conn);
         }
@@ -114,22 +140,31 @@ public class RemovalRequestService {
     }
 
     private void updateRemovalRequestItems(Connection conn, RemovalRequest rr) throws SQLException {
-        List<Item> currentItems = new ItemService().getItemsInRemovalRequest(conn, rr.getTransactionNum());
+        List<Item> persistedItems = new ItemService().getItemsInRemovalRequest(conn, rr.getTransactionNum());
         RemovalRequestDAO dao = new RemovalRequestDAO();
 
         for (Item i : rr.getItems()) {
-            if (!currentItems.contains(i)) {
-                System.out.println("Inserting item: " + i.getId() + " " + i.getBarcode());
+            if (itemIsNew(i, persistedItems)) {
                 dao.insertRemovalRequestItem(conn, rr, i);
-            } else if (itemWasDeleted(i, currentItems)) {
+            } else if (itemWasDeleted(i, persistedItems)) {
                 dao.deleteRemovalRequestItem(conn, rr, i);
             }
         }
     }
 
-    private boolean itemWasDeleted(Item item, List<Item> currentItems) {
-        for (Item i : currentItems) {
-            if (i.getId() == item.getId() && !i.equals(item) && i.getStatus().equals(ItemStatus.INACTIVE)) {
+    private boolean itemIsNew(Item item, List<Item> persistedItems) {
+        boolean isNew = true;
+        for (Item i: persistedItems) {
+            if (i.getId() == item.getId()) {
+                isNew = false;
+            }
+        }
+        return isNew;
+    }
+
+    private boolean itemWasDeleted(Item item, List<Item> persistedItems) {
+        for (Item persisted : persistedItems) {
+            if (persisted.getId() == item.getId() && !persisted.equals(item) && item.getStatus().equals(ItemStatus.INACTIVE)) {
                 return true;
             }
         }
@@ -169,7 +204,20 @@ public class RemovalRequestService {
 
     private RemovalRequest populateRequest(Connection conn, RemovalRequest rr) throws SQLException {
         rr.setItems(new ItemService().getItemsInRemovalRequest(conn, rr.getTransactionNum()));
-        rr.setAdjustCode(new AdjustCodeDAO().getRemovalRequestAdjustCode(conn, rr.getTransactionNum())); // TODO call service?
+        rr.setAdjustCode(new AdjustCodeService().getRemovalRequestAdjustCode(conn, rr.getTransactionNum()));
+        return rr;
+    }
+
+    private List<RemovalRequest> shallowPopulateRequestList(List<RemovalRequest> rrs, Connection conn) throws SQLException {
+        for (RemovalRequest rr : rrs) {
+            shallowPopulateRequest(conn, rr);
+        }
+        return rrs;
+    }
+
+    private RemovalRequest shallowPopulateRequest(Connection conn, RemovalRequest rr) throws SQLException {
+        rr.setItems(new ItemService().getShallowItemsInRemovalRequest(conn, rr.getTransactionNum()));
+        rr.setAdjustCode(new AdjustCodeService().getRemovalRequestAdjustCode(conn, rr.getTransactionNum()));
         return rr;
     }
 }

@@ -26,6 +26,9 @@ public class ItemStatusService
 
     public ItemStatus getItemStatus(Connection conn, Item item) throws SQLException {
         ItemStatusDAO dao = new ItemStatusDAO();
+        if (item.getId() == 0) {
+            return ItemStatus.DOES_NOT_EXIST;
+        }
 
         boolean isInactive = dao.isItemInactive(conn, item.getId());
         boolean inTransit = dao.isItemInTransit(conn, item.getBarcode());
