@@ -1,6 +1,9 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.TransactionMapper;
+import gov.nysenate.inventory.model.Transaction;
+import gov.nysenate.inventory.util.HandleEmails;
 import gov.nysenate.inventory.util.HttpUtils;
 
 import java.io.IOException;
@@ -23,7 +26,7 @@ public class ChangePickupLocation extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         PrintWriter out = response.getWriter();
         DbConnect db = HttpUtils.getHttpSession(request, response, out);
-
+        
         String nuxrpdStr = request.getParameter("nuxrpd");
         String cdLoc = request.getParameter("cdloc");
         log.info("Changing Pickup location for nuxrpd = " + nuxrpdStr + " to " + cdLoc);
@@ -37,6 +40,11 @@ public class ChangePickupLocation extends HttpServlet {
         int nuxrpd = Integer.valueOf(nuxrpdStr);
         try {
             db.changePickupLocation(nuxrpd, cdLoc);
+            Transaction pickup = new Transaction();
+            TransactionMapper transactionMapper = new TransactionMapper();
+            pickup = transactionMapper.queryTransaction(db, nuxrpd);
+            HandleEmails handleEmails = new HandleEmails(pickup, HandleEmails.PICKUPTRANSACTION, request, response, db);
+            handleEmails.sendEmails("CHANGEPICKUPLOCATION");            
         } catch (SQLException ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("Change Pickup Location Exception: ", ex);

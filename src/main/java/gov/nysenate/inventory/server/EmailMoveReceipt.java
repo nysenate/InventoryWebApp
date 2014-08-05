@@ -117,6 +117,7 @@ public class EmailMoveReceipt implements Runnable {
     private Employee remoteVerByEmployee = null;
     boolean remoteDeliveryNoSigDelivered = false;
     private String calledBy = "";
+    private String addParam = "";
 
     public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, Transaction trans) {
         this(request, username, password, type, (String) null, trans);
@@ -137,6 +138,12 @@ public class EmailMoveReceipt implements Runnable {
 
         if (this.calledBy == null) {
             this.calledBy = "";
+        }
+        else if (this.calledBy.equalsIgnoreCase("CANCELPICKUP")) {
+            this.addParam = "&p_addtitle=[Cancelled:%20~UPDATEDATE~]";
+        }
+        else if (this.calledBy.equalsIgnoreCase("CHANGEPICKUPLOCATION")||this.calledBy.equalsIgnoreCase("CHANGEDELIVERYLOCATION")||this.calledBy.equalsIgnoreCase("REMOVEPICKUPITEMS")) {
+            this.addParam = "&p_addtitle=[Revised:%20~UPDATEDATE~]";
         }
 
         System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
@@ -259,6 +266,8 @@ public class EmailMoveReceipt implements Runnable {
                     if (this.calledBy != null && this.calledBy.equalsIgnoreCase("delivery") && (verificationMethod == null || verificationMethod.equals(""))) {
                         remoteDeliveryNoSigDelivered = true;
                     }
+                    
+                    
                     try {
                         if (this.delivery != null && this.delivery.getNuxrpd() > 0) {
                             this.initialPickup = transactionMapper.queryTransaction(db, this.delivery.getNuxrpd());
@@ -1527,8 +1536,12 @@ public class EmailMoveReceipt implements Runnable {
                 @Override
                 public InputStream getInputStream() throws IOException {
                     try {
-
-                        return new ByteArrayInputStream(bytesFromUrlWithJavaIO(receiptURL + nuxrpd + transTypeParam));
+                        if (addParam == null) {
+                            return new ByteArrayInputStream(bytesFromUrlWithJavaIO(receiptURL + nuxrpd + transTypeParam));
+                        }
+                        else {
+                            return new ByteArrayInputStream(bytesFromUrlWithJavaIO(receiptURL + nuxrpd + transTypeParam + addParam));
+                        }
                     } catch (ReportNotGeneratedException e) {
                         log.warn("Oracle Reports Server failed to generate a PDF Report for the Pickup Receipt. Please contact STS/BAC.", e);
                         return new ByteArrayInputStream(new byte[0]);

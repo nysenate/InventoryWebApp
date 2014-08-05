@@ -59,8 +59,6 @@ public class PickupServlet extends HttpServlet
         log.error(ex.getMessage(), ex);
     }
 
-    System.out.println("After Parameters");
-
     try {
       testingModeParam = request.getParameter("testingMode");
       if (testingModeParam != null && testingModeParam.trim().length() > 0) {
@@ -68,7 +66,6 @@ public class PickupServlet extends HttpServlet
       }
     } catch (Exception e) {
     }
-    System.out.println("A)PickupItems = " + pickup.getPickupItems());
 
     TransactionMapper mapper = new TransactionMapper();
     int dbResponse = -1;
@@ -97,7 +94,6 @@ public class PickupServlet extends HttpServlet
     } else {
       out.println("Database not updated");
     }
-    //System.out.println("(C) Servlet Pickup : end");
     log.info("Servlet Pickup : end");
     out.close();
   }

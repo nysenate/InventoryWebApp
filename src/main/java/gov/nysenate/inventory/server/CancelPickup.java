@@ -1,6 +1,9 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.TransactionMapper;
+import gov.nysenate.inventory.model.Transaction;
+import gov.nysenate.inventory.util.HandleEmails;
 import gov.nysenate.inventory.util.HttpUtils;
 
 import java.io.IOException;
@@ -36,6 +39,11 @@ public class CancelPickup extends HttpServlet {
         int nuxrpd = Integer.parseInt(nuxrpdString);
         try {
             db.cancelPickup(nuxrpd);
+            Transaction pickup = new Transaction();
+            TransactionMapper transactionMapper = new TransactionMapper();
+            pickup = transactionMapper.queryTransaction(db, nuxrpd);
+            HandleEmails handleEmails = new HandleEmails(pickup, HandleEmails.PICKUPTRANSACTION, request, response, db);
+            handleEmails.sendEmails("CANCELPICKUP");              
         } catch (SQLException ex) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             log.error("Cancel Pickup Exception: ", ex);
