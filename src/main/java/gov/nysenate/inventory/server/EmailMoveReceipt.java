@@ -118,32 +118,43 @@ public class EmailMoveReceipt implements Runnable {
     boolean remoteDeliveryNoSigDelivered = false;
     private String calledBy = "";
     private String addParam = "";
-
+    private String addSubject = "";
+              
     public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, Transaction trans) {
         this(request, username, password, type, (String) null, trans);
-    }
-
-    public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, Transaction trans, String calledBy) {
-        this(request, username, password, type, (String) null, trans, calledBy);
     }
 
     public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, String paperworkType, Transaction trans) {
         this(request, username, password, type, paperworkType, trans, "");
     }
 
+    public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, Transaction trans, String calledBy) {
+        this(request, username, password, type, (String) null, trans, calledBy);
+    }
+    
     public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, String paperworkType, Transaction trans, String calledBy) {
         this.request = request;
         this.paperworkType = paperworkType;
         this.calledBy = calledBy;
-
+ 
         if (this.calledBy == null) {
             this.calledBy = "";
         }
         else if (this.calledBy.equalsIgnoreCase("CANCELPICKUP")) {
             this.addParam = "&p_addtitle=[Cancelled:%20~UPDATEDATE~]";
+            this.addSubject = " [CANCELLED PICKUP]";
         }
         else if (this.calledBy.equalsIgnoreCase("CHANGEPICKUPLOCATION")||this.calledBy.equalsIgnoreCase("CHANGEDELIVERYLOCATION")||this.calledBy.equalsIgnoreCase("REMOVEPICKUPITEMS")) {
             this.addParam = "&p_addtitle=[Revised:%20~UPDATEDATE~]";
+            if (this.calledBy.equalsIgnoreCase("CHANGEPICKUPLOCATION")) {
+                this.addSubject = " [REVISED PICKUP LOCATION]";
+            }
+            else if (this.calledBy.equalsIgnoreCase("CHANGEDELIVERYLOCATION")) {
+                this.addSubject = " [REVISED DELIVERY LOCATION]";
+            }
+            else if (this.calledBy.equalsIgnoreCase("REMOVEPICKUPITEMS")) {
+                this.addSubject = " [REVISED PICKED UP ITEMS REMOVED]";
+            }
         }
 
         System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
@@ -1390,9 +1401,19 @@ public class EmailMoveReceipt implements Runnable {
             }
 
             if (emailType == DELIVERY) {
-                msg.setSubject("Equipment Delivery Receipt" + subjectAddText);
+                if (addSubject == null) {
+                    msg.setSubject("Equipment Delivery Receipt" + subjectAddText);
+                }
+                else {
+                    msg.setSubject("Equipment Delivery Receipt" + subjectAddText + addSubject);
+                }
             } else {
-                msg.setSubject("Equipment Pickup Receipt" + subjectAddText);
+                if (addSubject == null) {
+                    msg.setSubject("Equipment Pickup Receipt" + subjectAddText);
+                }
+                else {
+                    msg.setSubject("Equipment Pickup Receipt" + subjectAddText + subjectAddText);
+                }
             }
 
             //msg.setText(msgBody, "utf-8", "html");
