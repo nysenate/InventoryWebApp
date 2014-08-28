@@ -22,7 +22,7 @@ public class RemovalRequestDAO extends DbManager
     private static final Logger log = Logger.getLogger(RemovalRequestDAO.class.getName());
 
     private String SELECT_REMOVAL_REQUEST_SQL =
-            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm \n" +
+            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm, deinvctrlcmts \n" +
             "FROM fm12invadjreq\n" +
             "WHERE cdstatus = 'A'\n" +
             "AND nuinvadjreq = ?";
@@ -34,7 +34,7 @@ public class RemovalRequestDAO extends DbManager
     }
 
     private String SELECT_ALL_PENDING_SQL =
-            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + " ) dtinvadjreq, cdinvreqstatm\n" +
+            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + " ) dtinvadjreq, cdinvreqstatm, deinvctrlcmts \n" +
             "FROM fm12invadjreq\n" +
             "WHERE cdstatus = 'A'\n" +
             "AND cdinvreqstatm = 'PE'";
@@ -46,7 +46,7 @@ public class RemovalRequestDAO extends DbManager
     }
 
     private String SELECT_ALL_SUBMITTED_TO_INVENTORY_CONTROL_SQL =
-            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm\n" +
+            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm, deinvctrlcmts \n" +
             "FROM fm12invadjreq\n" +
             "WHERE cdstatus = 'A'\n" +
             "AND cdinvreqstatm = 'SI'";
@@ -58,7 +58,7 @@ public class RemovalRequestDAO extends DbManager
     }
 
     private String SELECT_ALL_SUBMITTED_TO_MANAGEMENT_SQL =
-            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm\n" +
+            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm, deinvctrlcmts\n" +
             "FROM fm12invadjreq\n" +
             "WHERE cdstatus = 'A'\n" +
             "AND cdinvreqstatm = 'SM'";
@@ -70,7 +70,7 @@ public class RemovalRequestDAO extends DbManager
     }
 
     private String SELECT_ALL_APPROVED_SQL =
-            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm\n" +
+            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm, deinvctrlcmts \n" +
             "FROM fm12invadjreq\n" +
             "WHERE cdstatus = 'A'\n" +
             "AND cdinvreqstatm = 'AP'";
@@ -82,7 +82,7 @@ public class RemovalRequestDAO extends DbManager
     }
 
     private String SELECT_ALL_REJECTED_SQL =
-            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm\n" +
+            "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm, deinvctrlcmts \n" +
             "FROM fm12invadjreq\n" +
             "WHERE cdstatus = 'A'\n" +
             "AND cdinvreqstatm = 'RJ'";
@@ -107,14 +107,14 @@ public class RemovalRequestDAO extends DbManager
     }
 
     private String INSERT_REMOVAL_REQUEST_SQL =
-            "INSERT INTO fm12invadjreq (nuinvadjreq, nauser, dtinvadjreq, cdadjusted, cdinvreqstatm,\n" +
+            "INSERT INTO fm12invadjreq (nuinvadjreq, nauser, dtinvadjreq, cdadjusted, cdinvreqstatm, deinvctrlcmts,\n" +
             "cdstatus, dttxnorigin, dttxnupdate, natxnorguser, natxnupduser)\n" +
-            "VALUES(?, ?, ?, ?, 'PE', 'A', SYSDATE, SYSDATE, USER, USER)";
+            "VALUES(?, ?, ?, ?, 'PE', ?, 'A', SYSDATE, SYSDATE, USER, USER)";
 
     protected void insertRemovalRequest(Connection conn, RemovalRequest rr) throws SQLException, ClassNotFoundException {
         QueryRunner run = new QueryRunner();
         run.update(conn, INSERT_REMOVAL_REQUEST_SQL, rr.getTransactionNum(), rr.getEmployee(),
-                new Timestamp(rr.getDate().getTime()), rr.getAdjustCode().getCode());
+                new Timestamp(rr.getDate().getTime()), rr.getAdjustCode().getCode(), rr.getInventoryControlComments());
     }
 
     private String INSERT_REMOVAL_REQUEST_ITEM_SQL = "INSERT into fd12invadjreq (nuxriareq, nuxrefsn) VALUES (?, ?)";
@@ -125,12 +125,13 @@ public class RemovalRequestDAO extends DbManager
     }
 
     private String UPDATE_REMOVAL_REQUEST_SQL =
-            "UPDATE fm12invadjreq SET nauser = ?, dtinvadjreq = ?, cdadjusted = ?, cdinvreqstatm = ? \n" +
+            "UPDATE fm12invadjreq SET nauser = ?, dtinvadjreq = ?, cdadjusted = ?, cdinvreqstatm = ?, deinvctrlcmts = ? \n" +
             "WHERE nuinvadjreq = ?";
 
     protected void updateRemovalRequest(Connection conn, RemovalRequest rr) throws SQLException, ClassNotFoundException {
         QueryRunner run = new QueryRunner();
-        run.update(conn, UPDATE_REMOVAL_REQUEST_SQL, rr.getEmployee(), new Timestamp(rr.getDate().getTime()), rr.getAdjustCode().getCode(), rr.getStatus(), rr.getTransactionNum());
+        run.update(conn, UPDATE_REMOVAL_REQUEST_SQL, rr.getEmployee(), new Timestamp(rr.getDate().getTime()),
+                rr.getAdjustCode().getCode(), rr.getStatus(), rr.getInventoryControlComments(),rr.getTransactionNum());
     }
 
     private String DELETE_REMOVAL_REQUEST_ITEM_SQL =
@@ -162,6 +163,7 @@ public class RemovalRequestDAO extends DbManager
                     RemovalRequest req = new RemovalRequest(user, date);
                     req.setTransactionNum(rs.getInt("nuinvadjreq"));
                     req.setStatus(rs.getString("cdinvreqstatm"));
+                    req.setInventoryControlComments(rs.getString("deinvctrlcmts"));
                     requests.add(req);
                 } catch (ParseException e) {
                     log.error(e.getMessage(), e);

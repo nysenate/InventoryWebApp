@@ -76,7 +76,8 @@ public class ItemStatusDAO
             "AND d.cdstatus = 'A' \n" +
             "AND (m.cdinvreqstatm = 'PE' \n" +
             "OR m.cdinvreqstatm = 'SI' \n" +
-            "OR m.cdinvreqstatm = 'SM') \n" +
+            "OR m.cdinvreqstatm = 'SM' \n" +
+            "OR m.cdinvreqstatm = 'RJ') \n" +
             "AND d.nuxrefsn = ?) \n" +
             "THEN 'Y' \n" +
             "ELSE 'N' \n" +

@@ -78,6 +78,22 @@ public class RemovalRequestService {
         return rrs;
     }
 
+    public List<RemovalRequest> getShallowSubmittedToInventoryControl(DbConnect db) throws SQLException, ClassNotFoundException {
+        List<RemovalRequest> rrs;
+        RemovalRequestDAO rrDao = new RemovalRequestDAO();
+
+        Connection conn = null;
+        try {
+            conn = db.getDbConnection();
+            rrs = rrDao.getSubmittedToInventoryControl(conn);
+            rrs = shallowPopulateRequestList(rrs, conn);
+        } finally {
+            DbUtils.close(conn);
+        }
+
+        return rrs;
+    }
+
     public List<RemovalRequest> getSubmittedToManagement(DbConnect db) throws SQLException, ClassNotFoundException {
         List<RemovalRequest> rrs;
         RemovalRequestDAO rrDao = new RemovalRequestDAO();

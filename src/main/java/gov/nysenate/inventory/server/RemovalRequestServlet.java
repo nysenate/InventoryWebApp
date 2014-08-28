@@ -47,11 +47,15 @@ public class RemovalRequestServlet extends HttpServlet
     }
 
     private void getRemovalRequestsByStatus(DbConnect db, HttpServletRequest request, HttpServletResponse response, PrintWriter out) {
-        List<RemovalRequest> rrs = null;
-        String status = request.getParameter("status");
+        List<RemovalRequest> rrs = new ArrayList<RemovalRequest>();
+        String[] status = request.getParameterValues("status");
         String user = request.getParameter("user");
         try {
-            rrs = getRemovalRequests(status, user, db);
+            for (String stat : status) {
+                List<RemovalRequest> rr;
+                rr = getRemovalRequests(stat, user, db);
+                rrs.addAll(rr);
+            }
         } catch (SQLException | ClassNotFoundException e) {
             log.error(e.getMessage(), e);
             response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
