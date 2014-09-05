@@ -99,7 +99,6 @@ public class DownloadServlet extends HttpServlet
             filePath = downloadPath+pathDelimeter+filename;
           }
         }
-        System.out.println("File Path:"+filePath);
         File file = new File(filePath);
         
         String browser = request.getHeader("User-Agent");
@@ -171,6 +170,7 @@ public class DownloadServlet extends HttpServlet
    *
    * @return a String containing servlet description
    */
+  
   @Override
   public String getServletInfo()
   {

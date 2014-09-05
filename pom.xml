@@ -4,7 +4,7 @@
 
     <groupId>gov.nysenate</groupId>
     <artifactId>InventoryWebApp</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
     <packaging>war</packaging>
 
     <name>InventoryWebApp</name>
@@ -36,6 +36,11 @@
             <artifactId>junit</artifactId>
             <version>4.10</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-dbutils</groupId>
+            <artifactId>commons-dbutils</artifactId>
+            <version>1.5</version>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>

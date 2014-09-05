@@ -5,48 +5,21 @@
 package gov.nysenate.inventory.server;
 
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.exception.BlankMessageException;
 import gov.nysenate.inventory.exception.InvalidParameterException;
 import gov.nysenate.inventory.exception.ParameterNotUsedException;
-import gov.nysenate.inventory.model.Commodity;
 import gov.nysenate.inventory.model.EmailData;
 import gov.nysenate.inventory.model.EmailRecord;
 import gov.nysenate.inventory.model.Employee;
-import gov.nysenate.inventory.model.LoginStatus;
-import gov.nysenate.inventory.model.SimpleListItem;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.log4j.Logger;
-import org.w3c.dom.Document;
 
-import gov.nysenate.inventory.model.SimpleListItem;
-import gov.nysenate.inventory.util.EmailValidator;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Time;
-import java.util.Date;
-import java.sql.Timestamp;
 import java.util.logging.Level;
 
 /*

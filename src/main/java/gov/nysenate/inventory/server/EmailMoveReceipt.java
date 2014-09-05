@@ -4,6 +4,7 @@
  */
 package gov.nysenate.inventory.server;
 
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.exception.BlankMessageException;
 import gov.nysenate.inventory.exception.InvalidParameterException;
 import gov.nysenate.inventory.exception.ParameterNotUsedException;
@@ -14,7 +15,7 @@ import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.model.EmailRecord;
 import gov.nysenate.inventory.util.EmailValidator;
 import gov.nysenate.inventory.util.InvUtil;
-import gov.nysenate.inventory.util.TransactionMapper;
+import gov.nysenate.inventory.dao.TransactionMapper;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -116,26 +117,44 @@ public class EmailMoveReceipt implements Runnable {
     private Employee remoteVerByEmployee = null;
     boolean remoteDeliveryNoSigDelivered = false;
     private String calledBy = "";
-
+    private String addParam = "";
+    private String addSubject = "";
+              
     public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, Transaction trans) {
         this(request, username, password, type, (String) null, trans);
-    }
-
-    public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, Transaction trans, String calledBy) {
-        this(request, username, password, type, (String) null, trans, calledBy);
     }
 
     public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, String paperworkType, Transaction trans) {
         this(request, username, password, type, paperworkType, trans, "");
     }
 
+    public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, Transaction trans, String calledBy) {
+        this(request, username, password, type, (String) null, trans, calledBy);
+    }
+    
     public EmailMoveReceipt(HttpServletRequest request, String username, String password, String type, String paperworkType, Transaction trans, String calledBy) {
         this.request = request;
         this.paperworkType = paperworkType;
         this.calledBy = calledBy;
-
+ 
         if (this.calledBy == null) {
             this.calledBy = "";
+        }
+        else if (this.calledBy.equalsIgnoreCase("CANCELPICKUP")) {
+            this.addParam = "&p_addtitle=[Cancelled:%20~UPDATEDATE~]";
+            this.addSubject = " [CANCELLED PICKUP]";
+        }
+        else if (this.calledBy.equalsIgnoreCase("CHANGEPICKUPLOCATION")||this.calledBy.equalsIgnoreCase("CHANGEDELIVERYLOCATION")||this.calledBy.equalsIgnoreCase("REMOVEPICKUPITEMS")) {
+            this.addParam = "&p_addtitle=[Revised:%20~UPDATEDATE~]";
+            if (this.calledBy.equalsIgnoreCase("CHANGEPICKUPLOCATION")) {
+                this.addSubject = " [REVISED PICKUP LOCATION]";
+            }
+            else if (this.calledBy.equalsIgnoreCase("CHANGEDELIVERYLOCATION")) {
+                this.addSubject = " [REVISED DELIVERY LOCATION]";
+            }
+            else if (this.calledBy.equalsIgnoreCase("REMOVEPICKUPITEMS")) {
+                this.addSubject = " [REVISED PICKED UP ITEMS REMOVED]";
+            }
         }
 
         System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
@@ -258,6 +277,7 @@ public class EmailMoveReceipt implements Runnable {
                     if (this.calledBy != null && this.calledBy.equalsIgnoreCase("delivery") && (verificationMethod == null || verificationMethod.equals(""))) {
                         remoteDeliveryNoSigDelivered = true;
                     }
+                    
                     try {
                         if (this.delivery != null && this.delivery.getNuxrpd() > 0) {
                             this.initialPickup = transactionMapper.queryTransaction(db, this.delivery.getNuxrpd());
@@ -1380,9 +1400,19 @@ public class EmailMoveReceipt implements Runnable {
             }
 
             if (emailType == DELIVERY) {
-                msg.setSubject("Equipment Delivery Receipt" + subjectAddText);
+                if (addSubject == null) {
+                    msg.setSubject("Equipment Delivery Receipt" + subjectAddText);
+                 }
+                else {
+                    msg.setSubject("Equipment Delivery Receipt" + subjectAddText + addSubject);
+                }
             } else {
-                msg.setSubject("Equipment Pickup Receipt" + subjectAddText);
+                if (addSubject == null) {
+                    msg.setSubject("Equipment Pickup Receipt" + subjectAddText);
+                }
+                else {
+                    msg.setSubject("Equipment Pickup Receipt" + subjectAddText + addSubject);
+                }
             }
 
             //msg.setText(msgBody, "utf-8", "html");
@@ -1526,8 +1556,12 @@ public class EmailMoveReceipt implements Runnable {
                 @Override
                 public InputStream getInputStream() throws IOException {
                     try {
-
-                        return new ByteArrayInputStream(bytesFromUrlWithJavaIO(receiptURL + nuxrpd + transTypeParam));
+                        if (addParam == null) {
+                            return new ByteArrayInputStream(bytesFromUrlWithJavaIO(receiptURL + nuxrpd + transTypeParam));
+                        }
+                        else {
+                            return new ByteArrayInputStream(bytesFromUrlWithJavaIO(receiptURL + nuxrpd + transTypeParam + addParam));
+                        }
                     } catch (ReportNotGeneratedException e) {
                         log.warn("Oracle Reports Server failed to generate a PDF Report for the Pickup Receipt. Please contact STS/BAC.", e);
                         return new ByteArrayInputStream(new byte[0]);
@@ -1613,9 +1647,19 @@ public class EmailMoveReceipt implements Runnable {
             // Set Subject: header field
 
             if (emailType == PICKUP) {
-                message.setSubject("!!ERROR: Oracle Report Server Unable to Generate Pickup Receipt. Contact STS/BAC." + subjectAddText);
+                if (this.addSubject == null) {
+                    message.setSubject("!!ERROR: Oracle Report Server Unable to Generate Pickup Receipt. Contact STS/BAC." + subjectAddText);
+                }
+                else {
+                    message.setSubject("!!ERROR: Oracle Report Server Unable to Generate Pickup Receipt. Contact STS/BAC." + subjectAddText + this.addSubject);
+                }
             } else if (emailType == DELIVERY) {
-                message.setSubject("!!ERROR: Oracle Report Server Unable to Generate Delivery Receipt. Contact STS/BAC." + subjectAddText);
+                if (this.addSubject == null) {
+                    message.setSubject("!!ERROR: Oracle Report Server Unable to Generate Delivery Receipt. Contact STS/BAC." + subjectAddText);
+                }
+                else {
+                    message.setSubject("!!ERROR: Oracle Report Server Unable to Generate Delivery Receipt. Contact STS/BAC." + subjectAddText + this.addSubject);                    
+                }
             }
 
             log.warn("{0}" + "|" + "!!!!EMAILERROR BEFORE MESSAGE HEADER");
@@ -1760,10 +1804,20 @@ public class EmailMoveReceipt implements Runnable {
 
             String sEmailType = "";
             if (emailType == PICKUP) {
-                message.setSubject("***WARNING: Pickup Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText);
+                if (this.addSubject == null) {
+                    message.setSubject("***WARNING: Pickup Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText);
+                }
+                else {
+                    message.setSubject("***WARNING: Pickup Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText + this.addSubject);
+                }
                 sEmailType = "PICKUP";
             } else if (emailType == DELIVERY) {
-                message.setSubject("***WARNING: Delivery Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText);
+                if (this.addSubject == null) {
+                    message.setSubject("***WARNING: Delivery Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText);
+                }
+                else {
+                    message.setSubject("***WARNING: Delivery Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText + this.addSubject);
+                }
                 sEmailType = "DELIVERY";
             }
 

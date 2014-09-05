@@ -1,4 +1,4 @@
-package gov.nysenate.inventory.server;
+package gov.nysenate.inventory.dao;
 
 import java.security.InvalidParameterException;
 
@@ -29,13 +29,14 @@ import javax.imageio.ImageIO;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
+import gov.nysenate.inventory.server.PickupGroup;
+import gov.nysenate.inventory.server.VerList;
 import oracle.sql.BLOB;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.google.gson.reflect.TypeToken;
-import gov.nysenate.inventory.util.DbManager;
 
 import java.awt.Graphics2D;
 import java.math.BigDecimal;
@@ -462,59 +463,6 @@ public class DbConnect extends DbManager
       closeConnection(conn);
     }
     return itemList;
-  }
-
-  /*-------------------------------------------------------------------------------------------------------
-   * ---------------Function to return arraylist of all the commodity codes based on the keywords
-   *----------------------------------------------------------------------------------------------------*/
-  public ArrayList getCommodityList(String keywords)
-  {
-    if (keywords.isEmpty() || keywords == null) {
-      throw new IllegalArgumentException("No Keywords Found");
-    }
-
-    ArrayList<Commodity> commodityList = new ArrayList<Commodity>();
-    Statement stmt = null;
-    ResultSet result = null;
-    Connection conn = null;
-    try {
-      conn = getDbConnection();
-      stmt = conn.createStatement();
-      //  String loc_code;
-      String qry = " WITH results AS "
-              + " (SELECT a.nuxrefco, a.cdcommodity, b.cdissunit, b.cdcategory, b.cdtype, b.decommodityf, c.keyword"
-              + " FROM fm12comxref a, fm12commodty b, (select column_value keyword"
-              + " FROM TABLE(split(UPPER('" + keywords + "')))) c  "
-              + " WHERE a.nuxrefco = b.nuxrefco "
-              + " AND a.cdstatus = 'A'"
-              + " AND b.cdstatus = 'A'"
-              + " AND b.decommodityf LIKE '%'||c.keyword||'%')"
-              + " SELECT count(*) nucnt, a.decommodityf, a.nuxrefco, a.cdcommodity, a.cdissunit, a.cdcategory, a.cdissunit, a.cdtype "
-              + " FROM results a"
-              + " GROUP BY  a.nuxrefco, a.cdcommodity, a.cdissunit, a.cdcategory, a.cdissunit, a.cdtype, a.decommodityf "
-              + " ORDER BY 1 DESC, 2";
-      result = stmt.executeQuery(qry);
-      while (result.next()) {
-        Commodity commodity = new Commodity();
-        commodity.setNucnt(result.getString(1));
-        commodity.setDecommodityf(result.getString(2));
-        commodity.setNuxrefco(result.getString(3));
-        commodity.setCdcommodity(result.getString(4));
-        commodity.setCdcategory(result.getString(6));
-        commodity.setCdtype(result.getString(8));
-        commodityList.add(commodity);
-      }
-    } catch (SQLException e) {
-      System.out.println(e.getMessage());
-      log.fatal("SQLException in getCommodityList() : " + e.getMessage());
-    } catch (ClassNotFoundException e) {
-      log.error("Error getting oracle jdbc driver: ", e);
-    } finally {
-      closeResultSet(result);
-      closeStatement(stmt);
-      closeConnection(conn);
-    }
-    return commodityList;
   }
 
   /*-------------------------------------------------------------------------------------------------------

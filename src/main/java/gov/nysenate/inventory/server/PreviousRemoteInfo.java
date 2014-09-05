@@ -1,9 +1,9 @@
 package gov.nysenate.inventory.server;
 
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
-import gov.nysenate.inventory.util.TransactionMapper;
-import gov.nysenate.inventory.util.TransactionParser;
+import gov.nysenate.inventory.dao.TransactionMapper;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URLDecoder;
 import java.sql.SQLException;
 
 @WebServlet(name = "PreviousRemoteInfo", urlPatterns = { "/PreviousRemoteInfo" })

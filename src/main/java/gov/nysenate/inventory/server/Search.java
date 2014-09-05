@@ -1,9 +1,9 @@
 package gov.nysenate.inventory.server;
 
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;
 
-import static gov.nysenate.inventory.server.DbConnect.log;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
@@ -11,7 +11,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  *

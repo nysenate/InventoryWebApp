@@ -1,8 +1,9 @@
 package gov.nysenate.inventory.server;
 
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
-import gov.nysenate.inventory.util.TransactionMapper;
+import gov.nysenate.inventory.dao.TransactionMapper;
 
 import java.io.IOException;
 import java.io.PrintWriter;

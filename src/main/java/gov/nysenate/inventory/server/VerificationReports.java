@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.InvItem;
 import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;
@@ -16,7 +17,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  *

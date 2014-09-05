@@ -1,10 +1,11 @@
 package gov.nysenate.inventory.server;
 
 import com.google.gson.JsonSyntaxException;
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HandleEmails;
 import gov.nysenate.inventory.util.HttpUtils;
-import gov.nysenate.inventory.util.TransactionMapper;
+import gov.nysenate.inventory.dao.TransactionMapper;
 import gov.nysenate.inventory.util.TransactionParser;
 import org.apache.log4j.Logger;
 
@@ -17,7 +18,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -59,8 +59,6 @@ public class PickupServlet extends HttpServlet
         log.error(ex.getMessage(), ex);
     }
 
-    System.out.println("After Parameters");
-
     try {
       testingModeParam = request.getParameter("testingMode");
       if (testingModeParam != null && testingModeParam.trim().length() > 0) {
@@ -68,7 +66,6 @@ public class PickupServlet extends HttpServlet
       }
     } catch (Exception e) {
     }
-    System.out.println("A)PickupItems = " + pickup.getPickupItems());
 
     TransactionMapper mapper = new TransactionMapper();
     int dbResponse = -1;
@@ -97,7 +94,6 @@ public class PickupServlet extends HttpServlet
     } else {
       out.println("Database not updated");
     }
-    //System.out.println("(C) Servlet Pickup : end");
     log.info("Servlet Pickup : end");
     out.close();
   }

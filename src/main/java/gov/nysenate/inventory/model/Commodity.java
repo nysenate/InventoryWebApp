@@ -1,10 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package gov.nysenate.inventory.model;
-
-import com.google.gson.annotations.Expose;
 
 /**
  *
@@ -12,110 +6,57 @@ import com.google.gson.annotations.Expose;
  */
 public class Commodity
 {
-   @Expose  String decommodityf = "";
-   @Expose  String cdtype = "";
-   @Expose  String nusenate = "";
-   @Expose  String cdcategory = "";
-   @Expose  String cdlocat = "";
-   @Expose  String cdlocatto = "";
-   @Expose  String decomments = "";
-   @Expose  String nuxrefco = "";
-   @Expose  String cdissunit = "";
-   @Expose  String cdcommodity = "";
-   @Expose  String nucnt = "";
-     
-    boolean selected = false;
-    
-    final int DECOMMODITYF = -101;
-    final int CDTYPE = -102;
-    final int NUSENATE = -103;
-    final int CDCATEGORY = -104;
-    final int SELECTED = -105;   
-    final int CDLOCAT = -106;   
-    final int CDLOCATTO = -107;   
-    final int DECOMMENTS = -109; 
-    final int NUXREFCO = -110; 
-    final int CDISSUNIT = -111;
-    final int CDCOMMODITY = -112;
-    final int NUCNT = -113;
-    
-    public Commodity() {
+    private int id;
+    private String type = "";
+    private String category = "";
+    private String code = "";
+    private String description = "";
+
+    public Commodity(int id, String type, String category, String code) {
+        this.id = id;
+        this.type = type;
+        this.category = category;
+        this.code = code;
     }
 
-    public String getDecommodityf() {
-        return decommodityf;
+    public int getId() {
+        return id;
     }
 
-    public void setDecommodityf(String decommodityf) {
-        this.decommodityf = decommodityf;
+    public String getType() {
+        return type;
     }
 
-    public String getCdcategory() {
-        return cdcategory;
+    public String getCategory() {
+        return category;
     }
 
-    public void setCdcategory(String cdcategory) {
-        this.cdcategory = cdcategory;
+    public String getCode() {
+        return code;
     }
 
-    public String getCdtype() {
-        return cdtype;
+    public String getDescription() {
+        return description;
     }
 
-    public void setCdtype(String cdtype) {
-        this.cdtype = cdtype;
-    }
-
-    public String getCDissunit() {
-        return cdissunit;
-    }
-
-    public void setCDissunit(String cdissunit) {
-        this.cdissunit = cdissunit;
-    }
-    
-    public String getNuxrefco() {
-        return nuxrefco;
-    }
-
-    public void setNuxrefco(String nuxrefco) {
-        this.nuxrefco = nuxrefco;
-    }    
-
-    public String getCdcommodty() {
-        return cdcommodity;
-    }
-
-    public void setCdcommodity(String cdcommodity) {
-        this.cdcommodity = cdcommodity;
-    }
-    
-    public String getNucnt() {
-        return nucnt;
-    }
-
-    public void setNucnt(String nucnt) {
-        this.nucnt = nucnt;
-    }        
-    
-   public String getDecomments() {
-        return decomments;
-    }
-    
-    public void setDecomments(String decomments) {
-        this.decomments = decomments;
-    }
-    
-    public void setSelected(boolean selected) {
-        this.selected = selected;
-    }
-
-    public boolean getSelected() {
-        return this.selected;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override
-    public String toString() {
-        return decommodityf;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Commodity commodity = (Commodity) o;
+
+        if (id != commodity.id) return false;
+        if (category != null ? !category.equals(commodity.category) : commodity.category != null) return false;
+        if (code != null ? !code.equals(commodity.code) : commodity.code != null) return false;
+        if (description != null ? !description.equals(commodity.description) : commodity.description != null)
+            return false;
+        if (type != null ? !type.equals(commodity.type) : commodity.type != null) return false;
+
+        return true;
     }
 }

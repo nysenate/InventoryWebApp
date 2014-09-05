@@ -6,11 +6,13 @@ package gov.nysenate.inventory.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import gov.nysenate.inventory.dao.CommodityDAO;
+import gov.nysenate.inventory.dao.CommodityService;
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.Commodity;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.sql.SQLException;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -38,18 +40,23 @@ public class CommodityList extends HttpServlet
 
         try {
             DbConnect db = HttpUtils.getHttpSession(request, response, out);
-            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+            Gson gson = new GsonBuilder().create();
             String keywords = request.getParameter("keywords");
             log.info("Get commodity info for keywords: " + keywords);
 
-            List<Commodity> commodityResults = Collections.synchronizedList(new ArrayList<Commodity>());
-            commodityResults = db.getCommodityList(keywords.trim());
+            //TODO: should prob check for keywords here, how should app respond if there are none?
 
-            log.info("Commodity results = " + commodityResults);
+            CommodityService service = new CommodityService();
+            List<Commodity> commodityResults = service.getCommoditiesByKeywords(db, keywords.trim());
+
+            log.info("Commodity results size = " + commodityResults.size());
             String json = gson.toJson(commodityResults);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             out.print(json);
+        } catch (ClassNotFoundException | SQLException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            log.error(e.getMessage(), e);
         } finally {
             out.close();
         }

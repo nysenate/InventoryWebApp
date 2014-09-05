@@ -1,4 +1,4 @@
-package gov.nysenate.inventory.util;
+package gov.nysenate.inventory.dao;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -14,7 +14,6 @@ import org.apache.log4j.Logger;
 
 import gov.nysenate.inventory.model.Location;
 import gov.nysenate.inventory.model.Transaction;
-import gov.nysenate.inventory.server.DbConnect;
 import gov.nysenate.inventory.model.InvItem;
 import java.sql.Timestamp;
 

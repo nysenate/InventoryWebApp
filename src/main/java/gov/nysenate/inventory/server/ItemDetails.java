@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;
 
@@ -38,7 +39,7 @@ public class ItemDetails extends HttpServlet {
                 String model[] = details.split("\\|");
 
                 //Psuedo JSON for now
-                out.println("{\"nusenate\":\"" + model[0] + "\",\"nuxrefsn\":\"" + model[1] + "\",\"dtissue\":\"" + model[3] + "\",\"cdlocatto\":\"" + model[4] + "\",\"cdloctypeto\":\"" + model[5] + "\",\"cdcategory\":\"" + model[6] + "\",\"adstreet1to\":\"" + model[7].replaceAll("\"", "&#34;") + "\",\"decommodityf\":\"" + model[8].replaceAll("\"", "&#34;")  + "\",\"cdlocatfrom\":\"" + model[9] + "\",\"cdstatus\":\"" + model[10] + "\",\"cdintransit\":\"" + model[12] + "\"}");
+                out.println("{\"nusenate\":\"" + model[0] + "\",\"nuxrefsn\":\"" + model[1] + "\",\"dtissue\":\"" + model[3] + "\",\"cdlocatto\":\"" + model[4] + "\",\"cdloctypeto\":\"" + model[5] + "\",\"cdcategory\":\"" + model[6] + "\",\"adstreet1to\":\"" + model[7].replaceAll("\"", "&#34;") + "\",\"decommodityf\":\"" + model[8].replaceAll("\"", "&#34;")  + "\",\"cdlocatfrom\":\"" + model[9] + "\",\"cdstatus\":\"" + model[10] + "\",\"cdintransit\":\"" + model[12] + "\",\"pending_removal\":\"" + model[14] + "\"}");
             }
 
         } finally {

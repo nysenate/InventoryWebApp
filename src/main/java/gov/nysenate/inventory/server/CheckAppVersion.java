@@ -4,8 +4,6 @@
  */
 package gov.nysenate.inventory.server;
 
-import static gov.nysenate.inventory.server.DbConnect.log;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -23,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.JsonObject;
+import gov.nysenate.inventory.dao.DbConnect;
 import org.apache.log4j.Logger;
 
 /**
