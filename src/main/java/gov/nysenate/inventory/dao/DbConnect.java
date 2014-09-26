@@ -1481,7 +1481,7 @@ public class DbConnect extends DbManager
   }
   
    public Employee getEmployee(String nauser, boolean upperCase) throws SQLException, ClassNotFoundException {
-      return getEmployee(nauser, true);
+      return getEmployee(nauser, true, 1);
   }
   
   public Employee getEmployee(String nauser, boolean upperCase, int daysTerminated) throws SQLException, ClassNotFoundException
