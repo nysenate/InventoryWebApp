@@ -1072,7 +1072,11 @@ public class DbConnect extends DbManager
 
   }
 
-  public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus)
+  public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus) {
+      return getEmployeeList(nalast, cdempstatus, 1);
+  }  
+  
+  public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus, int daysTerminated)
   {
     // if(nalast.isEmpty()||cdempstatus.isEmpty()){
     // throw new IllegalArgumentException("Invalid nalst or cdempstatus");    
@@ -1089,7 +1093,7 @@ public class DbConnect extends DbManager
       }
       String qry = "SELECT a.nuxrefem, a.nafirst, a.nalast, a.namidinit, a.nasuffix, a.naemail"
               + " FROM pm21personn a "
-              + " WHERE a.cdempstatus LIKE '" + cdempstatus + "'"
+              + " WHERE (a.cdempstatus LIKE '" + cdempstatus + "' OR dtperempto >= TRUNC(SYSDATE) - "+(daysTerminated-1)+" )"
               + "  AND a.nalast LIKE'" + nalast + "%'"
               + " AND a.naemail IS NOT null"
               + " ORDER BY  a.nalast||DECODE(a.nasuffix, NULL, NULL, ' '||a.nasuffix)||', '||a.nafirst||DECODE(a.namidinit, NULL, NULL, ' '||a.namidinit)";
@@ -1476,7 +1480,11 @@ public class DbConnect extends DbManager
       return getEmployee(nauser, true);
   }
   
-  public Employee getEmployee(String nauser, boolean upperCase) throws SQLException, ClassNotFoundException
+   public Employee getEmployee(String nauser, boolean upperCase) throws SQLException, ClassNotFoundException {
+      return getEmployee(nauser, true);
+  }
+  
+  public Employee getEmployee(String nauser, boolean upperCase, int daysTerminated) throws SQLException, ClassNotFoundException
   {
     Employee employee = new Employee();
 
@@ -1493,16 +1501,15 @@ public class DbConnect extends DbManager
           qry1 = "SELECT b.nuxrefem, b.nafirst, b.nalast, b.namidinit, b.nasuffix, b.naemail, SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) nauser\n"
               + " FROM  pm21personn b  "
               + " WHERE SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) = '" + nauser.toUpperCase() + "' "
-              + "   AND b.cdempstatus = 'A'"
+              + "   AND (b.cdempstatus = 'A' OR b.dtperempto > TRUNC(SYSDATE) - "+(daysTerminated-1)+") "
               + " ORDER BY DECODE( INSTR(b.naemail, '@'), -1, 1, 0)";
       }
       else {
           qry1 = "SELECT b.nuxrefem, b.ffnafirst, b.ffnalast, b.ffnamidinit, b.ffnasuffix, b.naemail, SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) nauser\n"
               + " FROM  pm21personn b  "
               + " WHERE SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) = '" + nauser.toUpperCase() + "' "
-              + "   AND b.cdempstatus = 'A'"
+              + "   AND (b.cdempstatus = 'A' OR b.dtperempto > TRUNC(SYSDATE) - "+(daysTerminated-1)+") "
               + " ORDER BY DECODE( INSTR(b.naemail, '@'), -1, 1, 0)";
-          
       }
 
       //System.out.println ("getEmployee qry1:"+qry1);
