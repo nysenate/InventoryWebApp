@@ -1,5 +1,6 @@
-package gov.nysenate.inventory.dao;
+package gov.nysenate.inventory.dao.removalrequest;
 
+import gov.nysenate.inventory.dao.base.DbManager;
 import gov.nysenate.inventory.model.Item;
 import gov.nysenate.inventory.model.RemovalRequest;
 import org.apache.commons.dbutils.QueryRunner;
@@ -11,11 +12,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class RemovalRequestDAO extends DbManager
 {

@@ -1,7 +1,7 @@
-package gov.nysenate.inventory.dao;
+package gov.nysenate.inventory.dao.item;
 
+import gov.nysenate.inventory.dao.base.DbManager;
 import gov.nysenate.inventory.model.AdjustCode;
-import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.log4j.Logger;

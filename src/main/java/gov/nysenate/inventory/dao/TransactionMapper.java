@@ -10,6 +10,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import gov.nysenate.inventory.dao.base.DbManager;
 import org.apache.log4j.Logger;
 
 import gov.nysenate.inventory.model.Location;

@@ -1,5 +1,6 @@
-package gov.nysenate.inventory.dao;
+package gov.nysenate.inventory.dao.location;
 
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.Location;
 import org.apache.commons.dbutils.DbUtils;
 

@@ -3,7 +3,7 @@ package gov.nysenate.inventory.server;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import gov.nysenate.inventory.dao.DbConnect;
-import gov.nysenate.inventory.dao.RemovalRequestService;
+import gov.nysenate.inventory.dao.removalrequest.RemovalRequestService;
 import gov.nysenate.inventory.model.Item;
 import gov.nysenate.inventory.model.ItemStatus;
 import gov.nysenate.inventory.model.RemovalRequest;

@@ -6,8 +6,7 @@ package gov.nysenate.inventory.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import gov.nysenate.inventory.dao.CommodityDAO;
-import gov.nysenate.inventory.dao.CommodityService;
+import gov.nysenate.inventory.dao.item.CommodityService;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.Commodity;
 import java.io.IOException;

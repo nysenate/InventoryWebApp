@@ -2,6 +2,7 @@ package gov.nysenate.inventory.dao;
 
 import java.security.InvalidParameterException;
 
+import gov.nysenate.inventory.dao.base.DbManager;
 import gov.nysenate.inventory.model.*;
 
 import java.awt.Color;

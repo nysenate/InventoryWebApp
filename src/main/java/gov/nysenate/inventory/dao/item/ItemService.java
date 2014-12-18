@@ -1,5 +1,7 @@
-package gov.nysenate.inventory.dao;
+package gov.nysenate.inventory.dao.item;
 
+import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.location.LocationService;
 import gov.nysenate.inventory.model.Commodity;
 import gov.nysenate.inventory.model.Item;
 import gov.nysenate.inventory.model.ItemStatus;

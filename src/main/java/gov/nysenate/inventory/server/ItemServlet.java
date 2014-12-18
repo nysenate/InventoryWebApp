@@ -2,7 +2,7 @@ package gov.nysenate.inventory.server;
 
 import com.google.gson.Gson;
 import gov.nysenate.inventory.dao.DbConnect;
-import gov.nysenate.inventory.dao.ItemService;
+import gov.nysenate.inventory.dao.item.ItemService;
 import gov.nysenate.inventory.model.Item;
 import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.http.HttpStatus;

@@ -1,4 +1,4 @@
-package gov.nysenate.inventory.dao;
+package gov.nysenate.inventory.dao.item;
 
 import gov.nysenate.inventory.model.Item;
 import org.apache.commons.dbutils.QueryRunner;

@@ -1,7 +1,7 @@
 package gov.nysenate.inventory.server;
 
 import com.google.gson.Gson;
-import gov.nysenate.inventory.dao.AdjustCodeService;
+import gov.nysenate.inventory.dao.item.AdjustCodeService;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.AdjustCode;
 import gov.nysenate.inventory.util.HttpUtils;

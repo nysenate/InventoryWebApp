@@ -1,5 +1,6 @@
-package gov.nysenate.inventory.dao;
+package gov.nysenate.inventory.dao.item;
 
+import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.AdjustCode;
 import org.apache.commons.dbutils.DbUtils;
 

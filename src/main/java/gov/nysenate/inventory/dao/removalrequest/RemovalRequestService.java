@@ -1,5 +1,8 @@
-package gov.nysenate.inventory.dao;
+package gov.nysenate.inventory.dao.removalrequest;
 
+import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.item.AdjustCodeService;
+import gov.nysenate.inventory.dao.item.ItemService;
 import gov.nysenate.inventory.model.Item;
 import gov.nysenate.inventory.model.ItemStatus;
 import gov.nysenate.inventory.model.RemovalRequest;
