@@ -1,7 +1,16 @@
 /setup/glassfish-resources.xml
-/src/main/resources/config.properties
-/test/
-/build/
-/target/
-/nbproject/
 /src/test/java/gov/nysenate/inventory/server/DbConnectTest.java
+
+build/
+target/
+
+*.class
+*.jar
+
+*.properties
+!*log4j.properties
+*.log
+
+# IntelliJ
+/.idea/workspace.xml
+/.idea/libraries
