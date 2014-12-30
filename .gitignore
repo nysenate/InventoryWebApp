@@ -12,5 +12,6 @@ target/
 *.log
 
 # IntelliJ
-/.idea/workspace.xml
-/.idea/libraries
+.idea/
+*.iml
+
