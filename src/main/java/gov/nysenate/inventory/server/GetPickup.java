@@ -31,7 +31,6 @@ public class GetPickup extends HttpServlet {
 
         int nuxrpd;
         Transaction pickup = null;
-        String userFallback = request.getParameter("userFallback");
         String nuxrpdString = request.getParameter("nuxrpd");
         log.info("Getting pickup for nuxrpd = " + nuxrpdString);
         if (nuxrpdString == null) {

@@ -23,7 +23,6 @@ public class HttpUtils {
     public static DbConnect getHttpSession(HttpServletRequest request, HttpServletResponse response, PrintWriter out, int noSessionStatus) {
         HttpSession httpSession = request.getSession(false);
         DbConnect db;
-        String userFallback = "";
         if (httpSession == null) {
             System.out.println("****SESSION NOT FOUND");
             db = new DbConnect(request);

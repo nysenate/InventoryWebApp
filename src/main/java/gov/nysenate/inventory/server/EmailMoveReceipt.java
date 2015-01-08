@@ -79,7 +79,6 @@ public class EmailMoveReceipt implements Runnable {
     private String username = null;
     private String password = null;
     private DbConnect db = null;
-    private String userFallback = null;
     final int PICKUP = -101, DELIVERY = -102;
     private Transaction pickup = null;
     private Transaction delivery = null;
@@ -167,7 +166,6 @@ public class EmailMoveReceipt implements Runnable {
                 this.username = username;
                 this.password = password;
                 this.pickup = trans;
-                userFallback = username; // userfallback is not really being used
 
                 if (this.paperworkType == null || this.paperworkType.trim().length() == 0 && this.pickup != null) {
                     this.paperworkType = this.pickup.getRemoteType();
@@ -185,7 +183,7 @@ public class EmailMoveReceipt implements Runnable {
                     int remoteVerEmpNuxrefem = trans.getEmployeeId();
                     if (remoteVerEmpNuxrefem > 0) {
                         String remoteVerEmpNuxrefemStr = new Integer(remoteVerEmpNuxrefem).toString();
-                        remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, false, userFallback);
+                        remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, false);
                         try {
                             remoteVerByEmployee.setEmployeeNameOrder(remoteVerByEmployee.FIRST_MI_LAST_SUFFIX);
                         } catch (Exception e) {
@@ -241,7 +239,6 @@ public class EmailMoveReceipt implements Runnable {
                     this.paperworkType = this.delivery.getRemoteType();
                 }
                 
-                userFallback = username; // userfallback is not really being used
                 // but it needs to be passed so it is being
                 // set to username (which should be set)
                 transTypeParam = "&p_transtype=DELIVERY";
@@ -254,7 +251,7 @@ public class EmailMoveReceipt implements Runnable {
                     int remoteVerEmpNuxrefem = trans.getEmployeeId();
                     if (remoteVerEmpNuxrefem > 0) {
                         String remoteVerEmpNuxrefemStr = new Integer(remoteVerEmpNuxrefem).toString();
-                        remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, false, userFallback);
+                        remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, false);
                         try {
                             remoteVerByEmployee.setEmployeeNameOrder(remoteVerByEmployee.FIRST_MI_LAST_SUFFIX);
                         } catch (Exception e) {
@@ -421,7 +418,7 @@ public class EmailMoveReceipt implements Runnable {
         }
 
         try {
-            pickupEmployee = db.getEmployee(pickup.getNapickupby(), false);
+            pickupEmployee = db.getEmployeeDaysTerminated(pickup.getNapickupby(), false);
             pickupEmployee.setEmployeeNameOrder(pickupEmployee.FIRST_MI_LAST_SUFFIX);
             this.napickupbyName = pickupEmployee.getEmployeeName().trim();
         } catch (SQLException sqle) {
@@ -438,7 +435,7 @@ public class EmailMoveReceipt implements Runnable {
             remoteUser = this.pickupEmployee;
         } else {
             try {
-                signingEmployee = db.getEmployeeWhoSigned(pickup.getNuxrrelsign(), false, userFallback);
+                signingEmployee = db.getEmployeeWhoSigned(pickup.getNuxrrelsign(), false);
                 signingEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
             } catch (Exception e) {
                 log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Pickup SigningEmployee");
@@ -479,7 +476,7 @@ public class EmailMoveReceipt implements Runnable {
             this.nadeliverbyName = "N/A";
 
             try {
-                pickupEmployee = db.getEmployee(delivery.getNapickupby(), false);
+                pickupEmployee = db.getEmployeeDaysTerminated(delivery.getNapickupby(), false);
                 pickupEmployee.setEmployeeNameOrder(pickupEmployee.FIRST_MI_LAST_SUFFIX);
                 this.napickupbyName = pickupEmployee.getEmployeeName().trim();
             } catch (SQLException sqle) {
@@ -493,7 +490,7 @@ public class EmailMoveReceipt implements Runnable {
         } else {
             try {
 
-                deliveryEmployee = db.getEmployee(delivery.getNadeliverby(), false);
+                deliveryEmployee = db.getEmployeeDaysTerminated(delivery.getNadeliverby(), false);
                 deliveryEmployee.setEmployeeNameOrder(deliveryEmployee.FIRST_MI_LAST_SUFFIX);
                 this.nadeliverbyName = deliveryEmployee.getEmployeeName().trim();
             } catch (SQLException sqle) {
@@ -515,7 +512,7 @@ public class EmailMoveReceipt implements Runnable {
             }
         } else {
             try {
-                signingEmployee = db.getEmployeeWhoSigned(delivery.getNuxraccptsign(), false, userFallback);
+                signingEmployee = db.getEmployeeWhoSigned(delivery.getNuxraccptsign(), false);
                 signingEmployee.setEmployeeNameOrder(signingEmployee.FIRST_MI_LAST_SUFFIX);
             } catch (Exception e) {
                 log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Delivery SigningEmployee");

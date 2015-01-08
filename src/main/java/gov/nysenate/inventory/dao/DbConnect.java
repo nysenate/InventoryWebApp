@@ -741,15 +741,15 @@ public class DbConnect extends DbManager
     return result;
   }
 
-  public int invTransit(Transaction pickup, String userFallback)
+  public int invTransit(Transaction pickup)
   {
-    return invTransit(pickup, userFallback, 0);
+    return invTransit(pickup, 0);
   }
 
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to start a new pickup-delivery
    *----------------------------------------------------------------------------------------------------*/
-  public int invTransit(Transaction pickup, String userFallback, int oldnuxrpd)
+  public int invTransit(Transaction pickup, int oldnuxrpd)
   {
     Statement stmt = null;
     ResultSet result = null;
@@ -945,7 +945,7 @@ public class DbConnect extends DbManager
    * ---------------Function to 
    *----------------------------------------------------------------------------------------------------*/
 
-  int invPickup(String originLocation, String destinationLocation, String[] barcodes, String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN, String userFallback)
+  int invPickup(String originLocation, String destinationLocation, String[] barcodes, String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN)
   {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
@@ -1135,7 +1135,7 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to confirm delivery i.e. updates the FD12Issue table and changes location-----
    *------------------------------------------------------------------------------------------------------*/
-  public int confirmDelivery(Transaction delivery, String userFallback)
+  public int confirmDelivery(Transaction delivery)
   {
 
     Statement stmt = null;
@@ -1207,12 +1207,12 @@ public class DbConnect extends DbManager
     return 0;
   }
   
-  public Employee getEmployeeWhoSigned(String nuxrsign, String userFallback)
+  public Employee getEmployeeWhoSigned(String nuxrsign)
   {
-    return getEmployeeWhoSigned(nuxrsign, true, userFallback);
+    return getEmployeeWhoSigned(nuxrsign, true);
   }
 
-  public Employee getEmployeeWhoSigned(String nuxrsign, boolean upperCase, String userFallback)
+  public Employee getEmployeeWhoSigned(String nuxrsign, boolean upperCase)
   {
     String nuxrefem = "";
     Statement stmt = null;
@@ -1240,15 +1240,15 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    return getEmployee(nuxrefem, upperCase, userFallback);
+    return getEmployee(nuxrefem, upperCase);
   }
 
-  public Employee getEmployee(String nuxrefem, String userFallback)
+  public Employee getEmployee(String nuxrefem)
   {
-    return getEmployee(nuxrefem, true, userFallback);
+    return getEmployee(nuxrefem, true);
   }
 
-  public Employee getEmployee(String nuxrefem, boolean upperCase, String userFallback)
+  public Employee getEmployee(String nuxrefem, boolean upperCase)
   {
     log.info("getEmployee() begin : nuxrefem= " + nuxrefem);
     if (nuxrefem.isEmpty() || nuxrefem == null) {
@@ -1299,7 +1299,7 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to create new delivery i.e. inserts new records into FM12InvInTrans-----
    *----------------------------------------------------------------------------------------------------*/
-  public int createNewPickup(Transaction delivery, String userFallback)
+  public int createNewPickup(Transaction delivery)
   {
     log.info("createNewDelivery() begin :");
 
@@ -1339,7 +1339,7 @@ public class DbConnect extends DbManager
       closeConnection(conn);
     }
     DbConnect db = new DbConnect(request);
-    db.invTransit(pickup, userFallback, delivery.getNuxrpd());
+    db.invTransit(pickup, delivery.getNuxrpd());
     log.info("createNewDelivery() end ");
     return 0;
   }
@@ -1477,15 +1477,15 @@ public class DbConnect extends DbManager
     //System.out.println ("DBCONNECT Location "+location.getCdlocat()+" SET: "+location.getAdstreet1());
   }
 
-  public Employee getEmployee(String nauser) throws SQLException, ClassNotFoundException {
-      return getEmployee(nauser, true);
+  public Employee getEmployeeDaysTerminated(String nauser) throws SQLException, ClassNotFoundException {
+      return getEmployeeDaysTerminated(nauser, true);
   }
-  
-   public Employee getEmployee(String nauser, boolean upperCase) throws SQLException, ClassNotFoundException {
-      return getEmployee(nauser, true, 1);
+
+   public Employee getEmployeeDaysTerminated(String nauser, boolean upperCase) throws SQLException, ClassNotFoundException {
+      return getEmployeeDaysTerminated(nauser, true, 1);
   }
-  
-  public Employee getEmployee(String nauser, boolean upperCase, int daysTerminated) throws SQLException, ClassNotFoundException
+
+  public Employee getEmployeeDaysTerminated(String nauser, boolean upperCase, int daysTerminated) throws SQLException, ClassNotFoundException
   {
     Employee employee = new Employee();
 
