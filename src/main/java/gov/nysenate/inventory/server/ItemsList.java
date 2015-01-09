@@ -12,6 +12,7 @@ import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 
 import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.model.VerList;
 import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;
 

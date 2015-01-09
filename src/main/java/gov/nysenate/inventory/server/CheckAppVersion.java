@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.JsonObject;
+import gov.nysenate.inventory.util.AndroidXMLDecompress;
 import org.apache.log4j.Logger;
 
 /**

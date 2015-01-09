@@ -30,8 +30,8 @@ import javax.imageio.ImageIO;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
-import gov.nysenate.inventory.server.PickupGroup;
-import gov.nysenate.inventory.server.VerList;
+import gov.nysenate.inventory.model.PickupGroup;
+import gov.nysenate.inventory.model.VerList;
 import oracle.sql.BLOB;
 
 import org.apache.log4j.Level;

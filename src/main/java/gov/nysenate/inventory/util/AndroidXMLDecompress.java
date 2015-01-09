@@ -2,16 +2,15 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package gov.nysenate.inventory.server;
+package gov.nysenate.inventory.util;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
  
-class AndroidXMLDecompress {
+public class AndroidXMLDecompress {
         // decompressXML -- Parse the 'compressed' binary form of Android XML docs
         // such as for AndroidManifest.xml in .apk files
         public static int endDocTag = 0x00100101;

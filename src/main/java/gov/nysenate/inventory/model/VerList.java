@@ -1,9 +1,5 @@
-package gov.nysenate.inventory.server;
+package gov.nysenate.inventory.model;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 /**
  *
  * @author Patil
