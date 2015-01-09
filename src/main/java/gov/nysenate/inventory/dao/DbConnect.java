@@ -1102,8 +1102,7 @@ public class DbConnect extends DbManager
       result = stmt.executeQuery(qry);
       while (result.next()) {
 
-        Employee employee = new Employee();
-        employee.setEmployeeData(result.getInt(1), result.getString(2), result.getString(3), result.getString(4), result.getString(5));
+        Employee employee = new Employee(result.getInt(1), result.getString(2), result.getString(3), result.getString(4), result.getString(5));
         if (emailIsValid(result.getString(6))) {
           employeeList.add(employee);
         }
@@ -1276,10 +1275,10 @@ public class DbConnect extends DbManager
 
       result = stmt.executeQuery(qry);
       while (result.next()) {
-        currentEmployee.setNafirst(result.getString(1), false);
-        currentEmployee.setNamidinit(result.getString(2), false);
-        currentEmployee.setNalast(result.getString(3), false);
-        currentEmployee.setNasuffix(result.getString(4), false);
+        currentEmployee.setNafirst(result.getString(1));
+        currentEmployee.setNamidinit(result.getString(2));
+        currentEmployee.setNalast(result.getString(3));
+        currentEmployee.setNasuffix(result.getString(4));
         currentEmployee.setNaemail(result.getString(5));
       }
     } catch (SQLException e) {
@@ -1517,7 +1516,7 @@ public class DbConnect extends DbManager
 
       res1 = stmt.executeQuery(qry1);
       while (res1.next()) {
-        employee.setEmployeeXref(res1.getInt(1));
+        employee.setNuxrefem(res1.getInt(1));
         employee.setNafirst(res1.getString(2));
         employee.setNalast(res1.getString(3));
         employee.setNamidinit(res1.getString(4));
@@ -1627,7 +1626,7 @@ public class DbConnect extends DbManager
       res1 = stmt.executeQuery(qry1);
       while (res1.next()) {
         Employee employee = new Employee();
-        employee.setEmployeeXref(res1.getInt(1));
+        employee.setNuxrefem(res1.getInt(1));
         employee.setNafirst(res1.getString(2));
         employee.setNalast(res1.getString(3));
         employee.setNamidinit(res1.getString(4));
@@ -1667,7 +1666,7 @@ public class DbConnect extends DbManager
       res1 = stmt.executeQuery(qry1);
       while (res1.next()) {
         Employee employee = new Employee();
-        employee.setEmployeeXref(res1.getInt(1));
+        employee.setNuxrefem(res1.getInt(1));
         employee.setNafirst(res1.getString(2));
         employee.setNalast(res1.getString(3));
         employee.setNamidinit(res1.getString(4));
