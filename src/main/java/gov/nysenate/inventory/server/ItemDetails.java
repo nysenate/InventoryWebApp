@@ -7,6 +7,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.util.HttpUtils;
@@ -25,8 +26,10 @@ public class ItemDetails extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+
         try {
-            DbConnect db = HttpUtils.getHttpSession(request, response, out);
             String barcode_num = request.getParameter("barcode_num");
             log.info("Getting item info for barcode = " + barcode_num);
 

@@ -17,6 +17,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
@@ -37,7 +38,8 @@ public class RemovalRequestServlet extends HttpServlet
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         PrintWriter out = response.getWriter();
-        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         if (request.getParameter("status") != null) {
             getRemovalRequestsByStatus(db, request, response, out);
@@ -114,7 +116,8 @@ public class RemovalRequestServlet extends HttpServlet
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         PrintWriter out = response.getWriter();
-        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
         String json = request.getParameter("RemovalRequest");
 
         RemovalRequest rr = null;

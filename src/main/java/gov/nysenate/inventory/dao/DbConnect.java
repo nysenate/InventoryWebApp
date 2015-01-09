@@ -54,13 +54,11 @@ import javax.servlet.http.HttpServletRequest;
 public class DbConnect extends DbManager
 {
 
-  public String clientIpAddr = "";
   public String serverIpAddr = "";
   public String serverName = "";
-  static Logger log = Logger.getLogger(DbConnect.class.getName());
-  static private Properties properties;
+  private static Logger log = Logger.getLogger(DbConnect.class.getName());
+  private static Properties properties;
   private String userName, password;
-  final int RELEASESIGNATURE = 3001, ACCEPTBYSIGNATURE = 3002;
   private String dbaName = "";
   private int passwordExpireWarning = 10;
   private InetAddress inetAddress;
@@ -71,7 +69,7 @@ public class DbConnect extends DbManager
     this.request = request;
     loadProperties();
     getServerAddress();
-    userName = properties.getProperty("user");
+    userName = properties.getProperty("user"); // this is bad? why would we want to do this?
     password = properties.getProperty("password");
   }
   

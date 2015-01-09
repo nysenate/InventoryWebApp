@@ -11,6 +11,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -27,8 +28,10 @@ public class GetDatabaseName extends HttpServlet
   {
     response.setContentType("text/html;charset=UTF-8");
     PrintWriter out = response.getWriter();
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+
         try {
-            DbConnect db = HttpUtils.getHttpSession(request, response, out);
             /*
              * Override the SC_SESSION_TIMEOUT since we do not want it to state
              * that the session timed out here. We don't care if it is timed out,

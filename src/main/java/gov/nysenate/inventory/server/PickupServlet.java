@@ -18,6 +18,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -36,10 +37,9 @@ public class PickupServlet extends HttpServlet
     
     Transaction pickup = new Transaction();
     String testingModeParam = null;
-    DbConnect db = null;
     PrintWriter out = response.getWriter();
-    db = HttpUtils.getHttpSession(request, response, out);
-
+      HttpSession session = request.getSession(false);
+      DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
     String pickupJson = request.getParameter("pickup");
     log.info("Attempting to complete pickup: " + pickupJson);
 

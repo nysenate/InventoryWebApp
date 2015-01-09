@@ -21,7 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.JsonObject;
-import gov.nysenate.inventory.dao.DbConnect;
 import org.apache.log4j.Logger;
 
 /**
@@ -126,8 +125,7 @@ public class CheckAppVersion extends HttpServlet {
        int fileSize = (int)f.length();
        f = null;
        System.gc();
-       DbConnect db = new DbConnect(this.request);
-               
+
        if (fileName.endsWith(".apk") || fileName.endsWith(".zip")) {
             try {
                 zip = new ZipFile(fileName);

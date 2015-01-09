@@ -12,6 +12,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;
@@ -29,10 +30,10 @@ public class EmployeeList extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        
-        try {
-            DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
+        try {
             String employeeName = request.getParameter("employeeName");
             String cdempstatus = request.getParameter("cdempstatus");
             // Only show Active Employees if no Employee Status is passed.

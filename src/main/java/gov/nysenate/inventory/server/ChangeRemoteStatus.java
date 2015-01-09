@@ -16,6 +16,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
 
@@ -37,7 +38,8 @@ public class ChangeRemoteStatus extends HttpServlet {
         PrintWriter out = response.getWriter();
         this.request = request;
         this.response = response;
-        db = HttpUtils.getHttpSession(request, response, out);
+        HttpSession session = request.getSession(false);
+        db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         String transJson = request.getParameter("trans");
         log.info("Updating remote status, pickup: " + transJson);

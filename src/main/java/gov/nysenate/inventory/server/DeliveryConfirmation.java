@@ -36,8 +36,8 @@ public class DeliveryConfirmation extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
 
-        db = HttpUtils.getHttpSession(request, response, out);
-        Transaction delivery = null;
+        HttpSession session = request.getSession(false);
+        db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));        Transaction delivery = null;
         try {
             String deliveryJson = request.getParameter("Delivery");
             log.info("Completing delivery: " + deliveryJson);

@@ -11,6 +11,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
 
@@ -22,8 +23,8 @@ public class GetEmployee extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("text/html;charset=UTF-8");
-        PrintWriter out = response.getWriter();
-        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         String[] empInfo = new String[3];
         String nalast = request.getParameter("nalast");
@@ -45,6 +46,8 @@ public class GetEmployee extends HttpServlet {
             log.error("Error getting oracle jdbc driver: ", e);
         }
         String json = ("{" + "\"nafirst\":" + empInfo[0] + "," + "\"nalast\":" + empInfo[1] + "," + "\"cdrespctrhd\":" + empInfo[2] + "}");
+
+        PrintWriter out = response.getWriter();
         out.print(json);
         log.info("Employee info = " + json);
         out.close();
