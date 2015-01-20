@@ -27,7 +27,7 @@ public class GetPickup extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
-        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         int nuxrpd;
         Transaction pickup = null;

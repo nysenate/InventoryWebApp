@@ -28,7 +28,7 @@ public class EnterRemoteInfo extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         PrintWriter out = response.getWriter();
         HttpSession session = request.getSession(false);
-        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         String transJson = request.getParameter("trans");
         log.info("Entering remote info for transaction: " + transJson);

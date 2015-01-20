@@ -30,30 +30,22 @@ import java.util.List;
 public class DbConnect extends DbManager
 {
 
-  private String serverIpAddr = "";
-  private String serverName = "";
   private static Logger log = Logger.getLogger(DbConnect.class.getName());
   private static Properties properties;
   private String userName, password;
   private String dbaName = "";
   private int passwordExpireWarning = 10;
-  private InetAddress inetAddress;
-  private HttpServletRequest request = null;
 
-  public DbConnect(HttpServletRequest request)
+  public DbConnect()
   {
-    this.request = request;
     loadProperties();
-    getServerAddress();
-    userName = properties.getProperty("user"); // this is bad? why would we want to do this?
+    userName = properties.getProperty("user");
     password = properties.getProperty("password");
   }
   
-  public DbConnect(HttpServletRequest request, String user, String pwd)
+  public DbConnect(String user, String pwd)
   {
-    this.request = request;
     loadProperties();
-    getServerAddress();
     userName = user;
     password = pwd;
   } 
@@ -71,44 +63,20 @@ public class DbConnect extends DbManager
     }
   }
 
-  /*
-   * Store serverIP address and name for easy access.
-   * Since DbConnect is used by all the servlets, the
-   * address is currently being pulled here. So once
-   * DbConnect is instansiated, the server IP Name/address 
-   * should be populated.
-   */
-  
-  private void getServerAddress()
-  {
-      this.serverIpAddr = "N/A";
-      this.serverName = "N/A";
-      try {
-          inetAddress = InetAddress.getLocalHost();
-          this.serverIpAddr = inetAddress.getHostAddress();
-          if (this.request == null) {
-            this.serverName = inetAddress.getHostName();
-            //log.info("!!TEST: SERVERNAME OBTAINED FROM inetAddress:"+this.serverName);
-          }
-          else {
-            this.serverName = request.getServerName();
-            //log.info("!!TEST: SERVERNAME OBTAINED FROM REQUEST:"+this.serverName+" (inetAddress Server Name:"+inetAddress.getHostName()+")");
-          }
-
-          if (this.serverName!=null) {
-              int firstPeriod = this.serverName.indexOf(".");
-              if (firstPeriod>-1) {
-                  this.serverName = this.serverName.substring(0,firstPeriod);
-              }
-          }
-      } catch (UnknownHostException ex) {
-          log.warn(null, ex);
-      } catch (Exception ex) {
-           log.warn(null, ex);
-       }
-      
+  public String getServerIpAddr() {
+    try {
+      return InetAddress.getLocalHost().getHostAddress();
+    } catch (UnknownHostException e) {
+      log.error("Error getting local host", e);
+    }
+    return "N/A";
   }
-  
+
+  public String getServerName(HttpServletRequest request) {
+    String serverName = request.getServerName();
+    return serverName.contains(".") ? serverName.substring(0, serverName.indexOf(".")) : serverName;
+  }
+
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Main function for testing other functions
    *----------------------------------------------------------------------------------------------------*/
@@ -1311,8 +1279,7 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    DbConnect db = new DbConnect(request);
-    db.invTransit(pickup, delivery.getNuxrpd());
+    invTransit(pickup, delivery.getNuxrpd());
     log.info("createNewDelivery() end ");
     return 0;
   }
@@ -1868,12 +1835,4 @@ public class DbConnect extends DbManager
 
         return deshiptyp;
     }
-
-  public String getServerIpAddr() {
-    return serverIpAddr;
-  }
-
-  public String getServerName() {
-    return serverName;
-  }
 }

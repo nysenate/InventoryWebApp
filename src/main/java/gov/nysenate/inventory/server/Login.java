@@ -34,7 +34,7 @@ public class Login extends HttpServlet {
 
             log.info("User " + user + "is attempting to log in");
 
-            DbConnect db = new DbConnect(request, user, pwd);
+            DbConnect db = new DbConnect(user, pwd);
             String defrmint = request.getParameter("defrmint");
 
             HttpSession httpSession = request.getSession(true);

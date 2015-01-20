@@ -29,7 +29,7 @@ public class GetAllPickups extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         PrintWriter out = response.getWriter();
         HttpSession session = request.getSession(false);
-        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
         log.info("Getting info for all pickups");
 
         boolean wantIncompleteRemotes = false;

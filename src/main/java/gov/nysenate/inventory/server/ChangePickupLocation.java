@@ -7,7 +7,6 @@ import gov.nysenate.inventory.util.HandleEmails;
 import gov.nysenate.inventory.util.HttpUtils;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.SQLException;
 
 import javax.servlet.annotation.WebServlet;
@@ -26,7 +25,7 @@ public class ChangePickupLocation extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
-        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         String nuxrpdStr = request.getParameter("nuxrpd");
         String cdLoc = request.getParameter("cdloc");

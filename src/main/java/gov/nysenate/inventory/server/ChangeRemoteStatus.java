@@ -39,7 +39,7 @@ public class ChangeRemoteStatus extends HttpServlet {
         this.request = request;
         this.response = response;
         HttpSession session = request.getSession(false);
-        db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+        db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         String transJson = request.getParameter("trans");
         log.info("Updating remote status, pickup: " + transJson);

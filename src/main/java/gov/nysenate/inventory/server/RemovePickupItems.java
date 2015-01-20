@@ -7,7 +7,6 @@ import gov.nysenate.inventory.util.HandleEmails;
 import gov.nysenate.inventory.util.HttpUtils;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -28,7 +27,7 @@ public class RemovePickupItems extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
-        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         String nuxrpdString = request.getParameter("nuxrpd");
         String[] items = request.getParameterValues("items[]");

@@ -30,7 +30,7 @@ public class ChangePassword extends HttpServlet
         PrintWriter out = response.getWriter();
 
         HttpSession session = request.getSession(false);
-        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         try {
             String name = request.getMethod().toString();

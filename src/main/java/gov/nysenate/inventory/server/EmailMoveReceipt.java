@@ -158,7 +158,7 @@ public class EmailMoveReceipt implements Runnable {
                 // set to username (which should be set)
                 attachmentPart = null;
                 transTypeParam = "&p_transtype=PICKUP";
-                db = new DbConnect(request, username, password);
+                db = new DbConnect(username, password);
 
                 this.serverInfo = "";
                 this.subjectAddText = "";
@@ -171,7 +171,7 @@ public class EmailMoveReceipt implements Runnable {
                     }
                 }
 
-                if (db.getServerName().toUpperCase().contains("PROD")) {
+                if (db.getServerName(this.request).toUpperCase().contains("PROD")) {
                     if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
                         this.subjectAddText = " (REMOTE)";
                     } else {
@@ -180,11 +180,11 @@ public class EmailMoveReceipt implements Runnable {
                     this.serverInfo = "";
                 } else {
                     if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
-                        this.subjectAddText = " (REMOTE) (" + db.getServerName() + ")";
+                        this.subjectAddText = " (REMOTE) (" + db.getServerName(this.request) + ")";
                     } else {
-                        this.subjectAddText = " (" + db.getServerName() + ")";
+                        this.subjectAddText = " (" + db.getServerName(this.request) + ")";
                     }
-                    this.serverInfo = "<b>SERVER: " + db.getServerName() + " (" + db.getServerIpAddr() + ")</b><br/><br/><br/>";
+                    this.serverInfo = "<b>SERVER: " + db.getServerName(this.request) + " (" + db.getServerIpAddr() + ")</b><br/><br/><br/>";
                 }
 
                 properties = new Properties();
@@ -222,7 +222,7 @@ public class EmailMoveReceipt implements Runnable {
                 // set to username (which should be set)
                 transTypeParam = "&p_transtype=DELIVERY";
                 attachmentPart = null;
-                db = new DbConnect(request, username, password);
+                db = new DbConnect(username, password);
                 this.serverInfo = "";
                 this.subjectAddText = "";
 
@@ -260,7 +260,7 @@ public class EmailMoveReceipt implements Runnable {
                     }
                 }
 
-                if (db.getServerName().toUpperCase().contains("PROD")) {
+                if (db.getServerName(this.request).toUpperCase().contains("PROD")) {
                     if (this.paperworkType.equalsIgnoreCase("RDL")) {
                         this.subjectAddText = " (REMOTE)";
                     } else {
@@ -269,11 +269,11 @@ public class EmailMoveReceipt implements Runnable {
                     this.serverInfo = "";
                 } else {
                     if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
-                        this.subjectAddText = " (REMOTE) (" + db.getServerName() + ")";
+                        this.subjectAddText = " (REMOTE) (" + db.getServerName(this.request) + ")";
                     } else {
-                        this.subjectAddText = " (" + db.getServerName() + ")";
+                        this.subjectAddText = " (" + db.getServerName(this.request) + ")";
                     }
-                    this.serverInfo = "<b>SERVER: " + db.getServerName() + " (" + db.getServerIpAddr() + ")</b><br/><br/><br/>";
+                    this.serverInfo = "<b>SERVER: " + db.getServerName(this.request) + " (" + db.getServerIpAddr() + ")</b><br/><br/><br/>";
                 }
                 System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
                 properties = new Properties();

@@ -39,7 +39,7 @@ public class CommodityList extends HttpServlet
         PrintWriter out = response.getWriter();
 
         HttpSession session = request.getSession(false);
-        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         try {
             Gson gson = new GsonBuilder().create();

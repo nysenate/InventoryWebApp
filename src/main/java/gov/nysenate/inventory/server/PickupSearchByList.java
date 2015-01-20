@@ -4,21 +4,20 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.SimpleListItem;
+import gov.nysenate.inventory.util.HttpUtils;
+import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import gov.nysenate.inventory.util.HttpUtils;
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *
@@ -36,7 +35,7 @@ public class PickupSearchByList extends HttpServlet
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         HttpSession session = request.getSession(false);
-        DbConnect db = new DbConnect(request, HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         try {
             Gson gson = new GsonBuilder()

@@ -46,7 +46,7 @@ public class LogFilter implements Filter {
     }
 
     private void putServerName() {
-        String server = new DbConnect(null).getDatabaseName();
+        String server = new DbConnect().getDatabaseName();
         String[] array = server.split(":");
         MDC.put("server", array[array.length - 1]);
     }
