@@ -5,26 +5,26 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.TransactionMapper;
 import gov.nysenate.inventory.exception.BlankMessageException;
 import gov.nysenate.inventory.exception.InvalidParameterException;
 import gov.nysenate.inventory.exception.ParameterNotUsedException;
-import gov.nysenate.inventory.model.EmailData;
-import gov.nysenate.inventory.model.Employee;
 import gov.nysenate.inventory.exception.ReportNotGeneratedException;
-import gov.nysenate.inventory.model.Transaction;
+import gov.nysenate.inventory.model.EmailData;
 import gov.nysenate.inventory.model.EmailRecord;
+import gov.nysenate.inventory.model.Employee;
+import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.EmailValidator;
 import gov.nysenate.inventory.util.InvUtil;
-import gov.nysenate.inventory.dao.TransactionMapper;
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.mail.*;
+import javax.mail.internet.*;
+import javax.servlet.http.HttpServletRequest;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
@@ -32,22 +32,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Properties;
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -187,7 +171,7 @@ public class EmailMoveReceipt implements Runnable {
                     }
                 }
 
-                if (db.serverName.toUpperCase().contains("PROD")) {
+                if (db.getServerName().toUpperCase().contains("PROD")) {
                     if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
                         this.subjectAddText = " (REMOTE)";
                     } else {
@@ -196,11 +180,11 @@ public class EmailMoveReceipt implements Runnable {
                     this.serverInfo = "";
                 } else {
                     if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
-                        this.subjectAddText = " (REMOTE) (" + db.serverName + ")";
+                        this.subjectAddText = " (REMOTE) (" + db.getServerName() + ")";
                     } else {
-                        this.subjectAddText = " (" + db.serverName + ")";
+                        this.subjectAddText = " (" + db.getServerName() + ")";
                     }
-                    this.serverInfo = "<b>SERVER: " + db.serverName + " (" + db.serverIpAddr + ")</b><br/><br/><br/>";
+                    this.serverInfo = "<b>SERVER: " + db.getServerName() + " (" + db.getServerIpAddr() + ")</b><br/><br/><br/>";
                 }
 
                 properties = new Properties();
@@ -276,7 +260,7 @@ public class EmailMoveReceipt implements Runnable {
                     }
                 }
 
-                if (db.serverName.toUpperCase().contains("PROD")) {
+                if (db.getServerName().toUpperCase().contains("PROD")) {
                     if (this.paperworkType.equalsIgnoreCase("RDL")) {
                         this.subjectAddText = " (REMOTE)";
                     } else {
@@ -285,11 +269,11 @@ public class EmailMoveReceipt implements Runnable {
                     this.serverInfo = "";
                 } else {
                     if (this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
-                        this.subjectAddText = " (REMOTE) (" + db.serverName + ")";
+                        this.subjectAddText = " (REMOTE) (" + db.getServerName() + ")";
                     } else {
-                        this.subjectAddText = " (" + db.serverName + ")";
+                        this.subjectAddText = " (" + db.getServerName() + ")";
                     }
-                    this.serverInfo = "<b>SERVER: " + db.serverName + " (" + db.serverIpAddr + ")</b><br/><br/><br/>";
+                    this.serverInfo = "<b>SERVER: " + db.getServerName() + " (" + db.getServerIpAddr() + ")</b><br/><br/><br/>";
                 }
                 System.setProperty("java.net.preferIPv4Stack", "true");   // added for test purposes only
                 properties = new Properties();
