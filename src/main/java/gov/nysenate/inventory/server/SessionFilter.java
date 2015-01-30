@@ -39,7 +39,6 @@ public class SessionFilter implements Filter {
             HttpSession session = request.getSession(false);
             if (session == null) {
                 PrintWriter out = response.getWriter();
-                out.println("Session timed out");
                 response.setStatus(HttpUtils.SC_SESSION_TIMEOUT); // TODO: convert to this instead of "Session timed out" string.
                 log.info("Invalid or expired session.");
                 return;
