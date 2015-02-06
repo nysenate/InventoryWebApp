@@ -4,25 +4,19 @@
  */
 package gov.nysenate.inventory.server;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.util.Properties;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import com.google.gson.JsonObject;
+import gov.nysenate.inventory.util.AndroidXMLDecompress;
+import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.google.gson.JsonObject;
-import gov.nysenate.inventory.util.AndroidXMLDecompress;
-import org.apache.log4j.Logger;
+import java.io.*;
+import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  *
@@ -31,15 +25,13 @@ import org.apache.log4j.Logger;
 @WebServlet(name = "CheckAppVersion", urlPatterns = {"/CheckAppVersion"})
 public class CheckAppVersion extends HttpServlet {
     
-    String serverOS = "Windows"; // Default to Windows OS
-    String pathDelimeter = "\\"; 
-    private HttpServletRequest request = null;
-    
+    private String serverOS = "Windows"; // Default to Windows OS
+    private String pathDelimeter = "\\";
+
     private static final Logger log = Logger.getLogger(CheckAppVersion.class.getName());
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        this.request = request;
         serverOS = System.getProperty("os.name");
         if (serverOS.toUpperCase().indexOf("WINDOWS")==-1) {
             pathDelimeter = "/";
