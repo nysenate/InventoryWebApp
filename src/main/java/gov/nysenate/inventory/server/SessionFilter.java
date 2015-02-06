@@ -1,20 +1,15 @@
 package gov.nysenate.inventory.server;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import gov.nysenate.inventory.util.HttpUtils;
+import org.apache.log4j.Logger;
+
+import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import gov.nysenate.inventory.util.HttpUtils;
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  *
@@ -39,6 +34,7 @@ public class SessionFilter implements Filter {
             HttpSession session = request.getSession(false);
             if (session == null) {
                 PrintWriter out = response.getWriter();
+                out.println("Session timed out");
                 response.setStatus(HttpUtils.SC_SESSION_TIMEOUT); // TODO: convert to this instead of "Session timed out" string.
                 log.info("Invalid or expired session.");
                 return;
