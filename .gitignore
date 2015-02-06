@@ -8,7 +8,6 @@ target/
 *.jar
 
 *.properties
-!*log4j.properties
 *.log
 
 # IntelliJ

@@ -1,7 +1,7 @@
-log4j.rootLogger=debug, filer
+log4j.rootLogger=info, filer
 log4j.appender.filer=org.apache.log4j.RollingFileAppender
 log4j.appender.filer.layout=org.apache.log4j.PatternLayout
 log4j.appender.filer.layout.ConversionPattern=%d{dd MMM yyyy HH:mm:ss,SSS}|[%t]|%X{server}|%5p|%c{1}|%L|%X{ipAddress}|%X{userName}|%m|%n |
 log4j.appender.filer.File= ${catalina.base}/logs/InventoryWebApp.log
-log4j.appender.filer.MaxFileSize=100MB
+log4j.appender.filer.MaxFileSize=25MB
 log4j.appender.filer.MaxBackupIndex=4
