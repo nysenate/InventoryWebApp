@@ -6,7 +6,7 @@ import gov.nysenate.inventory.dao.TransactionMapper;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HandleEmails;
 import gov.nysenate.inventory.util.HttpUtils;
-import gov.nysenate.inventory.util.TransactionParser;
+import gov.nysenate.inventory.util.Serializer;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
@@ -43,7 +43,7 @@ public class PickupServlet extends HttpServlet
     log.info("Attempting to complete pickup: " + pickupJson);
 
     try {
-        pickup = TransactionParser.parseTransaction(pickupJson);
+        pickup = Serializer.deserialize(pickupJson, Transaction.class).get(0);
         db.setLocationInfo(pickup.getOrigin());
     } catch (SQLException | ClassNotFoundException ex) {
         log.error(ex.getMessage(), ex);

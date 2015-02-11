@@ -1,10 +1,7 @@
 package gov.nysenate.inventory.util;
 
 import com.google.gson.Gson;
-import gov.nysenate.inventory.model.Commodity;
-import gov.nysenate.inventory.model.Item;
-import gov.nysenate.inventory.model.ItemStatus;
-import gov.nysenate.inventory.model.Location;
+import gov.nysenate.inventory.model.*;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -24,7 +21,8 @@ public class ItemParserTest
         expected.setStatus(ItemStatus.IN_TRANSIT);
 
         String json = new Gson().toJson(expected);
-        Item actual = ItemParser.parseItem(json);
+        Item actual = Serializer.deserialize(json, Item.class).get(0);
+
 
         assertEquals(1, actual.getId());
         assertEquals("123456", actual.getBarcode());
@@ -41,7 +39,7 @@ public class ItemParserTest
         expectedItems.add(new Item(2831, "8271"));
 
         String json = new Gson().toJson(expectedItems);
-        List<Item> actualItems = ItemParser.parseItems(json);
+        List<Item> actualItems = Serializer.deserialize(json, Item.class);
 
         assertEquals(expectedItems.size(), actualItems.size());
         assertEquals(expectedItems.get(2).getId(), actualItems.get(2).getId());

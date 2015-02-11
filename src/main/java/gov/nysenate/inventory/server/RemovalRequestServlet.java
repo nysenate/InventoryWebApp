@@ -8,7 +8,7 @@ import gov.nysenate.inventory.model.Item;
 import gov.nysenate.inventory.model.ItemStatus;
 import gov.nysenate.inventory.model.RemovalRequest;
 import gov.nysenate.inventory.util.HttpUtils;
-import gov.nysenate.inventory.util.RemovalRequestParser;
+import gov.nysenate.inventory.util.Serializer;
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 
@@ -122,7 +122,7 @@ public class RemovalRequestServlet extends HttpServlet
 
         RemovalRequest rr = null;
         try {
-            rr = RemovalRequestParser.parseRemovalRequest(json);
+            rr = Serializer.deserialize(json, RemovalRequest.class).get(0);
         } catch (JsonParseException e) {
             response.setStatus(HttpStatus.SC_BAD_REQUEST);
             log.error("Removal Reqeust json was invalid: " + json);

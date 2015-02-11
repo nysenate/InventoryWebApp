@@ -22,7 +22,7 @@ public class RemovalRequestParserTest
         RemovalRequest rr = new RemovalRequest("TestUser", expectedDate);
 
         String json = new Gson().toJson(rr);
-        rr = RemovalRequestParser.parseRemovalRequest(json);
+        rr = Serializer.deserialize(json, RemovalRequest.class).get(0);
 
         assertEquals("TestUser", rr.getEmployee());
         assertEquals(expectedDate.toString(), rr.getDate().toString());
@@ -41,7 +41,7 @@ public class RemovalRequestParserTest
         rr.setTransactionNum(expectedTransactionNum);
 
         json = new Gson().toJson(rr);
-        rr = RemovalRequestParser.parseRemovalRequest(json);
+        rr = Serializer.deserialize(json, RemovalRequest.class).get(0);
 
         assertEquals(expectedItems.get(0).getId(), rr.getItems().get(0).getId());
         assertEquals(expectedItems.get(0).getBarcode(), rr.getItems().get(0).getBarcode());

@@ -2,22 +2,20 @@ package gov.nysenate.inventory.server;
 
 import com.google.gson.JsonSyntaxException;
 import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.TransactionMapper;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
-import gov.nysenate.inventory.dao.TransactionMapper;
-import gov.nysenate.inventory.util.TransactionParser;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.SQLException;
+import gov.nysenate.inventory.util.Serializer;
+import org.apache.log4j.Logger;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.SQLException;
 
 @WebServlet(name = "EnterRemoteInfo", urlPatterns = { "/EnterRemoteInfo" })
 public class EnterRemoteInfo extends HttpServlet {
@@ -42,7 +40,7 @@ public class EnterRemoteInfo extends HttpServlet {
         }
 
         try {
-            trans = TransactionParser.parseTransaction(transJson);
+            trans = Serializer.deserialize(transJson, Transaction.class).get(0);
             mapper.insertRemoteInfo(db, trans);
             HttpSession httpSession = request.getSession(false);
             String user = (String) httpSession.getAttribute("user");

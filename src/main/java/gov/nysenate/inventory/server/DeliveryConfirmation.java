@@ -2,15 +2,12 @@ package gov.nysenate.inventory.server;
 
 import com.google.gson.JsonSyntaxException;
 import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.TransactionMapper;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HandleEmails;
 import gov.nysenate.inventory.util.HttpUtils;
-import gov.nysenate.inventory.dao.TransactionMapper;
-import gov.nysenate.inventory.util.TransactionParser;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.SQLException;
+import gov.nysenate.inventory.util.Serializer;
+import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -18,8 +15,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.SQLException;
 
 /**
  *
@@ -37,13 +35,14 @@ public class DeliveryConfirmation extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         HttpSession session = request.getSession(false);
-        db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));        Transaction delivery = null;
+        db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+        Transaction delivery = null;
         try {
             String deliveryJson = request.getParameter("Delivery");
             log.info("Completing delivery: " + deliveryJson);
             TransactionMapper mapper = new TransactionMapper();
             try {
-                delivery = TransactionParser.parseTransaction(deliveryJson);
+                delivery = Serializer.deserialize(deliveryJson, Transaction.class).get(0);
                 String cdshiptyp = delivery.getShipType();
                 if ((cdshiptyp != null && cdshiptyp.trim().length() > 0)
                         || (delivery.getShipTypeDesc() == null || delivery.getShipTypeDesc().trim().length() == 0)) {
