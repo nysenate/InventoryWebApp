@@ -1,23 +1,20 @@
 package gov.nysenate.inventory.server;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.InvItem;
 import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.Serializer;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
 
 /**
  *
@@ -38,21 +35,9 @@ public class VerificationReports extends HttpServlet {
         try {
             String cdlocat = request.getParameter("cdlocat");
             String scannedItems = request.getParameter("scannedItems");
+            
+            List<InvItem> invItems = Serializer.deserialize(scannedItems, InvItem.class);
 
-            JsonParser parser = new JsonParser();
-            JsonArray jsonArray = (JsonArray)parser.parse(scannedItems);
-            
-            ArrayList<InvItem> invItems = new ArrayList<InvItem>();
-            
-            for (int x=0;x<jsonArray.size();x++) {
-              //JsonObject o = (JsonObject) jsonArray.get(x);
-
-              JsonElement json2 = jsonArray.get(x);
-              Gson gson = new Gson();
-              InvItem invItem = gson.fromJson(json2, InvItem.class); 
-              invItems.add(invItem);
-            }
-            
 /*            for (int x=0;x<invItems.size();x++) {
               InvItem invItem = invItems.get(x);
               System.out.println(x+": CDLOCAT:"+invItem.getCdlocat()+", NUSENATE:"+invItem.getNusenate()+", CDCOMMODITY:"+invItem.getCdcommodity());

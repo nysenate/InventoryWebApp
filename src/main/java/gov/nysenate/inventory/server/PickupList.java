@@ -1,24 +1,23 @@
 package gov.nysenate.inventory.server;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.model.PickupGroup;
+import gov.nysenate.inventory.model.SimpleListItem;
+import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.Serializer;
+import org.apache.log4j.Logger;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.google.gson.Gson;
-import gov.nysenate.inventory.dao.DbConnect;
-import gov.nysenate.inventory.model.PickupGroup;
-import gov.nysenate.inventory.model.SimpleListItem;
-
-import gov.nysenate.inventory.util.HttpUtils;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -62,7 +61,7 @@ public class PickupList extends HttpServlet {
            
             List<PickupGroup> pickupList = Collections.synchronizedList(new ArrayList<PickupGroup>());
             pickupList = db.getPickupList(searchBy);
-            String json = new Gson().toJson(pickupList);
+            String json = Serializer.serialize(pickupList);
             log.info("Pickup list info = " + json);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");

@@ -1,21 +1,20 @@
 package gov.nysenate.inventory.server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
+import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.model.InvItem;
+import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.Serializer;
+import org.apache.log4j.Logger;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import gov.nysenate.inventory.dao.DbConnect;
-import gov.nysenate.inventory.model.InvItem;
-import gov.nysenate.inventory.util.HttpUtils;
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 
 /**
  *
@@ -38,10 +37,9 @@ public class DeliveryDetails extends HttpServlet {
             log.info("Getting delivery info for nuxrpd = " + nuxrpd);
 
             ArrayList<InvItem> deliveryDetails = new ArrayList<InvItem>();
-            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
             deliveryDetails = db.getDeliveryDetails(nuxrpd);
-            String json = gson.toJson(deliveryDetails);
+            String json = Serializer.serialize(deliveryDetails);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             out.print(json);

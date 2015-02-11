@@ -1,23 +1,20 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.TransactionMapper;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
-import gov.nysenate.inventory.dao.TransactionMapper;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.SQLException;
+import gov.nysenate.inventory.util.Serializer;
+import org.apache.log4j.Logger;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import org.apache.log4j.Logger;
-
-import com.google.gson.Gson;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.SQLException;
 
 @WebServlet(name = "GetPickup", urlPatterns = { "/GetPickup" })
 public class GetPickup extends HttpServlet {
@@ -57,7 +54,7 @@ public class GetPickup extends HttpServlet {
             return;
         }
 
-        String json = new Gson().toJson(pickup);
+        String json = Serializer.serialize(pickup);
         log.info("Pickup info received: " + json);
         PrintWriter out = response.getWriter();
         out.print(json);

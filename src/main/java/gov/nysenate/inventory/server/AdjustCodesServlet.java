@@ -1,10 +1,10 @@
 package gov.nysenate.inventory.server;
 
-import com.google.gson.Gson;
-import gov.nysenate.inventory.dao.item.AdjustCodeService;
 import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.item.AdjustCodeService;
 import gov.nysenate.inventory.model.AdjustCode;
 import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.Serializer;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
@@ -38,7 +38,7 @@ public class AdjustCodesServlet extends HttpServlet
         }
 
         PrintWriter out = response.getWriter();
-        out.print(new Gson().toJson(adjustCodes));
+        out.print(Serializer.serialize(adjustCodes));
         out.close();
     }
 

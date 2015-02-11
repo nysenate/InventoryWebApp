@@ -1,21 +1,20 @@
 package gov.nysenate.inventory.server;
 
-import com.google.gson.Gson;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.Location;
 import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.Serializer;
+import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 
 /**
  *
@@ -40,7 +39,7 @@ public class LocCodeList extends HttpServlet {
 
             log.info("Received info for " + locations.size() + " locations");
 
-            String json = new Gson().toJson(locations);
+            String json = Serializer.serialize(locations);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             out.write(json);

@@ -1,10 +1,10 @@
 package gov.nysenate.inventory.server;
 
-import com.google.gson.Gson;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.dao.item.ItemService;
 import gov.nysenate.inventory.model.Item;
 import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.Serializer;
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 
@@ -33,7 +33,7 @@ public class ItemServlet extends HttpServlet
         ItemService service = new ItemService();
         try {
             Item item = service.getItemByBarcode(db, barcode);
-            out.write(new Gson().toJson(item));
+            out.write(Serializer.serialize(item));
         } catch (SQLException | ClassNotFoundException e) {
             log.error(e.getMessage(), e);
             response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);

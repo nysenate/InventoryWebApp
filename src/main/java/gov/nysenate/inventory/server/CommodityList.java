@@ -4,24 +4,23 @@
  */
 package gov.nysenate.inventory.server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import gov.nysenate.inventory.dao.item.CommodityService;
 import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.item.CommodityService;
 import gov.nysenate.inventory.model.Commodity;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.SQLException;
-import java.util.List;
+import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.Serializer;
+import org.apache.log4j.Logger;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import gov.nysenate.inventory.util.HttpUtils;
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  *
@@ -42,7 +41,6 @@ public class CommodityList extends HttpServlet
         DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         try {
-            Gson gson = new GsonBuilder().create();
             String keywords = request.getParameter("keywords");
             log.info("Get commodity info for keywords: " + keywords);
 
@@ -52,7 +50,7 @@ public class CommodityList extends HttpServlet
             List<Commodity> commodityResults = service.getCommoditiesByKeywords(db, keywords.trim());
 
             log.info("Commodity results size = " + commodityResults.size());
-            String json = gson.toJson(commodityResults);
+            String json = Serializer.serialize(commodityResults);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             out.print(json);

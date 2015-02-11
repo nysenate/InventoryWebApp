@@ -591,12 +591,7 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to insert items found at given location(barcodes) for verification
    *----------------------------------------------------------------------------------------------------*/
-  public int setBarcodesInDatabase(String cdlocat, ArrayList<InvItem> invItems)
-  {
-    return setBarcodesInDatabase(cdlocat, null, invItems);
-  }
-
-  public int setBarcodesInDatabase(String cdlocat, String cdloctype, ArrayList<InvItem> invItems)
+  public int setBarcodesInDatabase(String cdlocat, String cdloctype, List<InvItem> invItems)
   {
     if (cdlocat.isEmpty() || invItems == null) {
       throw new IllegalArgumentException("Invalid location Code");

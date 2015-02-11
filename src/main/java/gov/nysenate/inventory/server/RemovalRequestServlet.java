@@ -1,6 +1,5 @@
 package gov.nysenate.inventory.server;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.dao.removalrequest.RemovalRequestService;
@@ -62,7 +61,7 @@ public class RemovalRequestServlet extends HttpServlet
             log.error(e.getMessage(), e);
             response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
-        out.write(new Gson().toJson(rrs));
+        out.write(Serializer.serialize(rrs));
     }
 
     private List<RemovalRequest> getRemovalRequests(String status, String user, DbConnect db) throws SQLException, ClassNotFoundException {
@@ -106,7 +105,7 @@ public class RemovalRequestServlet extends HttpServlet
             response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
 
-        out.write(new Gson().toJson(rr));
+        out.write(Serializer.serialize(rr));
     }
 
 
@@ -143,7 +142,7 @@ public class RemovalRequestServlet extends HttpServlet
             log.error(e.getMessage(), e);
         }
 
-        out.write(new Gson().toJson(rr));
+        out.write(Serializer.serialize(rr));
     }
 
     private boolean allItemsDeleted(RemovalRequest rr) {

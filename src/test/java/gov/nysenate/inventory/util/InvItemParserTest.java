@@ -1,6 +1,5 @@
 package gov.nysenate.inventory.util;
 
-import com.google.gson.Gson;
 import gov.nysenate.inventory.model.InvItem;
 import org.junit.Test;
 
@@ -12,12 +11,12 @@ public class InvItemParserTest
 {
     @Test
     public void correctlyParsesJson() {
-        Gson gson = new Gson();
         InvItem expected = new InvItem();
         expected.setNusenate("123456");
         expected.setCdlocat("Albany");
 
-        List<InvItem> actual = Serializer.deserialize(gson.toJson(expected), InvItem.class);
+        String json = Serializer.serialize(expected);
+        List<InvItem> actual = Serializer.deserialize(json, InvItem.class);
         assertEquals(actual.get(0).getNusenate(), "123456");
         assertEquals(actual.get(0).getCdlocat(), "Albany");
     }

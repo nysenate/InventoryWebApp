@@ -1,10 +1,9 @@
 package gov.nysenate.inventory.server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.SimpleListItem;
 import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.Serializer;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
@@ -38,9 +37,6 @@ public class PickupSearchByList extends HttpServlet
         DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         try {
-            Gson gson = new GsonBuilder()
-                  .excludeFieldsWithoutExposeAnnotation()
-                  .create();                 
             String natype;
             try {
                 natype = request.getParameter("NATYPE");
@@ -58,15 +54,15 @@ public class PickupSearchByList extends HttpServlet
 
             log.info("Getting pickup search by list where natype = " + natype);
 
-            List<SimpleListItem> PickupSearchByList = Collections.synchronizedList(new ArrayList<SimpleListItem>());
+            List<SimpleListItem> pickupSearchByList = Collections.synchronizedList(new ArrayList<SimpleListItem>());
 
-            PickupSearchByList = db.getPickupSearchByList();
+            pickupSearchByList = db.getPickupSearchByList();
 
-            if (PickupSearchByList.size() == 0) {
+            if (pickupSearchByList.size() == 0) {
                 System.out.println("NO LOCATION CODES FOUND");
             }
 
-            String json = gson.toJson(PickupSearchByList);
+            String json = Serializer.serialize(pickupSearchByList);
             log.info("PickupSearchByList results: " + json);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");

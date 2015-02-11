@@ -4,6 +4,7 @@ import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
 import gov.nysenate.inventory.dao.TransactionMapper;
+import gov.nysenate.inventory.util.Serializer;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
@@ -42,8 +43,8 @@ public class PreviousRemoteInfo extends HttpServlet {
             orig = db.getOriginalTransaction(Integer.valueOf(nuxrpd));
             if (orig != 0) {
                 original = mapper.queryTransaction(db, orig);
-                out.write(original.toJson());
-                log.info("Previous transaction: " + original.toJson());
+                out.write(Serializer.serialize(original));
+                log.info("Previous transaction: " + Serializer.serialize(original));
             }
         } catch (ClassNotFoundException | SQLException e) {
             log.error("Error getting original nuxrpd: ", e);

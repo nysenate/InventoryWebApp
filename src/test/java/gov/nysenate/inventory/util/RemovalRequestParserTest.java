@@ -1,9 +1,7 @@
 package gov.nysenate.inventory.util;
 
-import com.google.gson.Gson;
 import gov.nysenate.inventory.model.AdjustCode;
 import gov.nysenate.inventory.model.Item;
-import gov.nysenate.inventory.model.ItemStatus;
 import gov.nysenate.inventory.model.RemovalRequest;
 import org.junit.Test;
 
@@ -11,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class RemovalRequestParserTest
 {
@@ -21,7 +19,7 @@ public class RemovalRequestParserTest
         Date expectedDate = new Date();
         RemovalRequest rr = new RemovalRequest("TestUser", expectedDate);
 
-        String json = new Gson().toJson(rr);
+        String json = Serializer.serialize(rr);
         rr = Serializer.deserialize(json, RemovalRequest.class).get(0);
 
         assertEquals("TestUser", rr.getEmployee());
@@ -40,7 +38,7 @@ public class RemovalRequestParserTest
         rr.setStatus(expectedStatus);
         rr.setTransactionNum(expectedTransactionNum);
 
-        json = new Gson().toJson(rr);
+        json = Serializer.serialize(rr);
         rr = Serializer.deserialize(json, RemovalRequest.class).get(0);
 
         assertEquals(expectedItems.get(0).getId(), rr.getItems().get(0).getId());
