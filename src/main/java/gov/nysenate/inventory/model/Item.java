@@ -80,4 +80,15 @@ public class Item
 
         return true;
     }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + (barcode != null ? barcode.hashCode() : 0);
+        result = 31 * result + (serialNumber != null ? serialNumber.hashCode() : 0);
+        result = 31 * result + (commodity != null ? commodity.hashCode() : 0);
+        result = 31 * result + (location != null ? location.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        return result;
+    }
 }

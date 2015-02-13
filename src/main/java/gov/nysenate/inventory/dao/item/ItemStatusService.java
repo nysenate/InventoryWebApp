@@ -26,11 +26,11 @@ public class ItemStatusService
     // TODO: check for deleted status?
 
     public ItemStatus getItemStatus(Connection conn, Item item) throws SQLException {
-        ItemStatusDAO dao = new ItemStatusDAO();
         if (item.getId() == 0) {
             return ItemStatus.DOES_NOT_EXIST;
         }
 
+        ItemStatusDAO dao = new ItemStatusDAO();
         boolean isInactive = dao.isItemInactive(conn, item.getId());
         boolean inTransit = dao.isItemInTransit(conn, item.getBarcode());
         boolean pendingRemoval = dao.isItemPendingRemoval(conn, item.getId());

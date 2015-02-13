@@ -68,12 +68,8 @@ public class ItemDAO
         public List<Item> handle(ResultSet rs) throws SQLException {
             List<Item> items = new ArrayList<Item>();
             while (rs.next()) {
-                int id = rs.getInt("nuxrefsn");
-                String barcode = rs.getString("nusenate");
-
-                Item item = new Item(id, barcode);
+                Item item = new Item(rs.getInt("nuxrefsn"), rs.getString("nusenate"));
                 item.setSerialNumber(rs.getString("nuserial"));
-
                 items.add(item);
             }
             return items;
@@ -82,6 +78,9 @@ public class ItemDAO
 
     private class ItemHandler implements ResultSetHandler<Item> {
 
+        /**
+         * Returns null if no item is found.
+         */
         @Override
         public Item handle(ResultSet rs) throws SQLException {
             Item item = new Item();
