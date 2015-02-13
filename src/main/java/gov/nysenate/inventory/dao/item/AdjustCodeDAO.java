@@ -22,7 +22,7 @@ public class AdjustCodeDAO extends DbManager
     protected List<AdjustCode> getAdjustCodes(Connection conn) throws SQLException, ClassNotFoundException {
         List<AdjustCode> adjustcodes;
         QueryRunner run = new QueryRunner();
-        adjustcodes = run.query(conn, SELECT_ALL_ADJUST_CODES_SQL, new AdjustCodeHandler());
+        adjustcodes = run.query(conn, SELECT_ALL_ADJUST_CODES_SQL, new AdjustCodeListHandler());
         return adjustcodes;
     }
 
@@ -34,11 +34,22 @@ public class AdjustCodeDAO extends DbManager
 
     protected AdjustCode getRemovalRequestAdjustCode(Connection conn, int removalRequestNum) throws SQLException {
         QueryRunner run = new QueryRunner();
-        List<AdjustCode> codes = run.query(conn, SELECT_ADJUST_CODE_OF_REMOVAL_REQUEST, new AdjustCodeHandler(), removalRequestNum);
+        List<AdjustCode> codes = run.query(conn, SELECT_ADJUST_CODE_OF_REMOVAL_REQUEST, new AdjustCodeListHandler(), removalRequestNum);
         return codes.get(0);
     }
 
-    private class AdjustCodeHandler implements ResultSetHandler<List<AdjustCode>> {
+    private String SELECT_ADJUST_CODE_BY_ITEM_ID =
+            "SELECT adj.cdadjust, adj.deadjust\n" +
+            "FROM fl12adjustcd adj INNER JOIN fd12issue issue\n" +
+            "ON adj.cdadjust = issue.cdadjust\n" +
+            "WHERE issue.nuxrefsn = ?";
+
+    public AdjustCode getItemAdjustCode(Connection conn, int id) throws SQLException {
+        QueryRunner run = new QueryRunner();
+        return run.query(conn, SELECT_ADJUST_CODE_BY_ITEM_ID, new AdjustCodeHandler(), id);
+    }
+
+    private class AdjustCodeListHandler implements ResultSetHandler<List<AdjustCode>> {
 
         @Override
         public List<AdjustCode> handle(ResultSet rs) throws SQLException {
@@ -49,6 +60,21 @@ public class AdjustCodeDAO extends DbManager
                 adjustCodes.add(new AdjustCode(code, description));
             }
             return adjustCodes;
+        }
+    }
+
+    private class AdjustCodeHandler implements ResultSetHandler<AdjustCode> {
+
+        @Override
+        public AdjustCode handle(ResultSet rs) throws SQLException {
+            String adjustCode = "";
+            String description = "";
+            if (rs.next()) {
+                // Set database null values to empty strings.
+                adjustCode = rs.getString("cdadjust") != null ? rs.getString("cdadjust") : "";
+                description = rs.getString("deadjust") != null ? rs.getString("deadjust") : "";
+            }
+            return new AdjustCode(adjustCode, description);
         }
     }
 }

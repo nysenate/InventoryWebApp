@@ -25,4 +25,15 @@ public class AdjustCodeService
     public AdjustCode getRemovalRequestAdjustCode(Connection conn, int id) throws SQLException {
         return new AdjustCodeDAO().getRemovalRequestAdjustCode(conn, id);
     }
+
+    /**
+     * Retrieve the {@link gov.nysenate.inventory.model.AdjustCode}
+     * for an {@link gov.nysenate.inventory.model.Item Item}.
+     * @param conn
+     * @param id The Item's id
+     * @return
+     */
+    public AdjustCode getItemAdjustCode(Connection conn, int id) throws SQLException {
+        return new AdjustCodeDAO().getItemAdjustCode(conn, id);
+    }
 }

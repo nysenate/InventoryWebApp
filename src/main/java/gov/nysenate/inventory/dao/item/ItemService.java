@@ -2,10 +2,7 @@ package gov.nysenate.inventory.dao.item;
 
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.dao.location.LocationService;
-import gov.nysenate.inventory.model.Commodity;
-import gov.nysenate.inventory.model.Item;
-import gov.nysenate.inventory.model.ItemStatus;
-import gov.nysenate.inventory.model.Location;
+import gov.nysenate.inventory.model.*;
 import org.apache.commons.dbutils.DbUtils;
 
 import java.sql.Connection;
@@ -59,17 +56,19 @@ public class ItemService
     }
 
     /**
-     * Populates the {@link gov.nysenate.inventory.model.Commodity} and
-     * {@link gov.nysenate.inventory.model.Location} info for item's that exist
-     * <p>Does nothing to an item which does not exist.</p>
+     * Populates the {@link gov.nysenate.inventory.model.Commodity},
+     * {@link gov.nysenate.inventory.model.Location} and
+     * {@link gov.nysenate.inventory.model.AdjustCode} info for an item.
      * @param item
      * @param conn
      * @throws SQLException
      */
     private void populateItemDetails(Item item, Connection conn) throws SQLException {
+        // Don't bother populating if the item is not in our database.
         if (item.getStatus() != ItemStatus.DOES_NOT_EXIST) {
             item.setCommodity(serveCommodity(conn, item.getId()));
             item.setLocation(serveLocation(conn, item.getId()));
+            item.setAdjustCode(serveAdjustCode(conn, item.getId()));
         }
     }
 
@@ -112,5 +111,9 @@ public class ItemService
 
     private Commodity serveCommodity(Connection conn, int id) throws SQLException {
         return new CommodityService().getCommodityByItemId(conn, id);
+    }
+
+    private AdjustCode serveAdjustCode(Connection conn, int id) throws SQLException {
+        return new AdjustCodeService().getItemAdjustCode(conn, id);
     }
 }
