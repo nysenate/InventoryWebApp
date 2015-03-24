@@ -330,7 +330,7 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to return details related to given location code( Address, type etc) 
    *----------------------------------------------------------------------------------------------------*/
-  public String getInvLocDetails(String locCode)
+  public String getInvLocDetails(String locCode, Connection conn)
   {
     if (locCode.isEmpty() || locCode == null) {
       log.warn("Invalid location Code " + locCode);
@@ -338,9 +338,7 @@ public class DbConnect extends DbManager
     }
     String details = null;
     CallableStatement cs = null;
-    Connection conn = null;
     try {
-      conn = getDbConnection();
       cs = conn.prepareCall("{?=call INV_APP.GET_INV_LOC_CODE(?)}");
       cs.registerOutParameter(1, Types.VARCHAR);
       cs.setString(2, locCode);
@@ -348,8 +346,6 @@ public class DbConnect extends DbManager
       details = cs.getString(1);
     } catch (SQLException ex) {
       log.error("SQLException", ex);
-    } catch (ClassNotFoundException e) {
-      log.error("Error getting oracle jdbc driver: ", e);
     } finally {
       closeStatement(cs);
       closeConnection(conn);
@@ -411,17 +407,14 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to return arraylist of all the location codes 
    *----------------------------------------------------------------------------------------------------*/
-  public ArrayList<Location> getLocCodes()
+  public ArrayList<Location> getLocCodes(Connection conn)
   {
     String qry = "SELECT DISTINCT cdloctype, cdlocat, adstreet1, adcity, adzipcode, adstate "
             + "FROM sl16location a where a.cdstatus='A' ORDER BY cdlocat, cdloctype";
-
     ArrayList<Location> locations = new ArrayList<Location>();
     Statement stmt = null;
     ResultSet result = null;
-    Connection conn = null;
     try {
-      conn = getDbConnection();
       stmt = conn.createStatement();
       result = stmt.executeQuery(qry);
       while (result.next()) {
@@ -436,8 +429,6 @@ public class DbConnect extends DbManager
       }
     } catch (SQLException e) {
       log.error("Error getting locations ", e);
-    } catch (ClassNotFoundException e) {
-      log.error("Error getting oracle jdbc driver: ", e);
     } finally {
       closeResultSet(result);
       closeStatement(stmt);

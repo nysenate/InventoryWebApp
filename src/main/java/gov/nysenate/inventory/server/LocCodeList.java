@@ -14,7 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  *
@@ -27,26 +28,20 @@ public class LocCodeList extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         HttpSession session = request.getSession(false);
         DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+
         log.info("Requesting list of all locations.");
-
+        List<Location> locations = null;
         try {
-            ArrayList<Location> locations = new ArrayList<Location>();
-            locations = db.getLocCodes();
-
-            log.info("Received info for " + locations.size() + " locations");
-
-            String json = Serializer.serialize(locations);
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            out.write(json);
-
-        } finally {
-            out.close();
+            locations = db.getLocCodes(db.getDbConnection());
+        } catch (ClassNotFoundException | SQLException e) {
+            log.error("Error getting Connection", e);
         }
+        log.info("Received info for " + locations.size() + " locations");
+        response.setContentType("application/json");
+        out.write(Serializer.serialize(locations));
     }
 
     @Override

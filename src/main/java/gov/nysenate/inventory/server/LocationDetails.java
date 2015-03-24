@@ -1,17 +1,18 @@
 package gov.nysenate.inventory.server;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.util.HttpUtils;
+import org.apache.log4j.Logger;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import gov.nysenate.inventory.dao.DbConnect;
-import gov.nysenate.inventory.util.HttpUtils;
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.SQLException;
 
 /**
  *
@@ -33,7 +34,7 @@ public class LocationDetails extends HttpServlet {
             String location = request.getParameter("barcode_num"); // barcode_num = location code.
             log.info("Getting location details for " + location);
 
-            String details = db.getInvLocDetails(location);
+            String details = db.getInvLocDetails(location, db.getDbConnection());
 
             log.info("Location details = " + details);
             if (details.equals("no")) {
@@ -45,6 +46,10 @@ public class LocationDetails extends HttpServlet {
                 //Psuedo JSON for now
                 out.println("{\"cdlocat\":\"" + model[0] + "\",\"delocat\":\"" + model[1].replaceAll("\"", "&34;") + "\",\"adstreet1\":\"" + model[2].replaceAll("\"", "&34;") + "\",\"adstreet2\":\"" + model[3].replaceAll("\"", "&34;") + "\",\"adcity\":\"" + model[4].replaceAll("\"", "&34;") + "\",\"adstate\":\"" + model[5] + "\",\"adzipcode\":\"" + model[6].replaceAll("\"", "&#34;") + "\",\"nucount\":\"" + model[7] + "\",\"cdrespctrhd\":\"" + model[8] + "\"}");
             }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         } finally {
             out.close();
         }
