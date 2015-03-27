@@ -32,12 +32,17 @@ public class LocationTests extends BaseTest {
 
     @Test
     public void canGetLocationDetails() throws Exception {
-        String actualLocationDescription = locationService.getLocationDbConnect(dbConnect, getConnection(), "A42FB");
+        String actualLocationDescription = locationService.getLocationDbConnect(dbConnect, getConnection(), "A42FB", "W");
         assertThat(actualLocationDescription, containsString("A42FB"));
 
         // Test location with multiple cdloctype's
-        actualLocationDescription = locationService.getLocationDbConnect(dbConnect, getConnection(), "L711B");
+        actualLocationDescription = locationService.getLocationDbConnect(dbConnect, getConnection(), "L711B", "W");
         assertThat(actualLocationDescription, containsString("L711B"));
+        assertThat(actualLocationDescription, containsString("W"));
+
+        actualLocationDescription = locationService.getLocationDbConnect(dbConnect, getConnection(), "L711B", "S");
+        assertThat(actualLocationDescription, containsString("L711B"));
+        assertThat(actualLocationDescription, containsString("S"));
     }
 
 }

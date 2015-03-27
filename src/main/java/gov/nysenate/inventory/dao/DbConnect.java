@@ -330,7 +330,7 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to return details related to given location code( Address, type etc) 
    *----------------------------------------------------------------------------------------------------*/
-  public String getInvLocDetails(String locCode, Connection conn)
+  public String getInvLocDetails(String locCode, String locationType, Connection conn)
   {
     if (locCode.isEmpty() || locCode == null) {
       log.warn("Invalid location Code " + locCode);
@@ -339,9 +339,10 @@ public class DbConnect extends DbManager
     String details = null;
     CallableStatement cs = null;
     try {
-      cs = conn.prepareCall("{?=call INV_APP.GET_INV_LOC_CODE(?)}");
+      cs = conn.prepareCall("{?=call INV_APP.GET_INV_LOC_CODE(?, ?)}");
       cs.registerOutParameter(1, Types.VARCHAR);
       cs.setString(2, locCode);
+      cs.setString(3, locationType);
       cs.executeUpdate();
       details = cs.getString(1);
     } catch (SQLException ex) {

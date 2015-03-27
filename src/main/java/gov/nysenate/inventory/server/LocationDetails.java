@@ -1,6 +1,7 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.location.LocationService;
 import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;
 
@@ -31,10 +32,11 @@ public class LocationDetails extends HttpServlet {
         DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         try {
-            String location = request.getParameter("barcode_num"); // barcode_num = location code.
+            String location = request.getParameter("location_code");
+            String locationType = request.getParameter("location_type");
             log.info("Getting location details for " + location);
 
-            String details = db.getInvLocDetails(location, db.getDbConnection());
+            String details = new LocationService().getLocationDbConnect(db, db.getDbConnection(), location, locationType);
 
             log.info("Location details = " + details);
             if (details.equals("no")) {

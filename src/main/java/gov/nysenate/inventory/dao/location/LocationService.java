@@ -50,8 +50,8 @@ public class LocationService
     /**
      * Wraps the old method for location details in package
      */
-    public String getLocationDbConnect(DbConnect db, Connection conn, String locCode) {
-        return db.getInvLocDetails(locCode, conn);
+    public String getLocationDbConnect(DbConnect db, Connection conn, String locCode, String locType) {
+        return db.getInvLocDetails(locCode, locType, conn);
     }
 
 }
