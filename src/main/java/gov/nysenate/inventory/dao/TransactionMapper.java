@@ -1,22 +1,16 @@
 package gov.nysenate.inventory.dao;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
+import gov.nysenate.inventory.dao.base.DbManager;
+import gov.nysenate.inventory.model.InvItem;
+import gov.nysenate.inventory.model.Location;
+import gov.nysenate.inventory.model.Transaction;
+import org.apache.log4j.Logger;
+
+import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import gov.nysenate.inventory.dao.base.DbManager;
-import org.apache.log4j.Logger;
-
-import gov.nysenate.inventory.model.Location;
-import gov.nysenate.inventory.model.Transaction;
-import gov.nysenate.inventory.model.InvItem;
-import java.sql.Timestamp;
+import java.util.Date;
 
 public class TransactionMapper extends DbManager {
 
@@ -163,9 +157,9 @@ public class TransactionMapper extends DbManager {
                 "LEFT OUTER JOIN fl12vermthd vermthd " +
                 "ON invintrans.nuxrvermthd = vermthd.nuxrvermthd " +
                 "INNER JOIN sl16location loc1 " +
-                "ON invintrans.cdlocatfrom = loc1.cdlocat " +
+                "ON (invintrans.cdlocatfrom = loc1.cdlocat AND invintrans.cdloctypefrm = loc1.cdloctype) " +
                 "LEFT OUTER JOIN sl16location loc2 " +
-                "ON invintrans.cdlocatto = loc2.cdlocat " +
+                "ON (invintrans.cdlocatto = loc2.cdlocat AND invintrans.cdloctypeto = loc2.cdloctype) " +
                 "WHERE invintrans.cdstatus = 'A' " +
                 "AND invintrans.nuxrpd = ?";
 
@@ -208,9 +202,9 @@ public class TransactionMapper extends DbManager {
                 "LEFT OUTER JOIN fl12vermthd vermthd " +
                 "ON invintrans.nuxrvermthd = vermthd.nuxrvermthd " +
                 "INNER JOIN sl16location loc1 " +
-                "ON invintrans.cdlocatfrom = loc1.cdlocat " +
+                "ON (invintrans.cdlocatfrom = loc1.cdlocat AND invintrans.cdloctypefrm = loc1.cdloctype) " +
                 "LEFT OUTER JOIN sl16location loc2 " +
-                "ON invintrans.cdlocatto = loc2.cdlocat " +
+                "ON (invintrans.cdlocatto = loc2.cdlocat AND invintrans.cdloctypeto = loc2.cdloctype) " +
                 "WHERE invintrans.cdstatus = 'A' " +
                 "AND invintrans.cdintransit = 'Y'";
 
