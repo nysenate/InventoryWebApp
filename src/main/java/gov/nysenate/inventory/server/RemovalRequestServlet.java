@@ -1,14 +1,13 @@
 package gov.nysenate.inventory.server;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import gov.nysenate.inventory.dao.DbConnect;
-import gov.nysenate.inventory.dao.RemovalRequestService;
+import gov.nysenate.inventory.dao.removalrequest.RemovalRequestService;
 import gov.nysenate.inventory.model.Item;
 import gov.nysenate.inventory.model.ItemStatus;
 import gov.nysenate.inventory.model.RemovalRequest;
 import gov.nysenate.inventory.util.HttpUtils;
-import gov.nysenate.inventory.util.RemovalRequestParser;
+import gov.nysenate.inventory.util.Serializer;
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 
@@ -17,6 +16,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
@@ -37,7 +37,8 @@ public class RemovalRequestServlet extends HttpServlet
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         PrintWriter out = response.getWriter();
-        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         if (request.getParameter("status") != null) {
             getRemovalRequestsByStatus(db, request, response, out);
@@ -60,7 +61,7 @@ public class RemovalRequestServlet extends HttpServlet
             log.error(e.getMessage(), e);
             response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
-        out.write(new Gson().toJson(rrs));
+        out.write(Serializer.serialize(rrs));
     }
 
     private List<RemovalRequest> getRemovalRequests(String status, String user, DbConnect db) throws SQLException, ClassNotFoundException {
@@ -104,7 +105,7 @@ public class RemovalRequestServlet extends HttpServlet
             response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
 
-        out.write(new Gson().toJson(rr));
+        out.write(Serializer.serialize(rr));
     }
 
 
@@ -114,12 +115,13 @@ public class RemovalRequestServlet extends HttpServlet
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         PrintWriter out = response.getWriter();
-        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
         String json = request.getParameter("RemovalRequest");
 
         RemovalRequest rr = null;
         try {
-            rr = RemovalRequestParser.parseRemovalRequest(json);
+            rr = Serializer.deserialize(json, RemovalRequest.class).get(0);
         } catch (JsonParseException e) {
             response.setStatus(HttpStatus.SC_BAD_REQUEST);
             log.error("Removal Reqeust json was invalid: " + json);
@@ -140,7 +142,7 @@ public class RemovalRequestServlet extends HttpServlet
             log.error(e.getMessage(), e);
         }
 
-        out.write(new Gson().toJson(rr));
+        out.write(Serializer.serialize(rr));
     }
 
     private boolean allItemsDeleted(RemovalRequest rr) {

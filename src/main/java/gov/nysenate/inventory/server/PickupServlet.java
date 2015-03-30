@@ -2,22 +2,22 @@ package gov.nysenate.inventory.server;
 
 import com.google.gson.JsonSyntaxException;
 import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.TransactionMapper;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HandleEmails;
 import gov.nysenate.inventory.util.HttpUtils;
-import gov.nysenate.inventory.dao.TransactionMapper;
-import gov.nysenate.inventory.util.TransactionParser;
+import gov.nysenate.inventory.util.Serializer;
 import org.apache.log4j.Logger;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.SQLException;
 
 /**
  *
@@ -36,15 +36,14 @@ public class PickupServlet extends HttpServlet
     
     Transaction pickup = new Transaction();
     String testingModeParam = null;
-    DbConnect db = null;
     PrintWriter out = response.getWriter();
-    db = HttpUtils.getHttpSession(request, response, out);
-
+      HttpSession session = request.getSession(false);
+      DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
     String pickupJson = request.getParameter("pickup");
     log.info("Attempting to complete pickup: " + pickupJson);
 
     try {
-        pickup = TransactionParser.parseTransaction(pickupJson);
+        pickup = Serializer.deserialize(pickupJson, Transaction.class).get(0);
         db.setLocationInfo(pickup.getOrigin());
     } catch (SQLException | ClassNotFoundException ex) {
         log.error(ex.getMessage(), ex);

@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
-import com.google.gson.Gson;
-
 /**
  * Maps to the Database table FM12INVINTRANS.
  * <p>
@@ -128,11 +126,6 @@ public class Transaction {
             return "RPK";
         }
         return "";
-    }
-
-    public String toJson() {
-        Gson gson = new Gson();
-        return gson.toJson(this);
     }
 
     public ArrayList<String> getNotCheckedItems() {

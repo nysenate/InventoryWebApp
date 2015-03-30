@@ -10,6 +10,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -26,8 +28,10 @@ public class ChangePassword extends HttpServlet
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        System.out.println();
-        DbConnect db = HttpUtils.getHttpSession(request, response, out, HttpUtils.SC_SESSION_OK);
+
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+
         try {
             String name = request.getMethod().toString();
             String user = request.getParameter("user");

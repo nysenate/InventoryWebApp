@@ -37,14 +37,14 @@ public class EmailData
  private static final Logger log = Logger.getLogger(EmailData.class.getName());
 
  public EmailData(String cdemail) {
-   this.db = new DbConnect((HttpServletRequest)null);
+   this.db = new DbConnect();
    this.cdemail = cdemail;
    this.pullEmailInfoFromDatabase();
  }
  
  public EmailData(DbConnect db, String cdemail) {
    if (db==null) {
-     this.db = new DbConnect((HttpServletRequest)null);
+     this.db = new DbConnect();
    }
    else {
      this.db = db;

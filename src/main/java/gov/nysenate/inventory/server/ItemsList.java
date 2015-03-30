@@ -1,18 +1,20 @@
 package gov.nysenate.inventory.server;
 
-import com.google.gson.Gson;
-import java.io.IOException;
-import java.io.PrintWriter;
+import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.model.VerList;
+import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.Serializer;
+import org.apache.log4j.Logger;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
-
-import gov.nysenate.inventory.dao.DbConnect;
-import gov.nysenate.inventory.util.HttpUtils;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -27,7 +29,8 @@ public class ItemsList extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         try {
             String loc_code = request.getParameter("loc_code");
@@ -35,7 +38,7 @@ public class ItemsList extends HttpServlet {
 
             ArrayList<VerList> itemList = new ArrayList<VerList>();
             itemList = db.getLocationItemList(loc_code);
-            String json = new Gson().toJson(itemList);
+            String json = Serializer.serialize(itemList);
             //log.info("Item details = " + json);
 
             response.setContentType("application/json");

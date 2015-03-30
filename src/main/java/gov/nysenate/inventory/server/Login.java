@@ -1,18 +1,18 @@
 package gov.nysenate.inventory.server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.LoginStatus;
-import java.io.IOException;
-import java.io.PrintWriter;
+import gov.nysenate.inventory.util.Serializer;
+import org.apache.log4j.Logger;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.apache.log4j.Logger;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  *
@@ -34,7 +34,7 @@ public class Login extends HttpServlet {
 
             log.info("User " + user + "is attempting to log in");
 
-            DbConnect db = new DbConnect(request, user, pwd);
+            DbConnect db = new DbConnect(user, pwd);
             String defrmint = request.getParameter("defrmint");
 
             HttpSession httpSession = request.getSession(true);
@@ -55,10 +55,8 @@ public class Login extends HttpServlet {
                 httpSession.setAttribute("user", null);
                 httpSession.setAttribute("pwd", null);
             }
-            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
-            String json = gson.toJson(loginStatus);
-            System.out.println("loginStatus:"+json);
+            String json = Serializer.serialize(loginStatus);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             out.print(json);

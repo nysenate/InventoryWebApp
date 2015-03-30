@@ -6,10 +6,7 @@ import java.io.PrintWriter;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
+import javax.servlet.http.*;
 
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.util.HttpUtils;
@@ -30,9 +27,10 @@ public class ImgUpload extends HttpServlet
     {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         try {
-            DbConnect db = HttpUtils.getHttpSession(request, response, out);
             String nauser = request.getParameter("nauser");
             if (nauser != null) {
                 nauser = nauser.toUpperCase();

@@ -1,19 +1,21 @@
 package gov.nysenate.inventory.server;
 
-import com.google.gson.Gson;
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.model.Location;
 import gov.nysenate.inventory.util.HttpUtils;
+import gov.nysenate.inventory.util.Serializer;
+import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.log4j.Logger;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  *
@@ -26,25 +28,20 @@ public class LocCodeList extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+
         log.info("Requesting list of all locations.");
-
+        List<Location> locations = null;
         try {
-            ArrayList<Location> locations = new ArrayList<Location>();
-            locations = db.getLocCodes();
-
-            log.info("Received info for " + locations.size() + " locations");
-
-            String json = new Gson().toJson(locations);
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            out.write(json);
-
-        } finally {
-            out.close();
+            locations = db.getLocCodes(db.getDbConnection());
+        } catch (ClassNotFoundException | SQLException e) {
+            log.error("Error getting Connection", e);
         }
+        log.info("Received info for " + locations.size() + " locations");
+        response.setContentType("application/json");
+        out.write(Serializer.serialize(locations));
     }
 
     @Override

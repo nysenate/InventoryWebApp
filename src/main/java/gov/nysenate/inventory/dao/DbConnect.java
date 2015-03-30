@@ -1,50 +1,27 @@
 package gov.nysenate.inventory.dao;
 
-import java.security.InvalidParameterException;
-
+import com.google.gson.reflect.TypeToken;
+import gov.nysenate.inventory.dao.base.DbManager;
 import gov.nysenate.inventory.model.*;
-
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.sql.Blob;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import oracle.sql.BLOB;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import javax.imageio.ImageIO;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-
-import gov.nysenate.inventory.server.PickupGroup;
-import gov.nysenate.inventory.server.VerList;
-import oracle.sql.BLOB;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
-import com.google.gson.reflect.TypeToken;
-
-import java.awt.Graphics2D;
+import javax.servlet.http.HttpServletRequest;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Calendar;
+import java.security.InvalidParameterException;
+import java.sql.*;
+import java.util.*;
 import java.util.Date;
-import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  *
@@ -53,32 +30,22 @@ import javax.servlet.http.HttpServletRequest;
 public class DbConnect extends DbManager
 {
 
-  public String clientIpAddr = "";
-  public String serverIpAddr = "";
-  public String serverName = "";
-  static Logger log = Logger.getLogger(DbConnect.class.getName());
-  static private Properties properties;
+  private static Logger log = Logger.getLogger(DbConnect.class.getName());
+  private static Properties properties;
   private String userName, password;
-  final int RELEASESIGNATURE = 3001, ACCEPTBYSIGNATURE = 3002;
   private String dbaName = "";
   private int passwordExpireWarning = 10;
-  private InetAddress inetAddress;
-  private HttpServletRequest request = null;
 
-  public DbConnect(HttpServletRequest request)
+  public DbConnect()
   {
-    this.request = request;
     loadProperties();
-    getServerAddress();
     userName = properties.getProperty("user");
     password = properties.getProperty("password");
   }
   
-  public DbConnect(HttpServletRequest request, String user, String pwd)
+  public DbConnect(String user, String pwd)
   {
-    this.request = request;
     loadProperties();
-    getServerAddress();
     userName = user;
     password = pwd;
   } 
@@ -96,44 +63,20 @@ public class DbConnect extends DbManager
     }
   }
 
-  /*
-   * Store serverIP address and name for easy access.
-   * Since DbConnect is used by all the servlets, the
-   * address is currently being pulled here. So once
-   * DbConnect is instansiated, the server IP Name/address 
-   * should be populated.
-   */
-  
-  private void getServerAddress()
-  {
-      this.serverIpAddr = "N/A";
-      this.serverName = "N/A";
-      try {
-          inetAddress = InetAddress.getLocalHost();
-          this.serverIpAddr = inetAddress.getHostAddress();
-          if (this.request == null) {
-            this.serverName = inetAddress.getHostName();
-            //log.info("!!TEST: SERVERNAME OBTAINED FROM inetAddress:"+this.serverName);
-          }
-          else {
-            this.serverName = request.getServerName();
-            //log.info("!!TEST: SERVERNAME OBTAINED FROM REQUEST:"+this.serverName+" (inetAddress Server Name:"+inetAddress.getHostName()+")");
-          }
-
-          if (this.serverName!=null) {
-              int firstPeriod = this.serverName.indexOf(".");
-              if (firstPeriod>-1) {
-                  this.serverName = this.serverName.substring(0,firstPeriod);
-              }
-          }
-      } catch (UnknownHostException ex) {
-          log.warn(null, ex);
-      } catch (Exception ex) {
-           log.warn(null, ex);
-       }
-      
+  public String getServerIpAddr() {
+    try {
+      return InetAddress.getLocalHost().getHostAddress();
+    } catch (UnknownHostException e) {
+      log.error("Error getting local host", e);
+    }
+    return "N/A";
   }
-  
+
+  public String getServerName(HttpServletRequest request) {
+    String serverName = request.getServerName();
+    return serverName.contains(".") ? serverName.substring(0, serverName.indexOf(".")) : serverName;
+  }
+
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Main function for testing other functions
    *----------------------------------------------------------------------------------------------------*/
@@ -387,7 +330,7 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to return details related to given location code( Address, type etc) 
    *----------------------------------------------------------------------------------------------------*/
-  public String getInvLocDetails(String locCode)
+  public String getInvLocDetails(String locCode, String locationType, Connection conn)
   {
     if (locCode.isEmpty() || locCode == null) {
       log.warn("Invalid location Code " + locCode);
@@ -395,18 +338,15 @@ public class DbConnect extends DbManager
     }
     String details = null;
     CallableStatement cs = null;
-    Connection conn = null;
     try {
-      conn = getDbConnection();
-      cs = conn.prepareCall("{?=call INV_APP.GET_INV_LOC_CODE(?)}");
+      cs = conn.prepareCall("{?=call INV_APP.GET_INV_LOC_CODE(?, ?)}");
       cs.registerOutParameter(1, Types.VARCHAR);
       cs.setString(2, locCode);
+      cs.setString(3, locationType);
       cs.executeUpdate();
       details = cs.getString(1);
     } catch (SQLException ex) {
       log.error("SQLException", ex);
-    } catch (ClassNotFoundException e) {
-      log.error("Error getting oracle jdbc driver: ", e);
     } finally {
       closeStatement(cs);
       closeConnection(conn);
@@ -468,17 +408,14 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to return arraylist of all the location codes 
    *----------------------------------------------------------------------------------------------------*/
-  public ArrayList<Location> getLocCodes()
+  public ArrayList<Location> getLocCodes(Connection conn)
   {
     String qry = "SELECT DISTINCT cdloctype, cdlocat, adstreet1, adcity, adzipcode, adstate "
             + "FROM sl16location a where a.cdstatus='A' ORDER BY cdlocat, cdloctype";
-
     ArrayList<Location> locations = new ArrayList<Location>();
     Statement stmt = null;
     ResultSet result = null;
-    Connection conn = null;
     try {
-      conn = getDbConnection();
       stmt = conn.createStatement();
       result = stmt.executeQuery(qry);
       while (result.next()) {
@@ -493,8 +430,6 @@ public class DbConnect extends DbManager
       }
     } catch (SQLException e) {
       log.error("Error getting locations ", e);
-    } catch (ClassNotFoundException e) {
-      log.error("Error getting oracle jdbc driver: ", e);
     } finally {
       closeResultSet(result);
       closeStatement(stmt);
@@ -648,12 +583,7 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to insert items found at given location(barcodes) for verification
    *----------------------------------------------------------------------------------------------------*/
-  public int setBarcodesInDatabase(String cdlocat, ArrayList<InvItem> invItems)
-  {
-    return setBarcodesInDatabase(cdlocat, null, invItems);
-  }
-
-  public int setBarcodesInDatabase(String cdlocat, String cdloctype, ArrayList<InvItem> invItems)
+  public int setBarcodesInDatabase(String cdlocat, String cdloctype, List<InvItem> invItems)
   {
     if (cdlocat.isEmpty() || invItems == null) {
       throw new IllegalArgumentException("Invalid location Code");
@@ -740,15 +670,15 @@ public class DbConnect extends DbManager
     return result;
   }
 
-  public int invTransit(Transaction pickup, String userFallback)
+  public int invTransit(Transaction pickup)
   {
-    return invTransit(pickup, userFallback, 0);
+    return invTransit(pickup, 0);
   }
 
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to start a new pickup-delivery
    *----------------------------------------------------------------------------------------------------*/
-  public int invTransit(Transaction pickup, String userFallback, int oldnuxrpd)
+  public int invTransit(Transaction pickup, int oldnuxrpd)
   {
     Statement stmt = null;
     ResultSet result = null;
@@ -944,7 +874,7 @@ public class DbConnect extends DbManager
    * ---------------Function to 
    *----------------------------------------------------------------------------------------------------*/
 
-  int invPickup(String originLocation, String destinationLocation, String[] barcodes, String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN, String userFallback)
+  int invPickup(String originLocation, String destinationLocation, String[] barcodes, String NAPICKUPBY, String NARELEASEBY, String NUXRRELSIGN, String NADELIVERBY, String NAACCEPTBY, String NUXRACCPTSIGN)
   {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
@@ -1101,8 +1031,7 @@ public class DbConnect extends DbManager
       result = stmt.executeQuery(qry);
       while (result.next()) {
 
-        Employee employee = new Employee();
-        employee.setEmployeeData(result.getInt(1), result.getString(2), result.getString(3), result.getString(4), result.getString(5));
+        Employee employee = new Employee(result.getInt(1), result.getString(2), result.getString(3), result.getString(4), result.getString(5));
         if (emailIsValid(result.getString(6))) {
           employeeList.add(employee);
         }
@@ -1134,7 +1063,7 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to confirm delivery i.e. updates the FD12Issue table and changes location-----
    *------------------------------------------------------------------------------------------------------*/
-  public int confirmDelivery(Transaction delivery, String userFallback)
+  public int confirmDelivery(Transaction delivery)
   {
 
     Statement stmt = null;
@@ -1206,12 +1135,12 @@ public class DbConnect extends DbManager
     return 0;
   }
   
-  public Employee getEmployeeWhoSigned(String nuxrsign, String userFallback)
+  public Employee getEmployeeWhoSigned(String nuxrsign)
   {
-    return getEmployeeWhoSigned(nuxrsign, true, userFallback);
+    return getEmployeeWhoSigned(nuxrsign, true);
   }
 
-  public Employee getEmployeeWhoSigned(String nuxrsign, boolean upperCase, String userFallback)
+  public Employee getEmployeeWhoSigned(String nuxrsign, boolean upperCase)
   {
     String nuxrefem = "";
     Statement stmt = null;
@@ -1239,15 +1168,15 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    return getEmployee(nuxrefem, upperCase, userFallback);
+    return getEmployee(nuxrefem, upperCase);
   }
 
-  public Employee getEmployee(String nuxrefem, String userFallback)
+  public Employee getEmployee(String nuxrefem)
   {
-    return getEmployee(nuxrefem, true, userFallback);
+    return getEmployee(nuxrefem, true);
   }
 
-  public Employee getEmployee(String nuxrefem, boolean upperCase, String userFallback)
+  public Employee getEmployee(String nuxrefem, boolean upperCase)
   {
     log.info("getEmployee() begin : nuxrefem= " + nuxrefem);
     if (nuxrefem.isEmpty() || nuxrefem == null) {
@@ -1275,10 +1204,10 @@ public class DbConnect extends DbManager
 
       result = stmt.executeQuery(qry);
       while (result.next()) {
-        currentEmployee.setNafirst(result.getString(1), false);
-        currentEmployee.setNamidinit(result.getString(2), false);
-        currentEmployee.setNalast(result.getString(3), false);
-        currentEmployee.setNasuffix(result.getString(4), false);
+        currentEmployee.setNafirst(result.getString(1));
+        currentEmployee.setNamidinit(result.getString(2));
+        currentEmployee.setNalast(result.getString(3));
+        currentEmployee.setNasuffix(result.getString(4));
         currentEmployee.setNaemail(result.getString(5));
       }
     } catch (SQLException e) {
@@ -1298,7 +1227,7 @@ public class DbConnect extends DbManager
   /*-------------------------------------------------------------------------------------------------------
    * ---------------Function to create new delivery i.e. inserts new records into FM12InvInTrans-----
    *----------------------------------------------------------------------------------------------------*/
-  public int createNewPickup(Transaction delivery, String userFallback)
+  public int createNewPickup(Transaction delivery)
   {
     log.info("createNewDelivery() begin :");
 
@@ -1337,8 +1266,7 @@ public class DbConnect extends DbManager
       closeStatement(stmt);
       closeConnection(conn);
     }
-    DbConnect db = new DbConnect(request);
-    db.invTransit(pickup, userFallback, delivery.getNuxrpd());
+    invTransit(pickup, delivery.getNuxrpd());
     log.info("createNewDelivery() end ");
     return 0;
   }
@@ -1476,15 +1404,15 @@ public class DbConnect extends DbManager
     //System.out.println ("DBCONNECT Location "+location.getCdlocat()+" SET: "+location.getAdstreet1());
   }
 
-  public Employee getEmployee(String nauser) throws SQLException, ClassNotFoundException {
-      return getEmployee(nauser, true);
+  public Employee getEmployeeDaysTerminated(String nauser) throws SQLException, ClassNotFoundException {
+      return getEmployeeDaysTerminated(nauser, true);
   }
-  
-   public Employee getEmployee(String nauser, boolean upperCase) throws SQLException, ClassNotFoundException {
-      return getEmployee(nauser, true, 1);
+
+   public Employee getEmployeeDaysTerminated(String nauser, boolean upperCase) throws SQLException, ClassNotFoundException {
+      return getEmployeeDaysTerminated(nauser, true, 1);
   }
-  
-  public Employee getEmployee(String nauser, boolean upperCase, int daysTerminated) throws SQLException, ClassNotFoundException
+
+  public Employee getEmployeeDaysTerminated(String nauser, boolean upperCase, int daysTerminated) throws SQLException, ClassNotFoundException
   {
     Employee employee = new Employee();
 
@@ -1516,7 +1444,7 @@ public class DbConnect extends DbManager
 
       res1 = stmt.executeQuery(qry1);
       while (res1.next()) {
-        employee.setEmployeeXref(res1.getInt(1));
+        employee.setNuxrefem(res1.getInt(1));
         employee.setNafirst(res1.getString(2));
         employee.setNalast(res1.getString(3));
         employee.setNamidinit(res1.getString(4));
@@ -1626,7 +1554,7 @@ public class DbConnect extends DbManager
       res1 = stmt.executeQuery(qry1);
       while (res1.next()) {
         Employee employee = new Employee();
-        employee.setEmployeeXref(res1.getInt(1));
+        employee.setNuxrefem(res1.getInt(1));
         employee.setNafirst(res1.getString(2));
         employee.setNalast(res1.getString(3));
         employee.setNamidinit(res1.getString(4));
@@ -1666,7 +1594,7 @@ public class DbConnect extends DbManager
       res1 = stmt.executeQuery(qry1);
       while (res1.next()) {
         Employee employee = new Employee();
-        employee.setEmployeeXref(res1.getInt(1));
+        employee.setNuxrefem(res1.getInt(1));
         employee.setNafirst(res1.getString(2));
         employee.setNalast(res1.getString(3));
         employee.setNamidinit(res1.getString(4));

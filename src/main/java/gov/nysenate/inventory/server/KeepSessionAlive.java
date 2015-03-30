@@ -31,13 +31,10 @@ public class KeepSessionAlive extends HttpServlet {
 
         HttpSession httpSession = request.getSession(false);
         if (httpSession == null) {
-            System.out.println ("****SESSION NOT FOUND");
             log.info("Session Not found/timed out");
-            out.println("Session timed out");
         }
         else {
             String user = (String)httpSession.getAttribute("user");
-            System.out.println ("SESSION FOUND!!!");
         }
     }
 

@@ -1,16 +1,19 @@
 package gov.nysenate.inventory.server;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.location.LocationService;
+import gov.nysenate.inventory.util.HttpUtils;
+import org.apache.log4j.Logger;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import gov.nysenate.inventory.dao.DbConnect;
-import gov.nysenate.inventory.util.HttpUtils;
-import org.apache.log4j.Logger;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.SQLException;
 
 /**
  *
@@ -25,13 +28,15 @@ public class LocationDetails extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         try {
-            DbConnect db = HttpUtils.getHttpSession(request, response, out);
-            String location = request.getParameter("barcode_num"); // barcode_num = location code.
+            String location = request.getParameter("location_code");
+            String locationType = request.getParameter("location_type");
             log.info("Getting location details for " + location);
 
-            String details = db.getInvLocDetails(location);
+            String details = new LocationService().getLocationDbConnect(db, db.getDbConnection(), location, locationType);
 
             log.info("Location details = " + details);
             if (details.equals("no")) {
@@ -43,6 +48,10 @@ public class LocationDetails extends HttpServlet {
                 //Psuedo JSON for now
                 out.println("{\"cdlocat\":\"" + model[0] + "\",\"delocat\":\"" + model[1].replaceAll("\"", "&34;") + "\",\"adstreet1\":\"" + model[2].replaceAll("\"", "&34;") + "\",\"adstreet2\":\"" + model[3].replaceAll("\"", "&34;") + "\",\"adcity\":\"" + model[4].replaceAll("\"", "&34;") + "\",\"adstate\":\"" + model[5] + "\",\"adzipcode\":\"" + model[6].replaceAll("\"", "&#34;") + "\",\"nucount\":\"" + model[7] + "\",\"cdrespctrhd\":\"" + model[8] + "\"}");
             }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         } finally {
             out.close();
         }

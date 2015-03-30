@@ -1,23 +1,21 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.TransactionMapper;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.HttpUtils;
-import gov.nysenate.inventory.dao.TransactionMapper;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.SQLException;
-import java.util.Collection;
+import gov.nysenate.inventory.util.Serializer;
+import org.apache.log4j.Logger;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
-
-import com.google.gson.Gson;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.SQLException;
+import java.util.Collection;
 
 @WebServlet(name = "GetAllPickups", urlPatterns = { "/GetAllPickups" })
 public class GetAllPickups extends HttpServlet {
@@ -27,7 +25,8 @@ public class GetAllPickups extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         PrintWriter out = response.getWriter();
-        DbConnect db = HttpUtils.getHttpSession(request, response, out);
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
         log.info("Getting info for all pickups");
 
         boolean wantIncompleteRemotes = false;
@@ -54,8 +53,7 @@ public class GetAllPickups extends HttpServlet {
         }
 
         log.info("Recieved info for " + trans.size() + " pickups.");
-        Gson gson = new Gson();
-        out.print(gson.toJson(trans));
+        out.print(Serializer.serialize(trans));
         out.close();
     }
 
