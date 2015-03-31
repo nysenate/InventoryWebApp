@@ -5,4 +5,8 @@
             30
         </session-timeout>
     </session-config>
+
+    <listener>
+        <listener-class>gov.nysenate.inventory.listener.LogConfiguration</listener-class>
+    </listener>
 </web-app>
