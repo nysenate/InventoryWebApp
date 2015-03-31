@@ -14,10 +14,15 @@ public class LogConfiguration implements ServletContextListener {
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         Properties appProperties = loadProperties("config.properties");
         String server = appProperties.getProperty("connectionString");
-        String filename = "InventoryWebApp_" + server.split("/")[1] + ".log";
-        Properties logProperties = loadProperties("log4j.properties");
-        logProperties.put("log.filename", filename);
-        PropertyConfigurator.configure(logProperties);
+        try {
+            String filename = "InventoryWebApp_" + server.split("/")[1] + ".log";
+            Properties logProperties = loadProperties("log4j.properties");
+            logProperties.put("log.filename", filename);
+            PropertyConfigurator.configure(logProperties);
+        }
+        catch (Exception e) {
+            System.out.println("Error customizing log file output. Will log to default file.");
+        }
     }
 
     @Override
