@@ -40,18 +40,4 @@ public class LocationService
         return new LocationDAO().getLocationOfItem(conn, itemId);
     }
 
-    /**
-     * Wraps the old method for getting locations in DbConnect.
-     */
-    public List<Location> getLocationsDbConnect(DbConnect db, Connection conn) {
-        return db.getLocCodes(conn);
-    }
-
-    /**
-     * Wraps the old method for location details in package
-     */
-    public String getLocationDbConnect(DbConnect db, Connection conn, String locCode, String locType) {
-        return db.getInvLocDetails(locCode, locType, conn);
-    }
-
 }

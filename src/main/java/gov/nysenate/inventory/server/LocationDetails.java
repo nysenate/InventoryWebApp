@@ -1,7 +1,6 @@
 package gov.nysenate.inventory.server;
 
 import gov.nysenate.inventory.dao.DbConnect;
-import gov.nysenate.inventory.dao.location.LocationService;
 import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;
 
@@ -36,7 +35,7 @@ public class LocationDetails extends HttpServlet {
             String locationType = request.getParameter("location_type");
             log.info("Getting location details for " + location);
 
-            String details = new LocationService().getLocationDbConnect(db, db.getDbConnection(), location, locationType);
+            String details = db.getInvLocDetails(location, locationType, db.getDbConnection());
 
             log.info("Location details = " + details);
             if (details.equals("no")) {
@@ -68,5 +67,4 @@ public class LocationDetails extends HttpServlet {
             throws ServletException, IOException {
         processRequest(request, response);
     }
-
 }
