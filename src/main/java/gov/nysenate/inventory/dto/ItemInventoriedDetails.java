@@ -4,6 +4,7 @@ import gov.nysenate.inventory.model.Item;
 
 import java.util.Date;
 
+// Combines item and inventoried date information. Used in search activity.
 public class ItemInventoriedDetails {
 
     private Item item;

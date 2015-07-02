@@ -239,7 +239,7 @@ public class TransactionMapper extends DbManager {
                 "NUXRACCPTSIGN=?, " +
                 "NADELIVERBY=?, " +
                 "NAACCEPTBY=?, " +
-                "DTDELIVERY=SYSDATE" + ", " + // TODO: use Transaction.deliveryDate
+                "DTDELIVERY=SYSDATE" + ", " +
                 "DEDELCOMMENTS=?, " +
                 "DESHIPCOMMENTS=?, " +
                 "DEVERCOMMENTS=?, " +
@@ -316,6 +316,8 @@ public class TransactionMapper extends DbManager {
             closeConnection(conn);
         }
 
+        // If not all items were delivered.
+        // Create and insert a new pickup containing not delivered items.
         if (trans.getNotCheckedItems().size() > 0) {
             ArrayList<InvItem> items = getNotDeliveredItems(trans);
             Transaction newTrans = trans.shallowCopy();
@@ -323,7 +325,6 @@ public class TransactionMapper extends DbManager {
             if (newTrans.isRemotePickup()) {
                 newTrans.setNareleaseby("");
             }
-            // Insert a new pickup that is the same as the original but only contains the non delivered items.
             insertPickup(db, newTrans, newTrans.getNuxrpd());
         }
     }

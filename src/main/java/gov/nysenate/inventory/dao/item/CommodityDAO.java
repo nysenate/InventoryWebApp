@@ -14,7 +14,6 @@ import java.util.List;
 public class CommodityDAO extends DbManager
 {
     protected List<Commodity> getCommodityByKeywords(Connection conn, String keywords) throws SQLException, ClassNotFoundException {
-        // FIXME: improve this query... keyword of 'table' -> first result is 'tablet'
         String SELECT_BY_KEYWORDS = " WITH results AS "
                 + " (SELECT a.nuxrefco, a.cdcommodity, b.cdissunit, b.cdcategory, b.cdtype, b.decommodityf, c.keyword"
                 + " FROM fm12comxref a, fm12commodty b, (select column_value keyword"

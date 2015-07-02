@@ -8,6 +8,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+/**
+ * Runs on web app start up.
+ * Appends the server name to the log file name so each environment
+ * logs to its own file.
+ */
 public class LogConfiguration implements ServletContextListener {
 
     @Override

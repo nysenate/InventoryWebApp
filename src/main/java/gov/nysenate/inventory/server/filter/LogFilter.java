@@ -1,4 +1,4 @@
-package gov.nysenate.inventory.server;
+package gov.nysenate.inventory.server.filter;
 
 import gov.nysenate.inventory.dao.DbConnect;
 import org.apache.log4j.MDC;
@@ -9,6 +9,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
+/**
+ * Adds username, server, and ipaddress info to all log
+ * statements in this thread.
+ */
 @WebFilter(urlPatterns = { "/*" })
 public class LogFilter implements Filter {
 

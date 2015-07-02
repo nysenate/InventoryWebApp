@@ -1,4 +1,4 @@
-package gov.nysenate.inventory.server;
+package gov.nysenate.inventory.server.filter;
 
 import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;
@@ -35,7 +35,7 @@ public class SessionFilter implements Filter {
             if (session == null) {
                 PrintWriter out = response.getWriter();
                 out.println("Session timed out");
-                response.setStatus(HttpUtils.SC_SESSION_TIMEOUT); // TODO: convert to this instead of "Session timed out" string.
+                response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
                 log.info("Invalid or expired session.");
                 return;
             }

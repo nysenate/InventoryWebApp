@@ -21,7 +21,6 @@ public class Location
         adstreet1 = "";
     }
 
-    // TODO: make into builder pattern.
     public Location(String cdlocat, String cdloctype, String adstreet1, String adcity,
                     String adzipcode, String adstate, String description, String department) {
         this.cdlocat = cdlocat;
