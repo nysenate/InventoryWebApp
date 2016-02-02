@@ -2,12 +2,14 @@ package gov.nysenate.inventory.util;
 
 import com.google.gson.*;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Serializer {
 
-    private static final Gson gson = new Gson();
+    private static final Gson gson = new GsonBuilder()
+            .setDateFormat(DateFormat.MEDIUM, DateFormat.LONG).create();
 
     /**
      * Serialize an object into a json string

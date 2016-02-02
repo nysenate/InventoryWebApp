@@ -26,90 +26,68 @@ import java.sql.SQLException;
 @WebServlet(name = "Pickup", urlPatterns = {"/Pickup"})
 public class PickupServlet extends HttpServlet
 {
+    private static final Logger log = Logger.getLogger(PickupServlet.class.getName());
 
-  private static final Logger log = Logger.getLogger(PickupServlet.class.getName());
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException
+    {
+        response.setContentType("text/html;charset=UTF-8");
+        PrintWriter out = response.getWriter();
+        HttpSession session = request.getSession(false);
+        DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
+        String pickupJson = request.getParameter("pickup");
+        log.info("Attempting to complete pickup: " + pickupJson);
 
-  protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-          throws ServletException, IOException
-  {
-    response.setContentType("text/html;charset=UTF-8");
-    
-    Transaction pickup = new Transaction();
-    String testingModeParam = null;
-    PrintWriter out = response.getWriter();
-      HttpSession session = request.getSession(false);
-      DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
-    String pickupJson = request.getParameter("pickup");
-    log.info("Attempting to complete pickup: " + pickupJson);
-
-    try {
-        pickup = Serializer.deserialize(pickupJson, Transaction.class).get(0);
-        db.setLocationInfo(pickup.getOrigin());
-    } catch (SQLException | ClassNotFoundException ex) {
-        log.error(ex.getMessage(), ex);
-    } catch (JsonSyntaxException e) {
-        log.error("PickupServlet Json Syntax Exception: ", e);
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-    }
-
-    try {
-      db.setLocationInfo(pickup.getDestination());
-    } catch (SQLException | ClassNotFoundException ex) {
-        log.error(ex.getMessage(), ex);
-    }
-
-    try {
-      testingModeParam = request.getParameter("testingMode");
-      if (testingModeParam != null && testingModeParam.trim().length() > 0) {
-        log.info("testingMode parameter was set from client and = " + testingModeParam);
-      }
-    } catch (Exception e) {
-    }
-
-    TransactionMapper mapper = new TransactionMapper();
-    int dbResponse = -1;
-    try {
-        dbResponse = mapper.insertPickup(db, pickup);
-    } catch (SQLException | ClassNotFoundException ex) {
-        log.error("Error saving pickup. ", ex);
-    }
-
-    pickup.setNuxrpd(dbResponse);
-    String cdshiptyp = pickup.getShipType();
-    if (   (cdshiptyp!=null && cdshiptyp.trim().length()>0) ||
-           (pickup.getShipTypeDesc()==null||pickup.getShipTypeDesc().trim().length()==0)) {
+        TransactionMapper mapper = new TransactionMapper();
         try {
-            pickup.setShipTypeDesc(db.getShipTypeDesc(cdshiptyp));
-        } catch (ClassNotFoundException ex) {
-            log.warn(null, ex);
-        } catch (SQLException ex) {
-            log.warn(null, ex);
+            Transaction pickup = Serializer.deserialize(pickupJson, Transaction.class).get(0);
+            db.setLocationInfo(pickup.getOrigin());
+            db.setLocationInfo(pickup.getDestination());
+            int pickupId = mapper.insertPickup(db, pickup);
+            sendEmails(request, response, pickup, out, db, pickupId);
+        } catch (SQLException | ClassNotFoundException | JsonSyntaxException ex) {
+            log.error(ex.getMessage(), ex);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        }
+
+        log.info("Servlet Pickup : end");
+    }
+
+    private void sendEmails(HttpServletRequest request, HttpServletResponse response, Transaction pickup, PrintWriter out, DbConnect db, int pickupId) throws IOException {
+        ifRemoteSetShipTypeDesc(pickup, db, pickupId);
+        if (pickupId > -1) {
+            HandleEmails handleEmails = new HandleEmails(pickup, HandleEmails.PICKUPTRANSACTION, request, response,  db);
+            handleEmails.sendEmails();
+        } else {
+            out.println("Database not updated");
         }
     }
 
-    if (dbResponse > -1) {
-       HandleEmails handleEmails = new HandleEmails(pickup, HandleEmails.PICKUPTRANSACTION, request, response,  db);
-       handleEmails.sendEmails();
-    } else {
-      out.println("Database not updated");
+    private void ifRemoteSetShipTypeDesc(Transaction pickup, DbConnect db, int pickupId) {
+        pickup.setNuxrpd(pickupId);
+        String cdshiptyp = pickup.getShipType();
+        if ((cdshiptyp != null && cdshiptyp.trim().length() > 0) || (pickup.getShipTypeDesc() == null || pickup.getShipTypeDesc().trim().length() == 0)) {
+            try {
+                pickup.setShipTypeDesc(db.getShipTypeDesc(cdshiptyp));
+            } catch (ClassNotFoundException | SQLException ex) {
+                log.warn("Error setting the pickup ship type", ex);
+            }
+        }
     }
-    log.info("Servlet Pickup : end");
-    out.close();
-  }
 
-  @Override
-  protected void doGet(HttpServletRequest request, HttpServletResponse response)
-          throws ServletException, IOException
-  {
-    processRequest(request, response);
-  }
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException
+    {
+        processRequest(request, response);
+    }
 
 
-  @Override
-  protected void doPost(HttpServletRequest request, HttpServletResponse response)
-          throws ServletException, IOException
-  {
-    processRequest(request, response);
-  }
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException
+    {
+        processRequest(request, response);
+    }
 
 }
