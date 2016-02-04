@@ -1631,14 +1631,21 @@ public class DbConnect extends DbManager
   {
     String results = null;
 
-
     loadProperties();
 
     String[] dbaUrl = properties.getProperty("dbaUrl").replaceAll("http://", "").split(":");
 
     String serverName = dbaUrl[0];
-    String ldapUserbase = "dc=senate,dc=state,dc=ny,dc=us";
-
+    
+    String resourceName = null;
+    String resourceType = null;
+    String ldapPort = null;
+    String ldapHost = null;
+    String ldapUserBase = null;
+    String ldapContextBase = null;
+    
+    int recordCnt = 0;
+    
     /*String query = "SELECT nafirst, nalast, cdrespctrhd"
      + " FROM PM21PERSONN"
      + " WHERE nalast = ?"
@@ -1652,6 +1659,38 @@ public class DbConnect extends DbManager
 
     try {
       conn = getDbConnection();
+
+      	/*---  Added new fields and cursor c1 to obtain the parameter values from 
+          ---  a database table. If parameters have to change, having it in a table
+	  ---  would...
+	  ---   1) Simplify the process of fixing the changes by making it a dba request instead of an application request
+	  ---   2) One change in the dba request would fix all processes using the database table to get their parameter values
+	  ---      instead of having to change various applications.
+          */
+      
+      ps = conn.prepareStatement(   "     SELECT naresource, cdresourcetype, nuldapport, cdldaphost, deldapuserbase, decontextbase\n" +
+                                    "     FROM il01ssouser\n" +
+                                    "     WHERE cdresource = 'SSORESOURCE'\n" +
+                                    "       AND cdstatus = 'A'");
+      rs = ps.executeQuery();
+
+      while (rs.next()) {
+            resourceName = rs.getString(1);
+            resourceType = rs.getString(2);
+            ldapPort = rs.getString(3);
+            ldapHost = rs.getString(4);
+            ldapUserBase = rs.getString(5);
+            ldapContextBase = rs.getString(6);
+            recordCnt = recordCnt + 1;
+      }
+      
+      if (recordCnt==0) {
+          throw new Exception("!!ERROR: SSO Resource not found in SSO User Table. Password not changed. Please contact STSBAC.");
+      }
+      else if (recordCnt>1) {
+          log.warn("**WARNING: "+recordCnt+" records found in SSO User Table when changing users passord (only expected 1 record). Last Record fetched was used.");
+      }
+            
       cs = conn.prepareCall("{?=call change_password(?,?)}");
       cs.registerOutParameter(1, Types.VARCHAR);
       cs.setString(2, user);
@@ -1671,12 +1710,9 @@ public class DbConnect extends DbManager
 
       while (rs.next()) {
         passwordValidity = rs.getInt(1);
-        //System.out.println("passwordValidity:"+passwordValidity);
-        //log.info("passwordValidity:"+passwordValidity);
       }
       
-      //System.out.println("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + "+passwordValidity+" WHERE nauser = '"+user+"'");
-      //log.info("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + "+passwordValidity+" WHERE nauser = '"+user+"'");
+      
       ps = conn.prepareStatement("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + ?, natxnupduser = USER, dttxnupdate = SYSDATE WHERE nauser = ?");
       ps.setInt(1, passwordValidity);
       ps.setString(2, user.trim().toUpperCase());
@@ -1684,24 +1720,33 @@ public class DbConnect extends DbManager
 
       //System.out.println("call changeSSOPassword ('389', '"+serverName+"', '"+ldapUserbase+"', '"+user+"', '"+password+"'}");
       //log.info("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + "+passwordValidity+" WHERE nauser = '"+user+"'");
-      cs = conn.prepareCall("{call changeSSOPassword ('389', ?, ?, ?, ?)}");
-      cs.setString(1, serverName);
-      cs.setString(2, ldapUserbase);
-      cs.setString(3, user.trim().toLowerCase());
-      cs.setString(4, password.trim().toLowerCase());
+      cs = conn.prepareCall("{call changeSSOPassword (?, ?, ?, ?, ?)}");
+      cs.setString(1, ldapPort);
+      cs.setString(2, serverName);
+      cs.setString(3, ldapUserBase);
+      cs.setString(4, user.trim().toLowerCase());
+      cs.setString(5, password.trim().toLowerCase());
       cs.executeUpdate();
 
       //System.out.println("call updateSSOUserResource ('"+user+"', '"+password+"', '"+this.dbaName+"||con', 'OracleDB', '389', '"+serverName+"', '"+ldapUserbase+"', , 'cn=Extended Properties,cn=OracleContext,"+ldapUserbase+"')}");
-      cs = conn.prepareCall("{call updateSSOUserResource (?, ?, ?, 'OracleDB', '389', ?, ?, ?)}");
-      cs.setString(1, user);
-      cs.setString(2, password);
-      cs.setString(3, this.dbaName + "con");
-      cs.setString(4, serverName);
-      cs.setString(5, ldapUserbase);
-      cs.setString(6, "cn=Extended Properties,cn=OracleContext," + ldapUserbase);
+      cs = conn.prepareCall("{call updateSSOUserResource (?, ?, ?, ?, ?, ?, ?, ?)}");
+     
+      cs.setString(1, user.trim().toLowerCase());
+      cs.setString(2, password.trim().toLowerCase());
+      cs.setString(3, resourceName);
+      cs.setString(4, resourceType);
+      cs.setString(5, ldapPort);
+      cs.setString(6, ldapHost);
+      cs.setString(7, ldapUserBase);
+      cs.setString(8, ldapContextBase);
       cs.executeUpdate();
-
-    } finally {
+    }
+    catch (Exception e) {
+        // Not using String Buffer below since the concatenation of Strings should
+        // only be done once
+        return e.getMessage()+"\r\n"+e.getStackTrace().toString();
+    }
+    finally {
       closeResultSet(rs);
       closeStatement(cs);
       closeStatement(ps);
