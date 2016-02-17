@@ -43,9 +43,22 @@ public class ChangePassword extends HttpServlet
             if (status==null||status.trim().length()==0) {
                 status = "OK";
             }
+            // Testing... FAKE STATUS
+            //status = "TEST ERROR MESSAGE. THIS MESSAGE IS FOR TESTING.";
+            if (status.equals("OK")) {
+                response.setStatus(HttpServletResponse.SC_OK);
+            }
+            else {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            }
+            
           } catch (SQLException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            status = ex.getMessage();
             log.warn(null, ex);
           } catch (ClassNotFoundException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            status = ex.getMessage();
             log.warn(null, ex);
           }
             out.println(status);

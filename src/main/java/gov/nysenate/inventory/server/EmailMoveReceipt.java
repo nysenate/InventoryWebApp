@@ -362,7 +362,7 @@ public class EmailMoveReceipt implements Runnable {
     public int sendPickupEmailReceipt(Transaction pickup) {
 
         if (emailType != PICKUP) {
-            log.warn("{0}" + "|" + "(" + this.dbaUrl + ") " + "***WARNING: Email Type was not set to PICKUP!!! Not emailing Pickup receipt.");
+            log.warn("{0}" + "|" + "(" + this.dbaUrl + ") " + "**WARNING: Email Type was not set to PICKUP!!! Not emailing Pickup receipt.");
             return 30;
         }
         this.pickup = pickup;
@@ -395,7 +395,7 @@ public class EmailMoveReceipt implements Runnable {
             pickupEmployee = db.getEmployeeDaysTerminated(pickup.getNapickupby());
             this.napickupbyName = pickupEmployee.getFullName().trim();
         } catch (SQLException sqle) {
-            log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Pickup Employee for " + pickup.getNapickupby(), sqle);
+            log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: Exception occured when trying to get Pickup Employee for " + pickup.getNapickupby(), sqle);
             this.napickupbyName = "N/A";
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
@@ -409,7 +409,7 @@ public class EmailMoveReceipt implements Runnable {
             try {
                 signingEmployee = db.getEmployeeWhoSigned(pickup.getNuxrrelsign());
             } catch (Exception e) {
-                log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Pickup SigningEmployee");
+                log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: Exception occured when trying to get Pickup SigningEmployee");
             }
         }
         // Get the employee who picked up the items
@@ -425,7 +425,7 @@ public class EmailMoveReceipt implements Runnable {
      */
     public int sendDeliveryEmailReceipt(Transaction delivery) {
         if (emailType != DELIVERY) {
-            log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Email Type was not set to DELIVERY!!! Not emailing Delivery receipt.");
+            log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: Email Type was not set to DELIVERY!!! Not emailing Delivery receipt.");
             return 31;
         }
         this.delivery = delivery;
@@ -449,7 +449,7 @@ public class EmailMoveReceipt implements Runnable {
                 pickupEmployee = db.getEmployeeDaysTerminated(delivery.getNapickupby());
                 this.napickupbyName = pickupEmployee.getFullName().trim();
             } catch (SQLException sqle) {
-                log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Delivery Employee for " + delivery.getNadeliverby(), sqle);
+                log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: Exception occured when trying to get Delivery Employee for " + delivery.getNadeliverby(), sqle);
                 this.napickupbyName = "N/A";
             } catch (ClassNotFoundException e) {
                 // TODO Auto-generated catch block
@@ -461,7 +461,7 @@ public class EmailMoveReceipt implements Runnable {
                 deliveryEmployee = db.getEmployeeDaysTerminated(delivery.getNadeliverby());
                 this.nadeliverbyName = deliveryEmployee.getFullName().trim();
             } catch (SQLException sqle) {
-                log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Delivery Employee for " + delivery.getNadeliverby(), sqle);
+                log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: Exception occured when trying to get Delivery Employee for " + delivery.getNadeliverby(), sqle);
                 this.nadeliverbyName = "N/A";
             } catch (ClassNotFoundException e) {
                 // TODO Auto-generated catch block
@@ -480,7 +480,7 @@ public class EmailMoveReceipt implements Runnable {
             try {
                 signingEmployee = db.getEmployeeWhoSigned(delivery.getNuxraccptsign());
             } catch (Exception e) {
-                log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to get Delivery SigningEmployee");
+                log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: Exception occured when trying to get Delivery SigningEmployee");
             }
 
         }
@@ -608,7 +608,7 @@ public class EmailMoveReceipt implements Runnable {
             log.info("{0}" + "|" + "(" + this.dbaUrl + ") ****PARAMETER testingMode was NOT FOUND  TESTING MODE WILL BE DEFAULTED TO TRUE Pickup.processRequest ");
         } catch (Exception e) {
             testingModeProperty = "TRUE";
-            log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Exception occured when trying to find testingMode Property ({1}) TESTING MODE WILL BE DEFAULTED TO TRUE Pickup.processRequest ", e);
+            log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: Exception occured when trying to find testingMode Property ({1}) TESTING MODE WILL BE DEFAULTED TO TRUE Pickup.processRequest ", e);
         }
 
         /*
@@ -714,7 +714,7 @@ public class EmailMoveReceipt implements Runnable {
                     } else if (remoteUser != null && remoteUser.getFullName() != null && remoteUser.getFullName().trim().length() > 0) {
                         emailData.put("Employee", remoteUser.getFullName());
                     } else {
-                        //log.warn("***WARNING: Both signing employee and remote user employee names are blank. {Employee} cannot be set.");
+                        //log.warn("**WARNING: Both signing employee and remote user employee names are blank. {Employee} cannot be set.");
                         /*
                          *  Dear {Employee} should be either the Signing Employee Name or the Remote User
                          * (ie: the user who logged into the tablet to send the paperwork for the remote office)
@@ -1179,10 +1179,10 @@ public class EmailMoveReceipt implements Runnable {
                             addProblemEmailAddr(remoteUser.getNaemail(), remoteUser.getFullName(), e.getStackTrace(), e.getMessage());
                         }
                     } else if (pickupEmployee == null) {
-                        log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Pickup Employee was null so can''t add Pickup Employee as recipient.");
+                        log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: Pickup Employee was null so can''t add Pickup Employee as recipient.");
                     } else if (pickupEmployee.getNaemail() == null) {
                         addProblemEmailAddr(pickupEmployee.getNaemail(), pickupEmployee.getFullName(), null, "Invalid E-mail Address");
-                        log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Pickup Employee " + pickupEmployee.getFullName() + " E-mail Field was null so can''t add Pickup Employee as recipient.");
+                        log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: Pickup Employee " + pickupEmployee.getFullName() + " E-mail Field was null so can''t add Pickup Employee as recipient.");
                     }
                 }
             } else if (this.emailType == DELIVERY) {
@@ -1254,9 +1254,9 @@ public class EmailMoveReceipt implements Runnable {
                             }
                         }
                     } else if (deliveryEmployee == null) {
-                        log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Delivery Employee was null so can''t add Delivery Employee as recipient.");
+                        log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: Delivery Employee was null so can''t add Delivery Employee as recipient.");
                     } else if (deliveryEmployee.getNaemail() == null) {
-                        log.warn("{0}" + "|" + "(" + this.dbaUrl + ") ***WARNING: Delivery Employee " + deliveryEmployee.getFullName() + " E-mail Field was null so can''t add Delivery Employee as recipient.");
+                        log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: Delivery Employee " + deliveryEmployee.getFullName() + " E-mail Field was null so can''t add Delivery Employee as recipient.");
                     }
                 }
             }
@@ -1767,18 +1767,18 @@ public class EmailMoveReceipt implements Runnable {
             String sEmailType = "";
             if (emailType == PICKUP) {
                 if (this.addSubject == null) {
-                    message.setSubject("***WARNING: Pickup Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText);
+                    message.setSubject("**WARNING: Pickup Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText);
                 }
                 else {
-                    message.setSubject("***WARNING: Pickup Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText + this.addSubject);
+                    message.setSubject("**WARNING: Pickup Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText + this.addSubject);
                 }
                 sEmailType = "PICKUP";
             } else if (emailType == DELIVERY) {
                 if (this.addSubject == null) {
-                    message.setSubject("***WARNING: Delivery Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText);
+                    message.setSubject("**WARNING: Delivery Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText);
                 }
                 else {
-                    message.setSubject("***WARNING: Delivery Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText + this.addSubject);
+                    message.setSubject("**WARNING: Delivery Receipt Recipient(s) E-mail Address Problems. Contact STS/BAC." + subjectAddText + this.addSubject);
                 }
                 sEmailType = "DELIVERY";
             }

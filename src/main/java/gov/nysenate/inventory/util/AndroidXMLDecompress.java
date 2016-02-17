@@ -32,7 +32,7 @@ public class AndroidXMLDecompress {
                 // 0th word is 03 00 08 00
                 // 3rd word SEEMS TO BE: Offset at then of StringTable
                 // 4th word is: Number of strings in string table
-                // WARNING: Sometime I indiscriminently display or refer to word in
+                // **WARNING: Sometime I indiscriminently display or refer to word in
                 // little endian storage format, or in integer format (ie MSB first).
                 int numbStrings = LEW(xml, 4 * 4);
  

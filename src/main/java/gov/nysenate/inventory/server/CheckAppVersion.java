@@ -123,7 +123,7 @@ public class CheckAppVersion extends HttpServlet {
             try {
                 zip = new ZipFile(fileName);
             } catch (IOException ex) {
-                  log.info("***WARNING: "+fileName+" not found on Server. The Server cannot check for the latest version of the App or allow the App to be downloaded without the file on the server.");
+                  log.info("**WARNING: "+fileName+" not found on Server. The Server cannot check for the latest version of the App or allow the App to be downloaded without the file on the server.");
                 return "";
             }
             ZipEntry mft = zip.getEntry(zipEntry);

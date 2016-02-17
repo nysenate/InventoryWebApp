@@ -34,7 +34,7 @@ public class DbConnect extends DbManager
   private static Properties properties;
   private String userName, password;
   private String dbaName = "";
-  private int passwordExpireWarning = 10;
+  private int passwordExpireWarning  = 10;
 
   public DbConnect()
   {
@@ -229,14 +229,12 @@ public class DbConnect extends DbManager
 
       while (result2.next()) {
         passwordExpireWarning = result2.getInt(1);
-        //log.info("dba passwordExpireWarning:" + passwordExpireWarning);
-        //System.out.println("dba passwordExpireWarning:" + passwordExpireWarning);
       }
 
       if (dtpasswdexp != null && dtToday != null) {
           /*
-           * In SFMS, Password Expires Warning on the Day of the Password Expiration...
-           * "***WARNING: Your password will expire within 0 days. Do you want to change it?"
+           * In SFMS, Password Expires **WARNING on the Day of the Password Expiration...
+           * "**WARNING: Your password will expire within 0 days. Do you want to change it?"
            *          Password Expired Error Message comes up if it is past the day of the expiration.
            * 
            */          
@@ -246,7 +244,7 @@ public class DbConnect extends DbManager
         } else if (dtpasswdexp.before(new Date(dtToday.getTime() + (passwordExpireWarning * 24 * 3600 * 1000)))||dtpasswdexp.equals(new Date(dtToday.getTime() + (passwordExpireWarning * 24 * 3600 * 1000)))) {
           int daysLeft = (int) ((dtpasswdexp.getTime() - dtToday.getTime()) / (24 * 3600 * 1000));
           loginStatus.setNustatus(loginStatus.PASSWORD_EXPIRES_SOON);
-          loginStatus.setDestatus("***WARNING: Your password will expire within " + daysLeft + " days. Do you want to change it?");
+          loginStatus.setDestatus("**WARNING: Your password will expire within " + daysLeft + " days. Do you want to change it?");
         }
       }
     } catch (SQLException e) {
@@ -902,11 +900,11 @@ public class DbConnect extends DbManager
       BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageInArray));
 
       if (bufferedImage == null) {
-        log.warn("***WARNING: bufferedImage for a Signature Image was null!! (DBCONNECT.insertSignature)");
+        log.warn("**WARNING: bufferedImage for a Signature Image was null!! (DBCONNECT.insertSignature)");
       }
       Graphics2D newGraphic = bufferedImage.createGraphics();
       if (newGraphic == null) {
-        log.warn("***WARNING: An attempt to create a new Graphic for a Signature Image has failed!!! Resulting in a NULL Result. (DBCONNECT.insertSignature)");
+        log.warn("**WARNING: An attempt to create a new Graphic for a Signature Image has failed!!! Resulting in a NULL Result. (DBCONNECT.insertSignature)");
       }
 
       newGraphic.drawImage(bufferedImage, 0, 0, Color.WHITE, null);
@@ -1643,6 +1641,7 @@ public class DbConnect extends DbManager
     String ldapHost = null;
     String ldapUserBase = null;
     String ldapContextBase = null;
+    String startMsg = "";
     
     int recordCnt = 0;
     
@@ -1667,7 +1666,9 @@ public class DbConnect extends DbManager
 	  ---   2) One change in the dba request would fix all processes using the database table to get their parameter values
 	  ---      instead of having to change various applications.
           */
-      
+
+      startMsg = "(getResources) ";
+
       ps = conn.prepareStatement(   "     SELECT naresource, cdresourcetype, nuldapport, cdldaphost, deldapuserbase, decontextbase\n" +
                                     "     FROM il01ssouser\n" +
                                     "     WHERE cdresource = 'SSORESOURCE'\n" +
@@ -1691,6 +1692,7 @@ public class DbConnect extends DbManager
           log.warn("**WARNING: "+recordCnt+" records found in SSO User Table when changing users passord (only expected 1 record). Last Record fetched was used.");
       }
             
+      startMsg = "(changePassword) ";
       cs = conn.prepareCall("{?=call change_password(?,?)}");
       cs.registerOutParameter(1, Types.VARCHAR);
       cs.setString(2, user);
@@ -1701,10 +1703,10 @@ public class DbConnect extends DbManager
       //log.info("{?=call change_password("+user+","+password+")}");
 
       if (results != null && !results.isEmpty()) {
-        //log.info("{?=call change_password results 1:"+results);
         return results;
       }
 
+      startMsg = "(passwordValidity) ";
       ps = conn.prepareStatement("SELECT To_Number(paramval) FROM sass_parameters WHERE cdparameter = 'PASSWD_VALIDITY'");
       rs = ps.executeQuery();
 
@@ -1712,14 +1714,13 @@ public class DbConnect extends DbManager
         passwordValidity = rs.getInt(1);
       }
       
-      
+      startMsg = "(passwordExpiration) ";
       ps = conn.prepareStatement("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + ?, natxnupduser = USER, dttxnupdate = SYSDATE WHERE nauser = ?");
       ps.setInt(1, passwordValidity);
       ps.setString(2, user.trim().toUpperCase());
       ps.executeUpdate();
-
-      //System.out.println("call changeSSOPassword ('389', '"+serverName+"', '"+ldapUserbase+"', '"+user+"', '"+password+"'}");
-      //log.info("UPDATE im86orgid SET dtpasswdset = SYSDATE, dtpasswdexp = SYSDATE + "+passwordValidity+" WHERE nauser = '"+user+"'");
+      
+      startMsg = "**WARNING:(changeSSOPassword) ";
       cs = conn.prepareCall("{call changeSSOPassword (?, ?, ?, ?, ?)}");
       cs.setString(1, ldapPort);
       cs.setString(2, serverName);
@@ -1728,6 +1729,7 @@ public class DbConnect extends DbManager
       cs.setString(5, password.trim().toLowerCase());
       cs.executeUpdate();
 
+      startMsg = "**WARNING:(updateSSOUserResource) ";
       //System.out.println("call updateSSOUserResource ('"+user+"', '"+password+"', '"+this.dbaName+"||con', 'OracleDB', '389', '"+serverName+"', '"+ldapUserbase+"', , 'cn=Extended Properties,cn=OracleContext,"+ldapUserbase+"')}");
       cs = conn.prepareCall("{call updateSSOUserResource (?, ?, ?, ?, ?, ?, ?, ?)}");
      
@@ -1740,11 +1742,20 @@ public class DbConnect extends DbManager
       cs.setString(7, ldapUserBase);
       cs.setString(8, ldapContextBase);
       cs.executeUpdate();
+      startMsg = "";
     }
     catch (Exception e) {
         // Not using String Buffer below since the concatenation of Strings should
         // only be done once
-        return e.getMessage()+"\r\n"+e.getStackTrace().toString();
+        
+        if (startMsg.startsWith("**WARNING:")) {
+            log.warn(startMsg+e.getMessage()+"\r\n"+e.getStackTrace()[0].toString());
+        }
+        else {
+            log.error(startMsg+e.getMessage()+"\r\n"+e.getStackTrace()[0].toString());
+        }
+        
+        return startMsg+e.getMessage()+"\r\n"+e.getStackTrace()[0].toString();
     }
     finally {
       closeResultSet(rs);
