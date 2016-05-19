@@ -72,7 +72,7 @@ public class RemovalRequestDAO extends DbManager
             "SELECT nuinvadjreq, nauser, to_char(dtinvadjreq, " + ORACLE_DATE_QUERY + ") dtinvadjreq, cdinvreqstatm, deinvctrlcmts \n" +
             "FROM fm12invadjreq\n" +
             "WHERE cdstatus = 'A'\n" +
-            "AND cdinvreqstatm = 'AP'";
+            "AND cdinvreqstatm = 'AP'"; 
 
     protected List<RemovalRequest> getApproved(Connection conn) throws SQLException {
         QueryRunner run = new QueryRunner();
@@ -92,17 +92,50 @@ public class RemovalRequestDAO extends DbManager
         return requests;
     }
 
-    private String GET_NEXT_ID_VALUE_SQL = "SELECT NUINVADJREQ_SQNC.nextval id FROM dual";
+    //private String GET_NEXT_ID_VALUE_SQL = "SELECT NUINVADJREQ_SQNC.nextval id FROM dual";
+    private String GET_NEXT_ID_VALUE_SQL = "SELECT NVL(MAX(nuinvadjreq),0) + 1 id FROM fp12invadjreq";
+    private String SET_NEXT_ID_VALUE_SQL = "UPDATE fp12invadjreq SET nuinvadjreq = ?, natxnupduser = USER, dttxnupdate = SYSDATE";
+    private String INS_NEXT_ID_VALUE_SQL = "INSERT INTO fp12invadjreq (nuinvadjreq, natxnorguser, dttxnorigin, natxnupduser, dttxnupdate) VALUES (?, USER, SYSDATE, USER, SYSDATE)";
 
     protected int getNextIdValue(Connection conn) throws SQLException {
         QueryRunner run = new QueryRunner();
-        return run.query(conn, GET_NEXT_ID_VALUE_SQL, new ResultSetHandler<Integer>() {
+
+        int result;
+        
+        result =  run.query(conn,GET_NEXT_ID_VALUE_SQL, new ResultSetHandler<Integer>() {
             @Override
             public Integer handle(ResultSet rs) throws SQLException {
                 rs.next();
                 return rs.getInt("id");
             }
         });
+               
+        run = new QueryRunner();
+        
+        if (result > 0) {
+            int updates = run.update(conn, SET_NEXT_ID_VALUE_SQL, result);
+            if (updates==0) {
+                int inserts = run.update(conn, INS_NEXT_ID_VALUE_SQL, result);
+            }
+            return result;
+        }
+        else {
+            /*
+             * If no parameter record was found or if the parameter table xref value is
+             * less than 1 then set it to 1 since it should never be less. 
+             */
+            result = 1;
+            int inserts = run.update(conn, INS_NEXT_ID_VALUE_SQL, result);
+            return result;
+        }
+        
+     /*   return run.query(conn, GET_NEXT_ID_VALUE_SQL, new ResultSetHandler<Integer>() {
+            @Override
+            public Integer handle(ResultSet rs) throws SQLException {
+                rs.next();
+                return rs.getInt("id");
+            }
+        });*/
     }
 
     private String INSERT_REMOVAL_REQUEST_SQL =
@@ -148,6 +181,10 @@ public class RemovalRequestDAO extends DbManager
     protected void deleteRemovalRequest(Connection conn, RemovalRequest rr) throws SQLException, ClassNotFoundException {
         QueryRunner run = new QueryRunner();
         run.update(conn, DELETE_REMOVAL_REQUEST_SQL, rr.getTransactionNum());
+    }
+
+    private void Exception() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     private class RemovalRequestHandler implements ResultSetHandler<List<RemovalRequest>> {
