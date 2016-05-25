@@ -108,7 +108,6 @@ public class RemovalRequestServlet extends HttpServlet
         out.write(Serializer.serialize(rr));
     }
 
-
     /**
      * Handles updating of Removal Requests.
      */
@@ -137,9 +136,10 @@ public class RemovalRequestServlet extends HttpServlet
             } else {
                 service.updateRemovalRequest(db, rr);
             }
+            response.setStatus(HttpStatus.SC_OK);
         } catch (SQLException | ClassNotFoundException e) {
             response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-            log.error(e.getMessage(), e);
+            log.error("RemovalRequestServlet.doPost error:"+e.getMessage(), e);
         }
 
         out.write(Serializer.serialize(rr));

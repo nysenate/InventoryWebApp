@@ -11,9 +11,12 @@ import org.apache.commons.dbutils.DbUtils;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import org.apache.log4j.Logger;
 
 public class RemovalRequestService {
 
+    private static Logger log = Logger.getLogger(RemovalRequestService.class.getName());
+    
     public RemovalRequest getRemovalRequest(DbConnect db, int id) throws SQLException, ClassNotFoundException {
         Connection conn = null;
         try {
@@ -66,7 +69,7 @@ public class RemovalRequestService {
     }
 
     public List<RemovalRequest> getSubmittedToInventoryControl(DbConnect db) throws SQLException, ClassNotFoundException {
-        List<RemovalRequest> rrs;
+        List<RemovalRequest> rrs = null;
         RemovalRequestDAO rrDao = new RemovalRequestDAO();
 
         Connection conn = null;
@@ -74,7 +77,11 @@ public class RemovalRequestService {
             conn = db.getDbConnection();
             rrs = rrDao.getSubmittedToInventoryControl(conn);
             rrs = populateRequestList(rrs, conn);
-        } finally {
+        }
+        catch (SQLException e) {
+            log.error("Removal Request Error:"+e.getMessage(), e);            
+        }
+        finally {
             DbUtils.close(conn);
         }
 
@@ -150,9 +157,12 @@ public class RemovalRequestService {
         Connection conn = null;
         try {
             conn = db.getDbConnection();
-            rr.setTransactionNum(dao.getNextIdValue(conn));
+            int newId = dao.getNextIdValue(conn);
+            rr.setTransactionNum(newId);
             dao.insertRemovalRequest(conn, rr);
             updateRemovalRequestItems(conn, rr);
+        } catch (SQLException e) {
+            log.error("Removal Request Error:"+e.getMessage(), e);            
         } finally {
             DbUtils.close(conn);
         }
@@ -199,7 +209,10 @@ public class RemovalRequestService {
                 new RemovalRequestDAO().updateRemovalRequest(conn, rr);
             }
             updateRemovalRequestItems(conn, rr);
-        } finally {
+        } catch (SQLException e) {
+            log.error("Removal Request Error:"+e.getMessage(), e);            
+        }
+        finally {
             DbUtils.close(conn);
         }
     }
