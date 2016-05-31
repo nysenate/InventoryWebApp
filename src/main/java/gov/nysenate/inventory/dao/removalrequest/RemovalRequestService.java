@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 public class RemovalRequestService {
 
     private static Logger log = Logger.getLogger(RemovalRequestService.class.getName());
-    
+
     public RemovalRequest getRemovalRequest(DbConnect db, int id) throws SQLException, ClassNotFoundException {
         Connection conn = null;
         try {
@@ -77,11 +77,9 @@ public class RemovalRequestService {
             conn = db.getDbConnection();
             rrs = rrDao.getSubmittedToInventoryControl(conn);
             rrs = populateRequestList(rrs, conn);
-        }
-        catch (SQLException e) {
-            log.error("Removal Request Error:"+e.getMessage(), e);            
-        }
-        finally {
+        } catch (SQLException e) {
+            log.error("Removal Request Error:" + e.getMessage(), e);
+        } finally {
             DbUtils.close(conn);
         }
 
@@ -162,7 +160,7 @@ public class RemovalRequestService {
             dao.insertRemovalRequest(conn, rr);
             updateRemovalRequestItems(conn, rr);
         } catch (SQLException e) {
-            log.error("Removal Request Error:"+e.getMessage(), e);            
+            log.error("Removal Request Error:" + e.getMessage(), e);
         } finally {
             DbUtils.close(conn);
         }
@@ -183,7 +181,7 @@ public class RemovalRequestService {
 
     private boolean itemIsNew(Item item, List<Item> persistedItems) {
         boolean isNew = true;
-        for (Item i: persistedItems) {
+        for (Item i : persistedItems) {
             if (i.getId() == item.getId()) {
                 isNew = false;
             }
@@ -210,9 +208,8 @@ public class RemovalRequestService {
             }
             updateRemovalRequestItems(conn, rr);
         } catch (SQLException e) {
-            log.error("Removal Request Error:"+e.getMessage(), e);            
-        }
-        finally {
+            log.error("Removal Request Error:" + e.getMessage(), e);
+        } finally {
             DbUtils.close(conn);
         }
     }
