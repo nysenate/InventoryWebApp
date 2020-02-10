@@ -20,8 +20,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Servlet that handles all http requests related to {@link RemovalRequest}.
@@ -40,9 +39,29 @@ public class RemovalRequestServlet extends HttpServlet
         HttpSession session = request.getSession(false);
         DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
+        // Keeping the code below commented out for future testing purposes as needed
+        //System.out.println("RemovalRequest GET");
+
+/*        Map params = request.getParameterMap();
+        Iterator i = params.keySet().iterator();
+        while ( i.hasNext() ) {
+            String key = (String) i.next();
+            String value = ((String[]) params.get(key))[0];
+            Logger.getLogger(this.getClass()).info("         RemovalRequest Parameter: " +key + " : " + value );
+            System.out.println("         RemovalRequest Parameter: " +key + " : " + value );
+        }*/
+
+//        Logger.getLogger(this.getClass()).info("RemovalRequest status:"+request.getParameter("status") +" " + "id: "+request.getParameter("id"));
+//        System.out.println("RemovalRequest status:"+request.getParameter("status") +" " + "id: "+request.getParameter("id"));
+
         if (request.getParameter("status") != null) {
+           //Logger.getLogger("RemovalRequest "+"status:"+request.getParameter("status")+" ");
+            //System.out.println("RemovalRequest "+"status:"+request.getParameter("status")+" ");
+
             getRemovalRequestsByStatus(db, request, response, out);
         } else if (request.getParameter("id") != null) {
+            //System.out.println("RemovalRequest "+("id: "+request.getParameter("id")+" "));
+            //Logger.getLogger("RemovalRequest "+("id: "+request.getParameter("id")+" "));
             getRemovalRequestById(db, request, response, out);
         }
     }
@@ -118,7 +137,9 @@ public class RemovalRequestServlet extends HttpServlet
         DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
         String json = request.getParameter("RemovalRequest");
 
+        // Keeping the code below commented out for future testing purposes as needed
         RemovalRequest rr = null;
+
         try {
             rr = Serializer.deserialize(json, RemovalRequest.class).get(0);
         } catch (JsonParseException e) {
@@ -128,6 +149,7 @@ public class RemovalRequestServlet extends HttpServlet
         }
 
         RemovalRequestService service = new RemovalRequestService();
+
         try {
             if (rr.getTransactionNum() == 0) {
                 service.insertRemovalRequest(db, rr);
@@ -152,6 +174,23 @@ public class RemovalRequestServlet extends HttpServlet
             }
         }
         return true;
+    }
+
+    private void testParameters (HttpServletRequest req) {
+        Enumeration<String> parameterNames = req.getParameterNames();
+
+        while (parameterNames.hasMoreElements()) {
+
+            String paramName = parameterNames.nextElement();
+            System.out.println("Param: "+paramName);
+
+            String[] paramValues = req.getParameterValues(paramName);
+            for (int i = 0; i < paramValues.length; i++) {
+                String paramValue = paramValues[i];
+                System.out.println("      " + paramValue);
+            }
+
+        }
     }
 
 }

@@ -6,6 +6,8 @@ package gov.nysenate.inventory.model;
 
 import com.google.gson.annotations.Expose;
 
+import java.util.List;
+
 /**
  *
  * @author senateuser
@@ -18,7 +20,8 @@ public class InvSerialNumber
    @Expose  String cdcommodity = "";
    @Expose  String decommodityf = "";
    @Expose  String statusNum = "0";
-   
+   @Expose  List<Location> locations;
+
     final int NUSERIAL = -101;
     final int NUSENATE = -103;
     final int NUXERFSN = -104;
@@ -75,8 +78,16 @@ public class InvSerialNumber
 
     public void setStatusNum(String statusNum) {
         this.statusNum = statusNum;
-    }    
-    
+    }
+
+    public void setLocations(List<Location> locations) {
+        this.locations = locations;
+    }
+
+    public List<Location> getLocations() {
+        return locations;
+    }
+
     @Override
     public String toString() {
         return nuserial;

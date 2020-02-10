@@ -1,12 +1,15 @@
 package gov.nysenate.inventory.util;
 
 import com.google.gson.*;
+import gov.nysenate.inventory.server.VerificationReports;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class Serializer {
+    private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Serializer.class.getName());
 
     private static final Gson gson = new GsonBuilder()
             .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").create();
@@ -34,6 +37,7 @@ public class Serializer {
         } else {
             JsonArray array = element.getAsJsonArray();
             for (int i = 0; i < array.size(); i++) {
+                log.info(i+": "+array.get(i).toString());
                 results.add(gson.fromJson(array.get(i).toString(), clazz));
             }
         }

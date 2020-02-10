@@ -1,5 +1,6 @@
 package gov.nysenate.inventory.dao.item;
 
+import gov.nysenate.inventory.dao.location.LocationDAO;
 import gov.nysenate.inventory.model.Item;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -21,6 +22,7 @@ public class ItemDAO
     protected Item getItemById(Connection conn, int id) throws SQLException {
         QueryRunner run = new QueryRunner();
         Item item = run.query(conn, SELECT_ITEM_BY_ID_SQL, new ItemHandler(), id);
+        getItemLocHistory(conn, item);
         return item;
     }
 
@@ -33,6 +35,7 @@ public class ItemDAO
     protected Item getItemByBarcode(Connection conn, String barcode) throws SQLException {
         QueryRunner run = new QueryRunner();
         Item item = run.query(conn, SELECT_ITEM_BY_BARCODE_SQL, new ItemHandler(), barcode);
+        getItemLocHistory(conn, item);
         return item;
     }
 
@@ -46,6 +49,9 @@ public class ItemDAO
     protected List<Item> getItemsAtLocation(Connection conn, String locCode, String locType) throws SQLException {
         QueryRunner run = new QueryRunner();
         List<Item> items = run.query(conn, SELECT_ITEMS_BY_LOCATION_SQL, new ItemListHandler(), locCode, locType);
+        for (Item item : items) {
+            getItemLocHistory(conn, item);
+        }
         return items;
     }
 
@@ -56,10 +62,25 @@ public class ItemDAO
             "ON rr.nuxrefsn = items.nuxrefsn\n" +
             "WHERE rr.cdstatus = 'A' AND rr.nuxriareq = ?";
 
+
     protected List<Item> getItemsInRemovalRequest(Connection conn, int removalRequestNum) throws SQLException {
+
         QueryRunner run = new QueryRunner();
         List<Item> items = run.query(conn, SELECT_ITEMS_BY_REMOVAL_REQUEST_SQL, new ItemListHandler(), removalRequestNum);
+        for (Item item : items) {
+            getItemLocHistory(conn, item);
+        }
         return items;
+    }
+
+    private void  getItemLocHistory(Connection conn, Item item) throws SQLException {
+
+        if (item == null || item.getId() < 1) {
+            return;
+        }
+
+        item.setLocations(new LocationDAO().getLocationsOfItem(conn, item.getId()));
+
     }
 
     private class ItemListHandler implements ResultSetHandler<List<Item>> {

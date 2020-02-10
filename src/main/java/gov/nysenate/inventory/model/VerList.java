@@ -6,10 +6,10 @@ package gov.nysenate.inventory.model;
  */
 public class VerList {
 
-    public String NUSENATE;
-    public String CDCATEGORY;
-    public String DECOMMODITYF;
-    public String CDLOCATTO;
-    public String CDLOCTYPETO;
-    public String CDSTATUS;
+    public String nusenate;
+    public String cdcategory;
+    public String decommodityf;
+    public String cdlocatto;
+    public String cdloctypeto;
+    public String cdstatus;
 }

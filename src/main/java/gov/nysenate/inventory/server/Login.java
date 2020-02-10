@@ -24,7 +24,7 @@ public class Login extends HttpServlet {
     private static Logger log = Logger.getLogger(DbConnect.class.getName());
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         try {
@@ -41,7 +41,10 @@ public class Login extends HttpServlet {
             LoginStatus loginStatus = new LoginStatus();
 
             loginStatus = db.validateUser();
-            log.info("Login : defrmint:"+defrmint+", status:"+loginStatus.getDestatus());
+
+            /*
+                For testing purposes. Set timeout for 30 seconds...
+             */
 
             if (loginStatus.getNustatus() == loginStatus.VALID) {
                 System.out.println("VALID LOGIN:"+loginStatus.getDestatus());

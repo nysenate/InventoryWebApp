@@ -9,10 +9,10 @@ public class InvItem
    @Expose  String nusenate = "";
    @Expose  String cdcategory = "";
    @Expose  String cdlocat = "";
-    @Expose String cdlocatto = ""; // TODO: not part of an item
+   @Expose String cdlocatto = ""; // TODO: not part of an item
    @Expose  String cdintransit = "";
    @Expose  String decomments = "";
-    @Expose String nuxrefco = ""; // TODO: needed here?
+   @Expose String nuxrefco = ""; // TODO: needed here?
    @Expose  String cdcommodity = "";
    
     boolean selected = false;
@@ -89,8 +89,7 @@ public class InvItem
         this.cdlocatto = cdlocatto;
     }
 
-    
-   public String getCdintransit() {
+    public String getCdintransit() {
         return cdintransit;
     }
     

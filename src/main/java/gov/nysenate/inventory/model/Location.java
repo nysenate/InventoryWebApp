@@ -1,5 +1,6 @@
 package gov.nysenate.inventory.model;
 
+import java.util.Date;
 import java.util.List;
 
 public class Location
@@ -14,6 +15,8 @@ public class Location
     private String description;
     private String department;
     private List<Item> inventory;
+
+    private Date entryDate;
 
     public Location() {
         cdloctype = "";
@@ -137,6 +140,14 @@ public class Location
 
     public String getFullAddress() {
         return this.getAdstreet1() + " " + this.getAdcity() + ", " + this.getAdstate() + " " + this.getAdzipcode();
+    }
+
+    public void setEntryDate(Date entryDate) {
+        this.entryDate = entryDate;
+    }
+
+    public Date getEntryDate() {
+        return entryDate;
     }
 
     @Override

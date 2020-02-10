@@ -10,19 +10,6 @@ import java.util.List;
 
 public class LocationService
 {
-    public List<Location> getLocations(DbConnect db) throws SQLException, ClassNotFoundException {
-        List<Location> locations;
-        Connection conn = null;
-        try {
-            conn = db.getDbConnection();
-            locations = new LocationDAO().getLocations(conn);
-        } finally {
-            DbUtils.close(conn);
-        }
-
-        return locations;
-    }
-
     public Location getLocation(DbConnect db, String code, String type) throws SQLException, ClassNotFoundException {
         Location location;
         Connection conn = null;

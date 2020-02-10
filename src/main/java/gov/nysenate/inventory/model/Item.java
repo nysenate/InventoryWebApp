@@ -1,5 +1,10 @@
 package gov.nysenate.inventory.model;
 
+import gov.nysenate.inventory.util.Serializer;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class Item
 {
     /** The unique identifier used by the data store */
@@ -9,6 +14,7 @@ public class Item
     private Commodity commodity;
     private Location location;
     private ItemStatus status;
+    private List<Location> locations;
 
     /** The reason for an item to be inactivated. */
     private AdjustCode adjustCode;
@@ -74,6 +80,19 @@ public class Item
 
     public void setAdjustCode(AdjustCode adjustCode) {
         this.adjustCode = adjustCode;
+    }
+
+    public void setLocations(List<Location> locations) {
+        if (locations == null) {
+            this.locations = new ArrayList<>();
+        }
+        else {
+            this.locations = locations;
+        }
+    }
+
+    public List<Location> getLocations() {
+        return locations;
     }
 
     @Override

@@ -1,5 +1,7 @@
 package gov.nysenate.inventory.server.filter;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import gov.nysenate.inventory.util.HttpUtils;
 import org.apache.log4j.Logger;
 
@@ -10,6 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -23,6 +27,8 @@ import java.io.PrintWriter;
 public class SessionFilter implements Filter {
 
     private static final Logger log = Logger.getLogger(SessionFilter.class.getName());
+    private static final Gson gson = new GsonBuilder()
+            .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").create();
 
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) req;
@@ -30,24 +36,44 @@ public class SessionFilter implements Filter {
 
         boolean sessionRequired = doesPathRequireSession(request.getRequestURI());
 
+        Map serverMessage = new HashMap();
+
+        System.out.println("SESSIONFILTER");
         if (sessionRequired) {
+            System.out.println("Session is required");
             HttpSession session = request.getSession(false);
-            if (session == null) {
+
+            if (session == null || HttpUtils.getUserName(session) == null || HttpUtils.getUserName(session).trim().length() == 0) {
                 PrintWriter out = response.getWriter();
-                out.println("Session timed out");
+                serverMessage.put("Error", "Session timed out");
+                out.println(gson.toJson(serverMessage));
                 response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
                 log.info("Invalid or expired session.");
+                System.out.println("Invalid or expired session.");
                 return;
             }
+        }
+        else {
+            System.out.println("Session NOT required for "+request.getRequestURI());
         }
 
         chain.doFilter(req, res);
     }
 
     private boolean doesPathRequireSession(String path) {
-        return path.equals("/InventoryWebApp/") || path.startsWith("/InventoryWebApp/Login") ||
-               path.equals("/InventoryWebApp/CheckAppVersion") || path.equals("/InventoryWebApp/DownloadServlet") ?
-            false : true;
+        if (path == null || path.isEmpty()){
+            return false;
+        }
+
+        // Used for local server testing when InventoryWebApp is not part of the URL
+
+        return ((path.equals("/") || path.startsWith("/Login") ||
+                path.equals("/CheckAppVersion") || path.equals("/DownloadServlet"))) ?
+                false : true;
+
+
+        // Real path filter for real server.. Uncomment below when moving
+
     }
 
     public void destroy() {

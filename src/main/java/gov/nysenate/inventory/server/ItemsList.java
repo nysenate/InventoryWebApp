@@ -34,18 +34,15 @@ public class ItemsList extends HttpServlet {
 
         try {
             String loc_code = request.getParameter("loc_code");
-            //log.info("Getting item details for location " + loc_code);
 
             ArrayList<VerList> itemList = new ArrayList<VerList>();
             itemList = db.getLocationItemList(loc_code);
             String json = Serializer.serialize(itemList);
-            //log.info("Item details = " + json);
 
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(json);
 
-            out.print(json);
         } finally {
             out.close();
         }

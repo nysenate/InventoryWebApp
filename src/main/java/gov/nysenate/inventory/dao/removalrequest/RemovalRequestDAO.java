@@ -158,15 +158,53 @@ public class RemovalRequestDAO extends DbManager
 
     private String UPDATE_REMOVAL_REQUEST_SQL =
             "UPDATE fm12invadjreq SET nauser = ?, dtinvadjreq = ?, cdadjusted = ?, cdinvreqstatm = ?, deinvctrlcmts = ? \n" +
-            "WHERE nuinvadjreq = ?";
+                    "WHERE nuinvadjreq = ?";
 
     protected void updateRemovalRequest(Connection conn, RemovalRequest rr) throws SQLException, ClassNotFoundException {
         QueryRunner run = new QueryRunner();
-        run.update(conn, UPDATE_REMOVAL_REQUEST_SQL, rr.getEmployee(), new Timestamp(rr.getDate().getTime()),
+   /*      String testResult = UPDATE_REMOVAL_REQUEST_SQL;
+
+        //
+        //  Even though commented out, keeping for now just in case it it needed.
+        //  Temporary fix due to push to get this out by a deadline.
+        //  When more than one parameter is set,  ORA-04044: procedure, function, package, or type is not allowed here
+        //  with the changes on the Inventory App to use Volley.  This way is vulnerable to SQL INJECTION and is not the proper way, but
+        //  is being done for now to get it to work for now. Keeping
+        //
+
+       try {
+            testResult = testResult.replaceFirst("\\?", "'" + rr.getEmployee() + "'");
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
+            String date = simpleDateFormat.format( rr.getDate() );
+            testResult = testResult.replaceFirst("\\?", " TO_DATE('" + date + "','MM/DD/RRRR HH:MI:SS AM') ");
+            testResult = testResult.replaceFirst("\\?", "'" + rr.getAdjustCode().getCode() + "'");
+            testResult = testResult.replaceFirst("\\?", "'" + rr.getStatus() + "'");
+            testResult = testResult.replaceFirst("\\?", "'" + rr.getInventoryControlComments() + "'");
+            testResult = testResult.replaceFirst("\\?", "'" + rr.getTransactionNum() + "'");
+            System.out.println("updateRemovalRequest SQL: "+testResult);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("nuinvadjreq: ("+rr.getTransactionNum()+")");
+        System.out.println("nauser: ("+rr.getEmployee()+"):"+rr.getEmployee().length());
+        System.out.println("dtinvadjreq: ("+new Timestamp(rr.getDate().getTime())+")");
+        System.out.println("cdadjusted: ("+rr.getAdjustCode().getCode()+"):"+rr.getAdjustCode().getCode().length());
+        System.out.println("cdinvreqstatm: ("+rr.getStatus()+"):"+rr.getStatus().length());
+        System.out.println("deinvctrlcmts: ("+rr.getInventoryControlComments()+")");
+
+        int rows = run.update(conn, testResult);*/
+
+    //  Correct update that should be used if the error doesn't occur below...
+
+        int rows = run.update(conn, UPDATE_REMOVAL_REQUEST_SQL, rr.getEmployee(), new Timestamp(rr.getDate().getTime()),
                 rr.getAdjustCode().getCode(), rr.getStatus(), rr.getInventoryControlComments(),rr.getTransactionNum());
     }
 
     private String DELETE_REMOVAL_REQUEST_ITEM_SQL =
+            "UPDATE fd12invadjreq SET cdstatus = 'I' WHERE nuxriareq = ? and nuxrefsn = ? \n";
+
+    private String TEST_DELETE_REMOVAL_REQUEST_ITEM_SQL =
             "UPDATE fd12invadjreq SET cdstatus = 'I' WHERE nuxriareq = ? and nuxrefsn = ? \n";
 
     protected void deleteRemovalRequestItem(Connection conn, RemovalRequest rr, Item item) throws SQLException {
@@ -181,10 +219,6 @@ public class RemovalRequestDAO extends DbManager
     protected void deleteRemovalRequest(Connection conn, RemovalRequest rr) throws SQLException, ClassNotFoundException {
         QueryRunner run = new QueryRunner();
         run.update(conn, DELETE_REMOVAL_REQUEST_SQL, rr.getTransactionNum());
-    }
-
-    private void Exception() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     private class RemovalRequestHandler implements ResultSetHandler<List<RemovalRequest>> {

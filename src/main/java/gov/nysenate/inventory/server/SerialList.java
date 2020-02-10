@@ -60,11 +60,9 @@ public class SerialList extends HttpServlet
             }
 
             String json = Serializer.serialize(serialList);
-            System.out.println ("SERIAL LIST RESULTS:"+json);
             log.info("Serial list results = " + json);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
-            response.getWriter().write(json);
 
             out.print(json);
         } finally {

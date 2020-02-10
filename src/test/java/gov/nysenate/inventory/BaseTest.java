@@ -1,6 +1,9 @@
 package gov.nysenate.inventory;
 
 import gov.nysenate.inventory.dao.DbConnect;
+import gov.nysenate.inventory.dao.item.ItemDAO;
+import gov.nysenate.inventory.model.Item;
+import org.apache.commons.dbutils.DbUtils;
 import org.dbunit.DatabaseUnitException;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.DataSetException;

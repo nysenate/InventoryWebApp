@@ -14,7 +14,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -27,7 +29,20 @@ public class VerificationReports extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+   // Keeping the code below commented out for future testing purposes as needed
+/*        Map params = request.getParameterMap();
+        Iterator i = params.keySet().iterator();
+
+        while ( i.hasNext() )
+        {
+            String key = (String) i.next();
+            String value = ((String[]) params.get( key ))[ 0 ];
+            System.out.println("Verification Reports SERVLET PARAMETERS: "+key+": "+value);
+            log.warn ("Verification Reports SERVLET PARAMETERS LOG: "+key+": "+value);
+        }*/
+
         response.setContentType("text/html;charset=UTF-8");
+        log.info("VerificationReports start");
         PrintWriter out = response.getWriter();
         HttpSession session = request.getSession(false);
         DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
@@ -35,7 +50,7 @@ public class VerificationReports extends HttpServlet {
         try {
             String cdlocat = request.getParameter("cdlocat");
             String scannedItems = request.getParameter("scannedItems");
-            
+
             List<InvItem> invItems = Serializer.deserialize(scannedItems, InvItem.class);
 
 /*            for (int x=0;x<invItems.size();x++) {
@@ -66,7 +81,7 @@ public class VerificationReports extends HttpServlet {
               log.info("****Parameter cdloctype was not passed by the Client to VerificationReports.processRequest ");
               cdloctype = null;
             }
-            
+
             int result = db.setBarcodesInDatabase(cdlocat, cdloctype, invItems);
   
             if (result == 0) {
