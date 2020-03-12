@@ -38,23 +38,17 @@ public class SessionFilter implements Filter {
 
         Map serverMessage = new HashMap();
 
-        System.out.println("SESSIONFILTER");
         if (sessionRequired) {
-            System.out.println("Session is required");
             HttpSession session = request.getSession(false);
 
-            if (session == null || HttpUtils.getUserName(session) == null || HttpUtils.getUserName(session).trim().length() == 0) {
+            if (session == null ) {
                 PrintWriter out = response.getWriter();
                 serverMessage.put("Error", "Session timed out");
                 out.println(gson.toJson(serverMessage));
                 response.setStatus(HttpUtils.SC_SESSION_TIMEOUT);
                 log.info("Invalid or expired session.");
-                System.out.println("Invalid or expired session.");
                 return;
             }
-        }
-        else {
-            System.out.println("Session NOT required for "+request.getRequestURI());
         }
 
         chain.doFilter(req, res);
