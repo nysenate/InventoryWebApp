@@ -127,6 +127,7 @@ public class DeliveryConfirmation extends HttpServlet {
             e.printStackTrace();
             System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).[" + e.getMessage() + ":" + e.getStackTrace()[0].toString() + "]");
             out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).");
+            log.error("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2). ");
         }
     }
 

@@ -101,7 +101,7 @@ public class DbConnect extends DbManager {
      *----------------------------------------------------------------------------------------------------*/
 
     public LoginStatus validateUser() {
-        log.info("validateUser() begin : user= " + userName + " & pwd= " + password);
+        log.info("validateUser() begin : user= " + userName);
         LoginStatus loginStatus = new LoginStatus();
         loginStatus.setNauser(userName);
         Connection conn = null;

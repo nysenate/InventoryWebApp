@@ -42,19 +42,6 @@ public class HandleEmails {
         this.response = response;
         out = response.getWriter();
         this.db = db;
-        /*switch (currentTransType) {
-         case PICKUPTRANSACTION:
-         System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: initialized from PICKUPTRANSACTION");
-         log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: initialized from PICKUPTRANSACTION");
-         break;                
-         case DELIVERYTRANSACTION:
-         System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: initialized from DELIVERYTRANSACTION");
-         log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: initialized from DELIVERYTRANSACTION");
-         break;
-         default: 
-         System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: initialized from UNKNOWN:"+currentTransType);
-         log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: initialized from UNKNOWN:"+currentTransType);
-         }*/
     }
 
     public int sendEmails() {
@@ -121,55 +108,32 @@ public class HandleEmails {
              * 
              */
 
-
-            //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendPickupTransactionEmails("+calledBy+") remote type:"+trans.getRemoteType());
-            //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendPickupTransactionEmails("+calledBy+") remote type:"+trans.getRemoteType());
             if (trans.getRemoteType().equalsIgnoreCase("RDL") && (sendEmailType == ALLEMAILS || sendEmailType == DELIVERYEMAIL)) {
-                //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendPickupTransactionEmails("+calledBy+") remote type:"+trans.getRemoteType()+" Generating email for Remote Delivery");
-                //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendPickupTransactionEmails("+calledBy+") remote type:"+trans.getRemoteType()+" Generating email for Remote Delivery");
 
                 if (db == null) {
-                    //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: Remote Delivery Part Email db is NULL!!");
-                    //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: Remote Delivery Part Email db is NULL!!");
                 }
 
                 Transaction remoteDelivery = null;
                 TransactionMapper transactionMapper = new TransactionMapper();
                 try {
                     remoteDelivery = transactionMapper.queryTransaction(db, trans.getNuxrpd());
-                    /*if (remoteDelivery == null) {
-                     log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails(a): Remote Delivery Part Email remoteDelivery==NULL!!");
-                     System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails(a): Remote Delivery Part Email remoteDelivery==NULL!!");
-                     }*/
                 } catch (Exception e) {
                     e.printStackTrace();
+                    log.error("Problem with querying remoteDelivery.[" + e.getMessage() + ":" + e.getStackTrace()[0].toString() + "]");
                 }
-                /*if (remoteDelivery == null) {
-                 log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails(b): Remote Delivery Part Email remoteDelivery==NULL!!");
-                 System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails(b): Remote Delivery Part Email remoteDelivery==NULL!!");
-                 }*/
-
-                //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendPickupTransactionEmails("+calledBy+") preparing remote delivery email");
-                //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendPickupTransactionEmails("+calledBy+") preparing remote delivery email");
-
-                //remoteDelivery = db.getDelivery(pickup.getNuxrpd()); 
                 EmailMoveReceipt emailRemoteDeliveryReceipt = new EmailMoveReceipt(request, user, pwd, "delivery", remoteDelivery);
                 Thread threadEmailRemoteDeliveryReceipt = new Thread(emailRemoteDeliveryReceipt);
                 threadEmailRemoteDeliveryReceipt.start();
-                //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendPickupTransactionEmails("+calledBy+") remote delivery email started");
-                //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendPickupTransactionEmails("+calledBy+") remote delivery email started");
             }
             user = null;
             pwd = null;
-            //System.out.println("emailReceiptStatus:" + emailReceiptStatus);
 
-//        if (emailReceiptStatus == 0) {
-            //System.out.println("Database updated successfully");
             out.println("Database updated successfully");
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).[" + e.getMessage() + ":" + e.getStackTrace()[0].toString() + "]");
             out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).");
+            log.error("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).[" + e.getMessage() + ":" + e.getStackTrace()[0].toString() + "]");
         }
 
     }
@@ -196,59 +160,31 @@ public class HandleEmails {
 
                 if (sendEmailType == ALLEMAILS || sendEmailType == DELIVERYEMAIL) {
 
-                    //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendDeliveryTransactionEmails("+calledBy+") preparing delivery email");
-                    //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendDeliveryTransactionEmails("+calledBy+") preparing delivery email");
-
                     EmailMoveReceipt emailMoveReceipt = new EmailMoveReceipt(request, user, pwd, "delivery", trans, calledBy);
                     Thread threadEmailMoveReceipt = new Thread(emailMoveReceipt);
                     threadEmailMoveReceipt.start();
                 }
 
-                //emailReceiptStatus = emailMoveReceipt.sendEmailReceipt(delivery);
-                //if (emailReceiptStatus==0) {
                 out.println("Database updated successfully");
 
                 if (trans.getRemoteType().equalsIgnoreCase("RPK") && trans.getShipType() != null && trans.getShipType().trim().length() > 0 && (sendEmailType == ALLEMAILS || sendEmailType == PICKUPEMAIL)) {
-                    //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendDeliveryTransactionEmails("+calledBy+") preparing remote pickup email with verification info");
-                    //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendDeliveryTransactionEmails("+calledBy+") preparing remote pickup email with verification info");
-
-                    /*if (db == null) {
-                     log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: Remote Pickup Part Email db is NULL!!");
-                     System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: Remote Pickup Part Email db is NULL!!");
-                     }*/
 
                     Transaction remotePickup = null;
                     TransactionMapper transactionMapper = new TransactionMapper();
                     try {
                         remotePickup = transactionMapper.queryTransaction(db, trans.getNuxrpd());
-                        /*if (remotePickup == null) {
-                         log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails(a): Remote Pickup Part Email remotePickup==NULL!!");
-                         System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails(a): Remote Pickup Part Email remotePickup==NULL!!");
-                         }*/
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    /*if (remotePickup == null) {
-                     log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails(b): Remote Pickup Part Email remotePickup==NULL!!");
-                     System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails(b): Remote Pickup Part Email remotePickup==NULL!!");
-                     }*/
-                    //remoteDelivery = db.getDelivery(pickup.getNuxrpd()); 
-                    //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendDeliveryTransactionEmails("+calledBy+") preparing pickup email with verification info");
-                    //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendDeliveryTransactionEmails("+calledBy+") preparing pickup email with verification info");
                     EmailMoveReceipt emailRemotePickupReceipt = new EmailMoveReceipt(request, user, pwd, "pickup", remotePickup);
                     Thread threadEmailRemotePickupReceipt = new Thread(emailRemotePickupReceipt);
                     threadEmailRemotePickupReceipt.start();
-                    //System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendDeliveryTransactionEmails("+calledBy+") pickup email with verification info started");
-                    //log.info("-=-=-=-=-=-=-=-=-=-=-=-=-=TRACE HandleEmails: sendDeliveryTransactionEmails("+calledBy+") pickup email with verification info started");
                 }
-                /*}
-                 else {
-                 out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:"+emailReceiptStatus+").");
-                 }*/
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).[" + e.getMessage() + ":" + e.getStackTrace()[0].toString() + "]");
                 out.println("Database updated successfully but could not generate receipt (E-MAIL ERROR#:" + emailReceiptStatus + "-2).");
+                log.error("Problem with remotePickup. (E-MAIL ERROR#:\" + emailReceiptStatus + \"-2). [" + e.getMessage() + ":" + e.getStackTrace()[0].toString() + "]");
             }
         }
     }

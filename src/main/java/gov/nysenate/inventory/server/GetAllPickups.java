@@ -52,7 +52,7 @@ public class GetAllPickups extends HttpServlet {
             log.error("Error getting oracle jdbc driver: ", e);
         }
 
-        log.info("Recieved info for " + trans.size() + " pickups.");
+        log.info("Received info for " + trans.size() + " pickups.");
         out.print(Serializer.serialize(trans));
         out.close();
     }

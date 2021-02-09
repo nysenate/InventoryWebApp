@@ -351,6 +351,7 @@ public class EmailMoveReceipt implements Runnable {
             log.info("{0}" + "|" + "(" + this.dbaUrl + ") " + "initializeEmailTo: Length: " + this.naemailErrorTo.length + "Name Length: " + this.naemailGenNameTo.length);
         } catch (NullPointerException e) {
             e.printStackTrace();
+            log.warn(null, e);
         }
     }
 
@@ -394,6 +395,7 @@ public class EmailMoveReceipt implements Runnable {
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            log.warn(null, e);
         }
 
         // Get the employee who signed the Release
@@ -432,6 +434,7 @@ public class EmailMoveReceipt implements Runnable {
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            log.warn(null, e);
         }
         // Get the employee who signed the Release
 
@@ -448,6 +451,7 @@ public class EmailMoveReceipt implements Runnable {
             } catch (ClassNotFoundException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
+                log.warn(null, e);
             }
         } else {
             try {
@@ -460,6 +464,7 @@ public class EmailMoveReceipt implements Runnable {
             } catch (ClassNotFoundException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
+                log.warn(null, e);
             }
 
         }
@@ -1328,6 +1333,7 @@ public class EmailMoveReceipt implements Runnable {
                     emailWarning(emailType);
                 } catch (Exception e2) {
                     e2.printStackTrace();
+                    log.warn(null, e2);
                 }
                 return returnStatus;
             }
@@ -1342,6 +1348,7 @@ public class EmailMoveReceipt implements Runnable {
                     emailWarning(emailType);
                 } catch (Exception e2) {
                     e2.printStackTrace();
+                    log.warn(null, e2);
                 }
                 return returnStatus;
             }
@@ -1355,6 +1362,7 @@ public class EmailMoveReceipt implements Runnable {
                     emailWarning(emailType);
                 } catch (Exception e2) {
                     e2.printStackTrace();
+                    log.warn(null, e2);
                 }
                 return returnStatus;
             }
@@ -1377,6 +1385,7 @@ public class EmailMoveReceipt implements Runnable {
             }
         } catch (javax.mail.SendFailedException sfe) {
             sendToValidAddresses(sfe, message);
+            log.warn(null, sfe);
         }
     }
 
@@ -1614,6 +1623,7 @@ public class EmailMoveReceipt implements Runnable {
                         }
                     } catch (UnsupportedEncodingException | MessagingException e) {
                         addProblemEmailAddr(naemailTo1, naemailNameTo1, e.getStackTrace(), e.getMessage());
+                        log.warn(null, e);
                     }
                 }
                 if (naemailTo2 != null && naemailTo2.trim().length() > 0) {
@@ -1627,6 +1637,7 @@ public class EmailMoveReceipt implements Runnable {
                         }
                     } catch (UnsupportedEncodingException | MessagingException e) {
                         addProblemEmailAddr(naemailTo2, naemailNameTo2, e.getStackTrace(), e.getMessage());
+                        log.warn(null, e);
                     }
                 }
             } else {
@@ -1793,6 +1804,7 @@ public class EmailMoveReceipt implements Runnable {
                 }
             } catch (UnsupportedEncodingException | MessagingException e) {
                 addProblemEmailAddr(curNaemailErrorTo, curNameErrorTo, e.getStackTrace(), e.getMessage());
+                log.warn(null, e);
             }
             cnt++;
         }
@@ -1826,6 +1838,7 @@ public class EmailMoveReceipt implements Runnable {
                 }
             } catch (UnsupportedEncodingException | MessagingException e) {
                 addProblemEmailAddr(naemailGenTo[x], getName(x, this.naemailGenNameTo), e.getStackTrace(), e.getMessage());
+                log.warn(null, e);
             }
         }
         return cnt;
@@ -1855,6 +1868,7 @@ public class EmailMoveReceipt implements Runnable {
                 }
             } catch (UnsupportedEncodingException | MessagingException e) {
                 addProblemEmailAddr(curNaemailErrorTo, curNameErrorTo, e.getStackTrace(), e.getMessage());
+                log.warn(null, e);
             }
 
         }
@@ -1912,6 +1926,7 @@ public class EmailMoveReceipt implements Runnable {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                log.warn(null, e);
             }
         } else {
             if (decoded.toUpperCase().contains("<HTML>") || decoded.toUpperCase().contains("<BODY>")) {
@@ -1925,6 +1940,7 @@ public class EmailMoveReceipt implements Runnable {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    log.warn(null, e);
                 }
             } else {
                 nafileext = ".???";
@@ -1936,6 +1952,7 @@ public class EmailMoveReceipt implements Runnable {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                log.warn(null, e);
             }
 
             error = decoded;
