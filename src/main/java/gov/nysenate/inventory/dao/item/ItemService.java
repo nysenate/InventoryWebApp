@@ -2,12 +2,17 @@ package gov.nysenate.inventory.dao.item;
 
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.dao.location.LocationService;
-import gov.nysenate.inventory.model.*;
-import org.apache.commons.dbutils.DbUtils;
+import gov.nysenate.inventory.model.AdjustCode;
+import gov.nysenate.inventory.model.Commodity;
+import gov.nysenate.inventory.model.Item;
+import gov.nysenate.inventory.model.ItemStatus;
+import gov.nysenate.inventory.model.Location;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+
+import org.apache.commons.dbutils.DbUtils;
 
 public class ItemService
 {

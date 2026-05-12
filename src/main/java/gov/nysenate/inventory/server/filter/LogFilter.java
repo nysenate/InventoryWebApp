@@ -1,13 +1,19 @@
 package gov.nysenate.inventory.server.filter;
 
 import gov.nysenate.inventory.dao.DbConnect;
-import org.apache.log4j.MDC;
 
-import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+
+import org.apache.log4j.MDC;
 
 /**
  * Adds username, server, and ipaddress info to all log

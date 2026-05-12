@@ -2,8 +2,8 @@ package gov.nysenate.inventory.listener;
 
 import org.apache.log4j.PropertyConfigurator;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;

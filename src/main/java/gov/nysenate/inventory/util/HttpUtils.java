@@ -2,10 +2,11 @@ package gov.nysenate.inventory.util;
 
 import org.apache.log4j.Logger;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 
-public class HttpUtils {
 
+public class HttpUtils
+{
     public static final int SC_SESSION_TIMEOUT = 599;
     public static final int SC_SESSION_OK = 200;
 

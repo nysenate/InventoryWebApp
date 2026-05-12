@@ -2,26 +2,51 @@ package gov.nysenate.inventory.dao;
 
 import com.google.gson.reflect.TypeToken;
 import gov.nysenate.inventory.dao.base.DbManager;
-import gov.nysenate.inventory.model.*;
-import oracle.sql.BLOB;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import gov.nysenate.inventory.model.Employee;
+import gov.nysenate.inventory.model.InvItem;
+import gov.nysenate.inventory.model.InvSerialNumber;
+import gov.nysenate.inventory.model.Location;
+import gov.nysenate.inventory.model.LoginStatus;
+import gov.nysenate.inventory.model.PickupGroup;
+import gov.nysenate.inventory.model.SimpleListItem;
+import gov.nysenate.inventory.model.Transaction;
+import gov.nysenate.inventory.model.VerList;
 
+import jakarta.servlet.http.HttpServletRequest;
 import javax.imageio.ImageIO;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-import javax.servlet.http.HttpServletRequest;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.InvalidParameterException;
-import java.sql.*;
-import java.util.*;
+import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.CallableStatement;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
+
+import oracle.sql.BLOB;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  * @author Patil
