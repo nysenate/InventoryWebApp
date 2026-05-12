@@ -4,20 +4,21 @@
  */
 package gov.nysenate.inventory.model;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import jakarta.mail.internet.InternetAddress;
+
+import org.apache.log4j.Logger;
+
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.exception.BlankMessageException;
 import gov.nysenate.inventory.exception.InvalidParameterException;
 import gov.nysenate.inventory.exception.ParameterNotUsedException;
 import gov.nysenate.inventory.util.MapFormat;
 
-import jakarta.servlet.http.HttpServletRequest;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import javax.mail.internet.InternetAddress;
-
-import org.apache.log4j.Logger;
 
 /**
  *

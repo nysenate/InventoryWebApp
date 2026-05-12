@@ -1,21 +1,5 @@
 package gov.nysenate.inventory.dao;
 
-import com.google.gson.reflect.TypeToken;
-import gov.nysenate.inventory.dao.base.DbManager;
-import gov.nysenate.inventory.model.Employee;
-import gov.nysenate.inventory.model.InvItem;
-import gov.nysenate.inventory.model.InvSerialNumber;
-import gov.nysenate.inventory.model.Location;
-import gov.nysenate.inventory.model.LoginStatus;
-import gov.nysenate.inventory.model.PickupGroup;
-import gov.nysenate.inventory.model.SimpleListItem;
-import gov.nysenate.inventory.model.Transaction;
-import gov.nysenate.inventory.model.VerList;
-
-import jakarta.servlet.http.HttpServletRequest;
-import javax.imageio.ImageIO;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -44,9 +28,28 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
+import javax.imageio.ImageIO;
+
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.servlet.http.HttpServletRequest;
+
+import com.google.gson.reflect.TypeToken;
 import oracle.sql.BLOB;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
+import gov.nysenate.inventory.dao.base.DbManager;
+import gov.nysenate.inventory.model.Employee;
+import gov.nysenate.inventory.model.InvItem;
+import gov.nysenate.inventory.model.InvSerialNumber;
+import gov.nysenate.inventory.model.Location;
+import gov.nysenate.inventory.model.LoginStatus;
+import gov.nysenate.inventory.model.PickupGroup;
+import gov.nysenate.inventory.model.SimpleListItem;
+import gov.nysenate.inventory.model.Transaction;
+import gov.nysenate.inventory.model.VerList;
+
 
 /**
  * @author Patil

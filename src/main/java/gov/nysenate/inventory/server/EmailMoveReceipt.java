@@ -4,6 +4,40 @@
  */
 package gov.nysenate.inventory.server;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Properties;
+
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.mail.Address;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.SendFailedException;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.servlet.http.HttpServletRequest;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+
 import gov.nysenate.inventory.dao.DbConnect;
 import gov.nysenate.inventory.dao.TransactionMapper;
 import gov.nysenate.inventory.exception.BlankMessageException;
@@ -16,22 +50,7 @@ import gov.nysenate.inventory.model.Employee;
 import gov.nysenate.inventory.model.Transaction;
 import gov.nysenate.inventory.util.EmailValidator;
 import gov.nysenate.inventory.util.InvUtil;
-import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.mail.*;
-import javax.mail.internet.*;
-import jakarta.servlet.http.HttpServletRequest;
-import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Properties;
 
 /**
  *
@@ -166,7 +185,7 @@ public class EmailMoveReceipt implements Runnable {
                 if (verificationMethod != null && !verificationMethod.equals("") && this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RPK")) {
                     int remoteVerEmpNuxrefem = trans.getEmployeeId();
                     if (remoteVerEmpNuxrefem > 0) {
-                        String remoteVerEmpNuxrefemStr = new Integer(remoteVerEmpNuxrefem).toString();
+                        String remoteVerEmpNuxrefemStr = Integer.valueOf(remoteVerEmpNuxrefem).toString();
                         remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, false);
                     }
                 }
@@ -229,7 +248,7 @@ public class EmailMoveReceipt implements Runnable {
                 if (verificationMethod != null && !verificationMethod.equals("") && this.paperworkType != null && this.paperworkType.equalsIgnoreCase("RDL")) {
                     int remoteVerEmpNuxrefem = trans.getEmployeeId();
                     if (remoteVerEmpNuxrefem > 0) {
-                        String remoteVerEmpNuxrefemStr = new Integer(remoteVerEmpNuxrefem).toString();
+                        String remoteVerEmpNuxrefemStr = Integer.valueOf(remoteVerEmpNuxrefem).toString();
                         remoteVerByEmployee = db.getEmployee(remoteVerEmpNuxrefemStr, false);
                     }
                 }
@@ -1315,7 +1334,7 @@ public class EmailMoveReceipt implements Runnable {
                     } else {
                         try {
                             Transport.send(msg);
-                        } catch (javax.mail.SendFailedException e) {
+                        } catch (SendFailedException e) {
                             this.sendToValidAddresses(e, msg);
                         }
                     }
@@ -1371,7 +1390,7 @@ public class EmailMoveReceipt implements Runnable {
         return returnStatus;
     }
 
-    public void sendToValidAddresses(javax.mail.SendFailedException e, MimeMessage message) throws MessagingException {
+    public void sendToValidAddresses(SendFailedException e, MimeMessage message) throws MessagingException {
         try {
             Address[] validAddresses = e.getValidUnsentAddresses();
             Address[] invalidAddresses = e.getInvalidAddresses();
@@ -1383,7 +1402,7 @@ public class EmailMoveReceipt implements Runnable {
             } else {
                 log.warn("{0}" + "|" + "(" + this.dbaUrl + ") **WARNING: (sendToValidAddresses)There were no valid e-mail recipients for a Report. No e-mail will be sent!!!");
             }
-        } catch (javax.mail.SendFailedException sfe) {
+        } catch (SendFailedException sfe) {
             sendToValidAddresses(sfe, message);
             log.warn(null, sfe);
         }
@@ -1542,7 +1561,7 @@ public class EmailMoveReceipt implements Runnable {
                 errorEmailData.put("EmailType", sEmailType);
                 errorEmailData.put("ReceiptURL", receiptURL + nuxrpd);
                 errorEmailData.put("ReceiptURL", receiptURL + nuxrpd);
-                errorEmailData.put("RetryNumber", new Integer(retryCounter).toString());
+                errorEmailData.put("RetryNumber", Integer.valueOf(retryCounter).toString());
                 if (error == null) {
                     error = "<Error not Specified>";
                 }
