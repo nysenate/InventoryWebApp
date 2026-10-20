@@ -17,7 +17,7 @@ public class CommodityDAO extends DbManager
         String SELECT_BY_KEYWORDS = " WITH results AS "
                 + " (SELECT a.nuxrefco, a.cdcommodity, b.cdissunit, b.cdcategory, b.cdtype, b.decommodityf, c.keyword"
                 + " FROM fm12comxref a, fm12commodty b, (select column_value keyword"
-                + " FROM TABLE(split(UPPER('" + keywords + "')))) c  "
+                + " FROM TABLE(split(UPPER(?)))) c  "
                 + " WHERE a.nuxrefco = b.nuxrefco "
                 + " AND a.cdstatus = 'A'"
                 + " AND b.cdstatus = 'A'"
@@ -29,7 +29,7 @@ public class CommodityDAO extends DbManager
 
         List<Commodity> commodities;
         QueryRunner run = new QueryRunner();
-        commodities = run.query(conn, SELECT_BY_KEYWORDS, new CommodityHandler());
+        commodities = run.query(conn, SELECT_BY_KEYWORDS, new CommodityHandler(), keywords);
         return commodities;
     }
 

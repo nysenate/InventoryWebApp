@@ -71,7 +71,6 @@ public class SessionFilter implements Filter {
                 path.equals("/CheckAppVersion") || path.equals("/DownloadServlet"))) ?
                 false : true;
 
-
         // Real path filter for real server.. Uncomment below when moving
 
     }

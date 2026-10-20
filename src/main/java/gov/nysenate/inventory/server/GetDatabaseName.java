@@ -41,7 +41,6 @@ public class GetDatabaseName extends HttpServlet
                 response.setStatus(HttpUtils.SC_SESSION_OK);
             }
             String result = db.getDatabaseName();
-            System.out.println("RETURNING:"+result);
             out.println(result);
             
         } finally {      

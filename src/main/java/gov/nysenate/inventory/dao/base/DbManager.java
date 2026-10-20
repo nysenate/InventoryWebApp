@@ -1,9 +1,6 @@
 package gov.nysenate.inventory.dao.base;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
@@ -26,6 +23,17 @@ public abstract class DbManager {
         if (rs != null) {
             try {
                 rs.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    protected void closePreparedStatement(PreparedStatement pstmt) {
+        if (pstmt != null) {
+            try {
+                pstmt.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }

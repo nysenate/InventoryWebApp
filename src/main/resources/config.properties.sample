@@ -1,4 +1,5 @@
 connectionString=driver:@server:port:database
+    ##(ex)jdbc:oracle:thin:{username}/{password}@{DB server}:1521:{SID}
 user=username
 password=password
 myWpAPI=myWpAPI

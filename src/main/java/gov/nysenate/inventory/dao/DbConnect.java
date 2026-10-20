@@ -12,15 +12,7 @@ import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.InvalidParameterException;
-import java.sql.Blob;
-import java.sql.Connection;
-import java.sql.CallableStatement;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -120,8 +112,29 @@ public class DbConnect extends DbManager {
             this.dbaName = connectStrings[connectStrings.length - 1];
         }
 
-        Class.forName("oracle.jdbc.driver.OracleDriver");
-        conn = DriverManager.getConnection(connectionString, userName, password);
+        log.info("Try loading Oracle Jdbc Driver.");
+
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            log.info("Oracle Jdbc Driver Loaded to memory.");
+        }
+        catch(ClassNotFoundException ex) {
+            System.out.println("Error: unable to load oracle driver class!");
+            log.error("Error: unable to load oracle driver class!");
+        }
+        try {
+            conn = DriverManager.getConnection(connectionString, userName, password);
+        }
+        catch (SQLException ex) {
+            log.error("Error connecting to database. "+ex.getMessage());
+        }
+
+        DatabaseMetaData meta = conn.getMetaData();
+
+        log.info("Driver Name: " + meta.getDriverName());
+        log.info("Driver Version: " + meta.getDriverVersion());
+        log.info("JDBC Major/Minor Version: " + meta.getDriverMajorVersion()+"/"+ meta.getDriverMinorVersion());
+
         return conn;
     }
     /*-------------------------------------------------------------------------------------------------------
@@ -375,12 +388,12 @@ public class DbConnect extends DbManager {
         }
 
         ArrayList<VerList> itemList = new ArrayList<VerList>();
-        Statement stmt = null;
         ResultSet result = null;
         Connection conn = null;
+        PreparedStatement pstmt = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
+
             //  String loc_code;
             String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF, B.CDLOCATTO, DECODE(b.cdstatus, 'I', b.cdstatus, c.cdstatus) cdstatus, b.cdloctypeto "
                     + " FROM FM12SENXREF A,FD12ISSUE B, FM12COMMODTY C"
@@ -389,9 +402,14 @@ public class DbConnect extends DbManager {
                     + " AND c.cdstatus = 'A'"
                     + " AND A.NUXREFSN=B.NUXREFSN"
                     + " AND B.NUXREFCO=C.NUXREFCO"
-                    + " AND b.cdlocatto = '" + locCode + "'";
+                    + " AND b.cdlocatto = ?";
 
-            result = stmt.executeQuery(qry);
+            conn = getDbConnection();
+            pstmt = conn.prepareStatement(qry);
+            pstmt.setString(1, locCode);
+
+            result = pstmt.executeQuery();
+
             while (result.next()) {
 
                 VerList vl = new VerList();
@@ -410,7 +428,7 @@ public class DbConnect extends DbManager {
             log.error("Error getting oracle jdbc driver: ", e);
         } finally {
             closeResultSet(result);
-            closeStatement(stmt);
+            closeStatement(pstmt);
             closeConnection(conn);
         }
         return itemList;
@@ -423,11 +441,11 @@ public class DbConnect extends DbManager {
         String qry = "SELECT DISTINCT cdloctype, cdlocat, adstreet1, adcity, adzipcode, adstate "
                 + "FROM sl16location a where a.cdstatus='A' ORDER BY cdlocat, cdloctype";
         ArrayList<Location> locations = new ArrayList<Location>();
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet result = null;
         try {
-            stmt = conn.createStatement();
-            result = stmt.executeQuery(qry);
+            pstmt = conn.prepareStatement(qry);
+            result = pstmt.executeQuery();
             while (result.next()) {
                 Location loc = new Location();
                 loc.setCdloctype(result.getString(1));
@@ -442,7 +460,7 @@ public class DbConnect extends DbManager {
             log.error("Error getting locations ", e);
         } finally {
             closeResultSet(result);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
         return locations;
@@ -453,12 +471,11 @@ public class DbConnect extends DbManager {
      *----------------------------------------------------------------------------------------------------*/
     public ArrayList getPickupSearchByList() {
         ArrayList<SimpleListItem> pickupList = new ArrayList<SimpleListItem>();
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet result = null;
         Connection conn = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
 
             String qry;
             qry = "select distinct 'CDLOCATTO' natype ,cdlocat||'-'||cdloctype||': '||adstreet1 navalue from sl16location a where a.cdstatus='A' AND cdlocat IN (SELECT a2.cdlocatto FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A'))"
@@ -470,9 +487,10 @@ public class DbConnect extends DbManager {
                     + "select distinct 'NAPICKUPBY' natype, napickupby navalue  FROM fm12invintrans a2 WHERE a2.cdstatus = 'A' AND a2.cdintransit = 'Y' AND EXISTS (SELECT 1 FROM fd12invintrans b2 WHERE b2.nuxrpd = a2.nuxrpd AND b2.cdstatus = 'A')"
                     + " ORDER BY  1, 2";
 
-            result = stmt.executeQuery(qry);
-            while (result.next()) {
+            pstmt = conn.prepareStatement(qry);
 
+            result = pstmt.executeQuery();
+            while (result.next()) {
                 String natype = result.getString(1);
                 String navalue = result.getString(2);
                 SimpleListItem simpleListItem = new SimpleListItem();
@@ -487,7 +505,7 @@ public class DbConnect extends DbManager {
             log.error("Error getting oracle jdbc driver: ", e);
         } finally {
             closeResultSet(result);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
         return pickupList;
@@ -497,8 +515,9 @@ public class DbConnect extends DbManager {
      * ---------------Function to return arraylist of all Serial#s
      *----------------------------------------------------------------------------------------------------*/
     public ArrayList getNuSerialList(String nuserialFilter, int numaxResults) {
+        String curSpot = "start";
         ArrayList<InvSerialNumber> invSerialList = new ArrayList<InvSerialNumber>();
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet resultCnt = null;
         ResultSet result = null;
         Connection conn = null;
@@ -509,17 +528,17 @@ public class DbConnect extends DbManager {
         }
 
         try {
+            curSpot = "Conneect1";
             conn = getDbConnection();
-            stmt = conn.createStatement();
             int nucnt = 0;
 
             String gryCnt = "SELECT COUNT(DISTINCT b.nuserial)\n"
                     + "FROM fm12senxref a, fd12issue b, fm12commodty c, fm12comxref e\n"
                     + "WHERE a.nuxrefsn = b.nuxrefsn\n"
-                    + "AND b.nuserial LIKE '" + nuserialFilter.toUpperCase() + "%'\n"
+                    + "AND b.nuserial LIKE ?\n"
                     + "AND b.nuxrefco = c.nuxrefco\n"
                     + "AND e.nuxrefco = c.nuxrefco\n"
-                    + "AND a.cdstatus = 'A' \n"
+                    + "AND a.cdstatus = 'A'\n"
                     + "AND c.cdstatus = 'A'\n"
                     + "AND e.cdstatus = 'A'\n"
                     + "AND b.nuserial IN (SELECT a2.nuserial \n"
@@ -527,8 +546,14 @@ public class DbConnect extends DbManager {
                     + "GROUP BY a2.nuserial HAVING COUNT(*)=1)\n"
                     + "ORDER BY b.nuserial";
 
-            resultCnt = stmt.executeQuery(gryCnt);
+            curSpot = "Prepare1";
+            pstmt = conn.prepareStatement(gryCnt);
+            curSpot = "SetString1";
+            pstmt.setString(1, nuserialFilter.toUpperCase() + "%");
+            curSpot = "Qry1";
+            resultCnt = pstmt.executeQuery();
 
+            curSpot = "QryLoop1";
             while (resultCnt.next()) {
                 nucnt = resultCnt.getInt(1);
             }
@@ -538,7 +563,7 @@ public class DbConnect extends DbManager {
             qry = "SELECT a.nuxrefsn, b.nuserial, a.nusenate, e.cdcommodity, c.decommodityf\n"
                     + "FROM fm12senxref a, fd12issue b, fm12commodty c, fm12comxref e\n"
                     + "WHERE a.nuxrefsn = b.nuxrefsn\n"
-                    + "AND b.nuserial LIKE '" + nuserialFilter.toUpperCase() + "%'\n"
+                    + "AND b.nuserial LIKE ?\n"
                     + "AND b.nuxrefco = c.nuxrefco\n"
                     + "AND e.nuxrefco = c.nuxrefco\n"
                     + "AND a.cdstatus = 'A' \n"
@@ -549,11 +574,15 @@ public class DbConnect extends DbManager {
                     + "GROUP BY a2.nuserial HAVING COUNT(*)=1)\n"
                     + "ORDER BY b.nuserial";
 
+            curSpot = "Conneect2";
+            pstmt = conn.prepareStatement(qry);
+            curSpot = "setString2";
+            pstmt.setString(1, nuserialFilter.toUpperCase() + "%");
+            curSpot = "Qry2";
+            result = pstmt.executeQuery();
 
-            result = stmt.executeQuery(qry);
-
+            curSpot = "QryLoop2";
             while (result.next()) {
-
                 int nuxrefsn = result.getInt("nuxrefsn");
                 String nuserial = result.getString(2);
                 String nusenate = result.getString(3);
@@ -578,14 +607,16 @@ public class DbConnect extends DbManager {
                 }
                 invSerialList.add(invSerialNumber);
             }
+            curSpot = "QueryDone";
+
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            System.out.println(curSpot+":"+e.getMessage());
         } catch (ClassNotFoundException e) {
             log.error("Error getting oracle jdbc driver: ", e);
         } finally {
             closeResultSet(resultCnt);
             closeResultSet(result);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
         return invSerialList;
@@ -596,7 +627,7 @@ public class DbConnect extends DbManager {
     }
 
     public List<Location> getLocations(int nuxrefsn, boolean closeConnection) {
-        PreparedStatement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet result = null;
         Connection conn = null;
         ArrayList<Location> locations = new ArrayList<Location>();
@@ -618,11 +649,11 @@ public class DbConnect extends DbManager {
                         "GROUP BY a.cdlocatto, a.cdloctypeto,  b.adstreet1, b.adstreet2, b.adcity, b.adstate, b.adzipcode, b.delocat \n" +
                         "ORDER BY 1 DESC;";
 
-                stmt = conn.prepareStatement(qry);
+                pstmt = conn.prepareStatement(qry);
 
-                stmt.setInt(1, nuxrefsn);
+                pstmt.setInt(1, nuxrefsn);
 
-                result = stmt.executeQuery(qry);
+                result = pstmt.executeQuery();
 
                 while (result.next()) {
 
@@ -647,14 +678,13 @@ public class DbConnect extends DbManager {
             log.error("Error getting oracle jdbc driver: ", e);
         } finally {
             closeResultSet(result);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             if (closeConnection) {
                 closeConnection(conn);
             }
         }
 
         return locations;
-
     }
 
     /*-------------------------------------------------------------------------------------------------------
@@ -666,28 +696,24 @@ public class DbConnect extends DbManager {
         }
         int result = 0;
         String r = "";
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet result2 = null;
         Connection conn = null;
         BigDecimal nuxrmoappver = new BigDecimal(0);
         try {
+            String qry = "delete from SASS15018 where CDLOCAT=?";
             conn = getDbConnection();
-            stmt = conn.createStatement();
+            pstmt = conn.prepareStatement(qry);
 
             // delete old data for given location code from SASS15018
-            String qry = "delete from SASS15018 where CDLOCAT='" + cdlocat + "'";
 
-            result2 = stmt.executeQuery(qry);
-            //log.info("-=-=-=-=-=-=-=-=-=-=-=-verification_xref:"+cdlocat+"-"+cdloctype);
-            //System.out.println ("-=-=-=-=-=-=-=-=-=-=-=-verification_xref:"+cdlocat+"-"+cdloctype);
+            result2 = pstmt.executeQuery();
             CallableStatement csXref = conn.prepareCall("{?=call inv_app.verification_xref(?,?)}");
             csXref.registerOutParameter(1, Types.NUMERIC);
             csXref.setString(2, cdlocat);
             csXref.setString(3, cdloctype);
             csXref.executeUpdate();
             nuxrmoappver = csXref.getBigDecimal(1);
-            //log.info("-=-=-=-=-=-=-=-=-=-=-=-verification_xref:"+cdlocat+"-"+cdloctype+"="+nuxrmoappver);
-            //System.out.println ("-=-=-=-=-=-=-=-=-=-=-=-verification_xref:"+cdlocat+"-"+cdloctype+"="+nuxrmoappver);
 
             for (int i = 0; i < invItems.size(); i++) {
                 InvItem curInvItem = invItems.get(i);
@@ -695,7 +721,6 @@ public class DbConnect extends DbManager {
                 // left padding 0 to string
                 String barcodeStr = String.format("%6s", curInvItem.getNusenate()).replace(' ', '0');
                 if (curInvItem.getType().equalsIgnoreCase("NEW") || curInvItem.getType().equalsIgnoreCase("INACTIVE")) {
-                    //System.out.println ("-=-=-=-=-=-=-=-=-=-=-=-store_new_inv_item:"+curInvItem.getNusenate()+"="+nuxrmoappver);
                     CallableStatement cs = conn.prepareCall("{?=call inv_app.store_new_inv_item(?,?, ?, ?, ?, ?, ?)}");
                     cs.registerOutParameter(1, Types.VARCHAR);
                     cs.setString(2, cdlocat);
@@ -708,8 +733,6 @@ public class DbConnect extends DbManager {
                     cs.executeUpdate();
                     r = cs.getString(1);
                 } else {
-                    //log.info("-=-=-=-=-=-=-=-=-=-=-=-copy_data:"+barcodeStr+"="+nuxrmoappver);
-                    //System.out.println ("-=-=-=-=-=-=-=-=-=-=-=-copy_data:"+barcodeStr+"="+nuxrmoappver);
                     CallableStatement cs = conn.prepareCall("{?=call INV_APP.copy_data(?,?,?,?)}");
                     cs.registerOutParameter(1, Types.VARCHAR);
                     cs.setString(2, cdlocat);
@@ -739,7 +762,7 @@ public class DbConnect extends DbManager {
             log.error("Error getting oracle jdbc driver: ", e);
         } finally {
             closeResultSet(result2);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
 
@@ -754,34 +777,57 @@ public class DbConnect extends DbManager {
      * ---------------Function to start a new pickup-delivery
      *----------------------------------------------------------------------------------------------------*/
     public int invTransit(Transaction pickup, int oldnuxrpd) {
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet result = null;
         Connection conn = null;
+        PreparedStatement itpstmt = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
             String qry = "SELECT FM12INVINTRANS_SEQN.nextval FROM  dual ";
-            result = stmt.executeQuery(qry);
+            pstmt = conn.prepareStatement(qry);
+            result = pstmt.executeQuery();
             while (result.next()) {
                 pickup.setNuxrpd(result.getInt(1));
             }
-            String updQry = "INSERT INTO FM12INVINTRANS (NUXRPD,CDLOCATTO, cdloctypeto, CDLOCATFROM, cdloctypefrm, CDINTRANSIT,"
-                    + "NAPICKUPBY, NARELEASEBY,NUXRRELSIGN,NADELIVERBY,NAACCEPTBY,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,"
-                    + "NATXNUPDUSER,DEPUCOMMENTS, DTPICKUP, NUXRPDORIG) "
-                    + "VALUES(" + pickup.getNuxrpd() + ",'" + pickup.getDestination().getCdlocat() + "','" + pickup.getDestination().getCdloctype()
-                    + "','" + pickup.getOrigin().getCdlocat() + "','" + pickup.getOrigin().getCdloctype() + "','" + "Y" + "','"
-                    + pickup.getNapickupby() + "','" + pickup.getNareleaseby() + "'," + pickup.getNuxrrelsign() + ",'" + "" + "','" + ""
-                    + "','" + "A" + "',SYSDATE,SYSDATE,'" + pickup.getNapickupby() + "','" + pickup.getNapickupby() + "','"
-                    + pickup.getPickupComments() + "',SYSDATE," + getOldNuxrpdValue(oldnuxrpd) + ")";
-            stmt.executeQuery(updQry);
-            log.info("** updQry *** : " + updQry);
-            log.info("****PICKUPITEMS: " + pickup.getPickupItems());
+            String updQry = "INSERT INTO FM12INVINTRANS (NUXRPD, CDLOCATTO, cdloctypeto, CDLOCATFROM, cdloctypefrm, CDINTRANSIT,"  // 6 values
+                    + "NAPICKUPBY, NARELEASEBY,NUXRRELSIGN,NADELIVERBY,NAACCEPTBY,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER," //9/7 values
+                    + "NATXNUPDUSER,DEPUCOMMENTS, DTPICKUP, NUXRPDORIG) "   // 4/3 Vlaues
+                    + " VALUES (?,?,?,?, ?, ?," +
+                    "  ?, ?,?, NULL, NULL ,?,SYSDATE,SYSDATE,? ," +
+                    "  ?, ?, ?, SYSDATE, ?)";
+
+            pstmt = conn.prepareStatement(updQry);
+            pstmt.setInt(1, pickup.getNuxrpd());
+            pstmt.setString(2, pickup.getDestination().getCdlocat());
+            pstmt.setString(3, pickup.getDestination().getCdloctype());
+            pstmt.setString(4, pickup.getOrigin().getCdlocat());
+            pstmt.setString(5, pickup.getOrigin().getCdloctype());
+            pstmt.setString(6, "Y");
+            pstmt.setString(7, pickup.getNapickupby());
+            pstmt.setString(8, pickup.getNareleaseby());
+            pstmt.setString(9, pickup.getNuxrrelsign());
+            pstmt.setString(10, "A");
+            pstmt.setString(11, pickup.getNapickupby());
+            pstmt.setString(12, pickup.getNapickupby());
+            pstmt.setString(13, pickup.getPickupComments());
+            pstmt.setString(14, getOldNuxrpdValue(oldnuxrpd));
+            pstmt.executeUpdate(updQry);
+
+            itpstmt = null;
 
             for (String nusenate : pickup.getPickupItemsNusenate()) {
-                String insertQry = "INSERT INTO FD12INVINTRANS (NUXRPD,NUSENATE,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,NATXNUPDUSER) "
-                        + "VALUES(" + pickup.getNuxrpd() + ",'" + nusenate + "','" + "A" + "',SYSDATE,SYSDATE,'" + pickup.getNapickupby()
+                String insertQry = "INSERT INTO FD12INVINTRANS (NUXRPD, NUSENATE,CDSTATUS,DTTXNORIGIN,DTTXNUPDATE,NATXNORGUSER,NATXNUPDUSER) " +
+                        "VALUES(?,?,?,SYSDATE,SYSDATE,?,?)";
+              /*          + "VALUES(" + pickup.getNuxrpd() + ",'" + nusenate + "','" + "A" + "',SYSDATE,SYSDATE,'" + pickup.getNapickupby()
                         + "','" + pickup.getNapickupby() + "')";
-                stmt.executeQuery(insertQry);
+               */
+                itpstmt = conn.prepareStatement(insertQry);
+                itpstmt.setInt(1, pickup.getNuxrpd());
+                itpstmt.setString(2, nusenate);
+                itpstmt.setString(3, "A");
+                itpstmt.setString(4, pickup.getNapickupby());
+                itpstmt.setString(5, pickup.getNapickupby());
+                itpstmt.executeUpdate();
             }
         } catch (SQLException ex) {
             log.fatal("SQL error in invTransit ", ex);
@@ -790,7 +836,8 @@ public class DbConnect extends DbManager {
             log.error("Error getting oracle jdbc driver: ", e);
         } finally {
             closeResultSet(result);
-            closeStatement(stmt);
+            closePreparedStatement(itpstmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
         return pickup.getNuxrpd();
@@ -807,7 +854,6 @@ public class DbConnect extends DbManager {
      * ---------------Function to return all the in transit pickups for the given values
      *----------------------------------------------------------------------------------------------------*/
     public List<PickupGroup> getPickupList(ArrayList<SimpleListItem> searchByList) {
-        //log.info(this.clientIpAddr + "|" + "getDeliveryList() begin : locCode= " + locCode);
         if (searchByList == null || searchByList.size() == 0) {
             throw new IllegalArgumentException("No Search By Parameters for DbConnect.getPickupList");
         }
@@ -840,13 +886,11 @@ public class DbConnect extends DbManager {
         java.lang.reflect.Type listOfTestObject = new TypeToken<List<PickupGroup>>() {
         }.getType();
         List<PickupGroup> pickupList = Collections.synchronizedList(new ArrayList<PickupGroup>());
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet result = null;
         Connection conn = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
-            //  String loc_code;
             String qry = "SELECT a.nuxrpd, TO_CHAR(a.dtpickup, 'MM/DD/RR HH:MI:SSAM') dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode, COUNT(b.nuxrpd) nucount "
                     + " FROM FM12INVINTRANS a, FD12INVINTRANS b, sl16location c"
                     + " WHERE a.CDSTATUS='A'"
@@ -855,10 +899,10 @@ public class DbConnect extends DbManager {
                     + " AND b.nuxrpd = a.nuxrpd"
                     + " AND b.cdstatus = 'A'"
                     + " AND c.cdlocat = a.cdlocatfrom"
-                    + " GROUP BY a.nuxrpd, a.dtpickup, a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode"
+                    + " GROUP BY a.nuxrpd, a.dtpickup , a.cdlocatfrom, a.napickupby, a.nareleaseby, c.adstreet1, c.adcity, c.adstate, c.adzipcode"
                     + " ORDER BY a.dtpickup NULLS LAST";
-            //System.out.println(qry);
-            result = stmt.executeQuery(qry);
+            pstmt = conn.prepareStatement(qry);
+            result = pstmt.executeQuery();
             while (result.next()) {
                 int nuxrpd = result.getInt(1);
                 String dtpickup = result.getString(2);
@@ -870,18 +914,16 @@ public class DbConnect extends DbManager {
                 String adstate = result.getString(8);
                 String adzipcode = result.getString(9);
                 int nucount = result.getInt(10);
-                //String pickupDetails = NUXRPD + " : From " + CDLOCATFROM + "\n To " + CDLOCATTO + "\n Pickup by : " + NAPICKUPBY;
                 pickupList.add(new PickupGroup(nuxrpd, dtpickup, napickupby, nareleaseby, cdlocatfrom, adstreet1, adcity, adstate, adzipcode, nucount, 0));
             }
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
             log.fatal("SQLException in getDeliveryList() : " + e.getMessage());
         } catch (ClassNotFoundException e) {
             log.error("Error getting oracle jdbc driver: ", e);
         } finally {
             closeResultSet(result);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
         log.info("getDeliveryList() end");
@@ -898,12 +940,11 @@ public class DbConnect extends DbManager {
             throw new IllegalArgumentException("Invalid locCode");
         }
         ArrayList<InvItem> deliveryDetails = new ArrayList<InvItem>();
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet result = null;
         Connection conn = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
             String qry = "SELECT A.NUSENATE,C.CDCATEGORY,C.DECOMMODITYF,e.nuxrpd,b.cdlocatto, e.cdlocatto, e.cdintransit FROM "
                     + " FM12SENXREF A,FD12ISSUE B, FM12COMMODTY C,fd12invintrans d,fm12invintrans e "
                     + " WHERE A.CDSTATUS='A' "
@@ -912,8 +953,10 @@ public class DbConnect extends DbManager {
                     + " and a.nusenate=d.nusenate "
                     + " AND d.nuxrpd =e.nuxrpd "
                     + " AND d.cdstatus = 'A'"
-                    + " and e.nuxrpd=" + nuxrpd;
-            result = stmt.executeQuery(qry);
+                    + " and e.nuxrpd= ?"; //+ nuxrpd;
+            pstmt = conn.prepareStatement(qry);
+            pstmt.setString(1, nuxrpd);
+            result = pstmt.executeQuery();
             while (result.next()) {
                 String nusenate = result.getString(1);
                 String cdcategory = result.getString(2);
@@ -929,13 +972,12 @@ public class DbConnect extends DbManager {
             }
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
             log.fatal("SQLException in getDeliveryDetails(): ", e);
         } catch (ClassNotFoundException e) {
             log.error("Error getting oracle jdbc driver: ", e);
         } finally {
             closeResultSet(result);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
         return deliveryDetails;
@@ -956,12 +998,8 @@ public class DbConnect extends DbManager {
             throw new IllegalArgumentException("Invalid imageInArray or nuxrefem or nauser");
         }
 
-        //System.out.println("DbConnect insertSignature byte Image Length:" + imageInArray.length);
-
         Blob blobValue;
         int nuxrsign = -1;
-
-        //System.out.println("Not converting the Image on the Server Side for testing");
 
         // If the Image was a PNG with a  transparent Background, below will convert it to a white background
         // jpg.
@@ -983,54 +1021,52 @@ public class DbConnect extends DbManager {
             baos.flush();
             imageInArray = baos.toByteArray();
             baos.close();
-            System.out.println("Image should have been converted to a white background jpg.");
         } catch (Exception e) {
             e.printStackTrace();
             log.fatal("Exception in insertSignature() : " + e.getMessage());
         }
 
         PreparedStatement ps = null;
-        Statement stmtSequence = null;
-        Statement stmt = null;
+        PreparedStatement pstmtSequence = null;
         ResultSet rsSequence = null;
         ResultSet rs = null;
         Connection con = null;
         OutputStream outStream = null;
+        PreparedStatement pstmt = null;
         try {
             con = getDbConnection();
-            stmtSequence = con.createStatement();
+            pstmtSequence = con.prepareStatement("select FP12SIGNREF_SQNC.NEXTVAL FROM DUAL");
             if (con == null) {
                 System.out.println("insertSignature Connection was NULL when creating statement from it");
-            } else if (stmtSequence == null) {
-                System.out.println("insertSignature could not createStatement from Connection");
-
+            } else if (pstmtSequence == null) {
+                System.out.println("insertSignature could not prepareStatement from Connection");
             }
-            rsSequence = stmtSequence.executeQuery("select FP12SIGNREF_SQNC.NEXTVAL FROM DUAL");
+            rsSequence = pstmtSequence.executeQuery();
 
             while (rsSequence.next()) {
                 nuxrsign = rsSequence.getInt(1);
             }
 
             con.setAutoCommit(false);
-            //blobValue = new SerialBlob(imageInArray);
-            //System.out.println ("insert into FD12INVSIGNS nuxrsign:"+nuxrsign+", nuxrefem:"+nuxrefem+", nauser:"+nauser);
-            ps = con.prepareStatement("insert into FD12INVSIGNS (nuxrsign, blsign, nuxrefem, cdstatus, natxnorguser, natxnupduser, dttxnorigin, dttxnupdate ) values(?, empty_blob(), ?, 'A', ?,  ?, SYSDATE, SYSDATE )");
+            ps = con.prepareStatement("insert into FD12INVSIGNS (nuxrsign, blsign, nuxrefem, cdstatus, natxnorguser, natxnupduser, dttxnorigin, dttxnupdate ) " +
+                                            "   values(?, empty_blob(), ?, 'A', ?,  ?, SYSDATE, SYSDATE )");
             ps.setInt(1, nuxrsign);
             ps.setInt(2, nuxrefem);
             ps.setString(3, nauser);
             ps.setString(4, nauser);
-            // size must be converted to int otherwise it results in error
-//            ps.setBlob(2, blobValue);
             ps.executeUpdate();
             con.commit();
-            //System.out.println(imageInArray.length + " bytes should have been saved to PCIMAGE");
 
-            stmt = con.createStatement();
-            rs = stmt.executeQuery("select blsign from FD12INVSIGNS where nuxrsign=" + nuxrsign + " for update");
+            pstmt = null;
+
+            pstmt = con.prepareStatement("select blsign from FD12INVSIGNS where nuxrsign=? for update");
+            pstmt.setInt(1, nuxrsign);
+
+            rs = pstmt.executeQuery();
+
             BLOB writeBlob = null;
 
             if (rs.next()) {
-                //System.out.println("RECORD TO WRITE BLOB");
                 writeBlob = (BLOB) rs.getBlob(1);
             } else {
                 System.out.println("handelSaveAskTree(): BLOB object could not be found...");
@@ -1042,11 +1078,9 @@ public class DbConnect extends DbManager {
             con.commit();
 
         } catch (SQLException ex) {
-            System.out.println("!!!!!!!!!!SQL EXCEPTION OCCURED:" + ex.getMessage());
             System.out.println(ex.getMessage());
             log.fatal("SQLException in insertSignature() : " + ex.getMessage());
         } catch (IOException ex) {
-            System.out.println("!!!!!!!!!!IO EXCEPTION OCCURED:" + ex.getMessage());
             ex.printStackTrace();
             log.fatal("IOException in insertSignature() : " + ex.getMessage());
         } catch (ClassNotFoundException e) {
@@ -1054,9 +1088,9 @@ public class DbConnect extends DbManager {
         } finally {
             closeResultSet(rs);
             closeResultSet(rsSequence);
-            closeStatement(stmt);
-            closeStatement(stmtSequence);
-            closeStatement(ps);
+            closePreparedStatement(pstmt);
+            closePreparedStatement(pstmtSequence);
+            closePreparedStatement(ps);
             closeConnection(con);
             if (outStream != null) {
                 try {
@@ -1067,7 +1101,6 @@ public class DbConnect extends DbManager {
             }
         }
         return nuxrsign;
-
     }
 
     public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus) {
@@ -1075,27 +1108,28 @@ public class DbConnect extends DbManager {
     }
 
     public ArrayList<Employee> getEmployeeList(String nalast, String cdempstatus, int daysTerminated) {
-        // if(nalast.isEmpty()||cdempstatus.isEmpty()){
-        // throw new IllegalArgumentException("Invalid nalst or cdempstatus");
-        //  }
         ArrayList<Employee> employeeList = new ArrayList<Employee>();
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet result = null;
         Connection conn = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
             if (nalast == null) {
                 nalast = "";
             }
             String qry = "SELECT a.nuxrefem, a.nafirst, a.nalast, a.namidinit, a.nasuffix, a.naemail"
                     + " FROM pm21personn a "
-                    + " WHERE (a.cdempstatus LIKE '" + cdempstatus + "' OR dtperempto >= TRUNC(SYSDATE) - " + (daysTerminated - 1) + " )"
-                    + "  AND a.nalast LIKE'" + nalast + "%'"
+                    + " WHERE (a.cdempstatus LIKE ? OR dtperempto >= TRUNC(SYSDATE) - ? )"
+                    + "  AND a.nalast LIKE ?"
                     + " AND a.naemail IS NOT null"
                     + " ORDER BY  a.nalast||DECODE(a.nasuffix, NULL, NULL, ' '||a.nasuffix)||', '||a.nafirst||DECODE(a.namidinit, NULL, NULL, ' '||a.namidinit)";
 
-            result = stmt.executeQuery(qry);
+            pstmt = conn.prepareStatement(qry);
+            pstmt.setString(1, cdempstatus);
+            pstmt.setInt(2, (daysTerminated - 1));
+            pstmt.setString(3, nalast+"%");
+
+            result = pstmt.executeQuery();
             while (result.next()) {
 
                 Employee employee = new Employee(result.getInt(1), result.getString(2), result.getString(3), result.getString(4), result.getString(5));
@@ -1109,7 +1143,7 @@ public class DbConnect extends DbManager {
             log.error("Error getting oracle jdbc driver: ", e);
         } finally {
             closeResultSet(result);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
         return employeeList;
@@ -1131,20 +1165,20 @@ public class DbConnect extends DbManager {
      *------------------------------------------------------------------------------------------------------*/
     public int confirmDelivery(Transaction delivery) {
 
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         CallableStatement cs = null;
         ResultSet res1 = null;
         Connection conn = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
             // Get location info for this transaction.
             String qry1 = "SELECT CDLOCATTO,CDLOCTYPETO,CDLOCATFROM,CDLOCTYPEFRM "
-                    + " FROM fm12invintrans  "
+                    + " FROM fm12invintrans "
                     + " WHERE CDSTATUS='A' "
-                    + " AND nuxrpd=" + delivery.getNuxrpd();
-
-            res1 = stmt.executeQuery(qry1);
+                    + " AND nuxrpd= ?";
+            pstmt = conn.prepareStatement(qry1);
+            pstmt.setInt(1, delivery.getNuxrpd());
+            res1 = pstmt.executeQuery();
             while (res1.next()) {
                 delivery.getDestination().setCdlocat(res1.getString(1));
                 delivery.getDestination().setCdloctype(res1.getString(2));
@@ -1157,14 +1191,21 @@ public class DbConnect extends DbManager {
                     + "SET CDINTRANSIT='N' "
                     + " ,DTTXNUPDATE=SYSDATE "
                     + " ,NATXNUPDUSER=USER "
-                    + " ,NUXRACCPTSIGN=" + delivery.getNuxraccptsign()
-                    + " ,NADELIVERBY='" + delivery.getNadeliverby()
-                    + "' ,NAACCEPTBY='" + delivery.getNaacceptby()
-                    + "' ,DTDELIVERY=SYSDATE "
-                    + "  ,DEDELCOMMENTS='" + delivery.getDeliveryComments()
-                    + "' WHERE NUXRPD=" + delivery.getNuxrpd();
-            stmt.executeUpdate(query);
-            conn.commit();
+                    + " ,NUXRACCPTSIGN= ?" //+ delivery.getNuxraccptsign()
+                    + " ,NADELIVERBY= ?"// + delivery.getNadeliverby()
+                    + " ,NAACCEPTBY= ?"// + delivery.getNaacceptby()
+                    + " ,DTDELIVERY=SYSDATE "
+                    + "  ,DEDELCOMMENTS= ?"//+ delivery.getDeliveryComments()
+                    + " WHERE NUXRPD= ?" /*+ delivery.getNuxrpd() */;
+
+           PreparedStatement updpstmt = conn.prepareStatement(query);
+           updpstmt.setString(1, delivery.getNuxraccptsign());
+           updpstmt.setString(2, delivery.getNadeliverby());
+           updpstmt.setString(3,delivery.getNaacceptby());
+           updpstmt.setString(4, delivery.getDeliveryComments());
+           updpstmt.setInt(5, delivery.getNuxrpd());
+           updpstmt.executeUpdate();
+           conn.commit();
 
             // Move delivered Items to their new location.
             for (String item : delivery.getCheckedItems()) {
@@ -1183,8 +1224,11 @@ public class DbConnect extends DbManager {
             // Delete items in this transaction that were not delivered, they will be put in a new transaction.
             if (delivery.getNotCheckedItems().size() > 0) {
                 for (String nusenate : delivery.getNotCheckedItems()) {
-                    String del = "DELETE FROM FD12INVINTRANS WHERE nuxrpd=" + delivery.getNuxrpd() + "AND nusenate = '" + nusenate + "'";
-                    stmt.executeUpdate(del);
+                    String delSql = "DELETE FROM FD12INVINTRANS WHERE nuxrpd= ? AND nusenate = ?";  // + delivery.getNuxrpd() + "     '" + nusenate + "'
+                    PreparedStatement delpstmt = conn.prepareStatement(delSql);
+                    delpstmt.setInt(1, delivery.getNuxrpd());
+                    delpstmt.setString(2, nusenate);
+                    delpstmt.executeUpdate();
                 }
             }
         } catch (SQLException ex) {
@@ -1193,7 +1237,7 @@ public class DbConnect extends DbManager {
             log.error("Error getting oracle jdbc driver: ", e);
         } finally {
             closeResultSet(res1);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeStatement(cs);
             closeConnection(conn);
         }
@@ -1206,19 +1250,20 @@ public class DbConnect extends DbManager {
 
     public Employee getEmployeeWhoSigned(String nuxrsign, boolean upperCase) {
         String nuxrefem = "";
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet res1 = null;
         Connection conn = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
             // Get location info for this transaction.
             String qry1 = "SELECT nuxrefem "
                     + " FROM fd12invsigns  "
                     + " WHERE cdstatus = 'A' "
-                    + " AND nuxrsign = " + nuxrsign;
+                    + " AND nuxrsign = ? " ;
+            pstmt = conn.prepareStatement(qry1);
+            pstmt.setString(1, nuxrsign);
+            res1 = pstmt.executeQuery();
 
-            res1 = stmt.executeQuery(qry1);
             while (res1.next()) {
                 nuxrefem = res1.getString(1);
             }
@@ -1228,7 +1273,7 @@ public class DbConnect extends DbManager {
             log.error("Error getting oracle jdbc driver: ", e);
         } finally {
             closeResultSet(res1);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
         return getEmployee(nuxrefem, upperCase);
@@ -1245,25 +1290,25 @@ public class DbConnect extends DbManager {
         }
 
         Employee currentEmployee = new Employee();
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet result = null;
         Connection conn = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
-            //  String loc_code;
             String qry = null;
             if (upperCase) {
                 qry = "SELECT a.nafirst, a.namidinit, a.nalast, a.nasuffix, a.naemail"
                         + " FROM pm21personn a"
-                        + " WHERE a.nuxrefem = " + nuxrefem;
+                        + " WHERE a.nuxrefem = ?"/* + nuxrefem*/;
             } else {
                 qry = "SELECT a.ffnafirst, a.ffnamidinit, a.ffnalast, a.ffnasuffix, a.naemail"
                         + " FROM pm21personn a"
-                        + " WHERE a.nuxrefem = " + nuxrefem;
+                        + " WHERE a.nuxrefem = ?"/* + nuxrefem*/;
             }
+            pstmt = conn.prepareStatement(qry);
+            pstmt.setInt(1, Integer.parseInt(nuxrefem));
 
-            result = stmt.executeQuery(qry);
+            result = pstmt.executeQuery();
             while (result.next()) {
                 currentEmployee.setNafirst(result.getString(1));
                 currentEmployee.setNamidinit(result.getString(2));
@@ -1278,7 +1323,7 @@ public class DbConnect extends DbManager {
             log.error("Error getting oracle jdbc driver: ", e);
         } finally {
             closeResultSet(result);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
         log.info("getEmployee() end");
@@ -1294,18 +1339,19 @@ public class DbConnect extends DbManager {
         Transaction pickup = new Transaction();
         pickup.setPickupItemsList(delivery.getNotCheckedItems());
 
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet result = null;
         Connection conn = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
             String qry = "SELECT NUXRPD,CDLOCATFROM, CDLOCTYPEFRM, CDLOCATTO,CDLOCTYPETO, NAPICKUPBY, NARELEASEBY, NUXRRELSIGN, DEPUCOMMENTS FROM   "
                     + "  FM12INVINTRANS"
                     + " WHERE CDSTATUS='A'"
-                    + " and nuxrpd=" + delivery.getNuxrpd();
+                    + " and nuxrpd= ?";
+            pstmt = conn.prepareStatement(qry);
+            pstmt.setInt(1, delivery.getNuxrpd());
+            result = pstmt.executeQuery();
 
-            result = stmt.executeQuery(qry);
             while (result.next()) {
                 String nuxrpd = result.getString(1);
                 pickup.getOrigin().setCdlocat(result.getString(2));
@@ -1323,11 +1369,10 @@ public class DbConnect extends DbManager {
             log.error("Error getting oracle jdbc driver: ", e);
         } finally {
             closeResultSet(result);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
         invTransit(pickup, delivery.getNuxrpd());
-        log.info("createNewDelivery() end ");
         return 0;
     }
 
@@ -1351,7 +1396,7 @@ public class DbConnect extends DbManager {
             ps.setInt(1, nuxrpd);
             ps.executeUpdate();
         } finally {
-            closeStatement(ps);
+            closePreparedStatement(ps);
             closeConnection(conn);
         }
     }
@@ -1371,7 +1416,7 @@ public class DbConnect extends DbManager {
             ps.setInt(2, nuxrpd);
             ps.executeUpdate();
         } finally {
-            closeStatement(ps);
+            closePreparedStatement(ps);
             closeConnection(conn);
         }
     }
@@ -1391,7 +1436,7 @@ public class DbConnect extends DbManager {
             ps.setInt(2, nuxrpd);
             ps.executeUpdate();
         } finally {
-            closeStatement(ps);
+            closePreparedStatement(ps);
             closeConnection(conn);
         }
     }
@@ -1403,13 +1448,12 @@ public class DbConnect extends DbManager {
             return;
         }
 
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet res0 = null;
         ResultSet res1 = null;
         Connection conn = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
 
             if (location.getCdloctype() == null || location.getCdloctype().trim().length() == 0) {
                 log.info("Location has no cdloctype, looking up cdloctype.. Recommending to always pass cdloctype.");
@@ -1417,15 +1461,16 @@ public class DbConnect extends DbManager {
                 // Get location info for this transaction.
                 String qry0 = "SELECT cdloctype "
                         + " FROM sl16location a "
-                        + " WHERE cdlocat = '" + location.getCdlocat() + "' "
+                        + " WHERE cdlocat = ? " // '" + location.getCdlocat() + "'
                         + "   AND cdstatus = 'A' "
                         + "   AND NOT EXISTS (SELECT 1 "
                         + "                   FROM sl16location a2 "
                         + "                   WHERE a2.cdlocat = a.cdlocat "
                         + "                     AND a2.cdloctype != a.cdloctype "
                         + "                     AND a2.cdstatus = 'A')";
+                pstmt.setString(1, location.getCdlocat());
+                res0 = pstmt.executeQuery();
 
-                res0 = stmt.executeQuery(qry0);
                 while (res0.next()) {
                     location.setCdloctype(res0.getString(1));
                 }
@@ -1434,16 +1479,17 @@ public class DbConnect extends DbManager {
                 log.info("Location has no cdloctype, setLocationInfo could not obtain location information.");
                 return;
             }
-            stmt = conn.createStatement();
             // Get location info for this transaction.
             String qry1 = "SELECT adstreet1,adcity,adstate,adzipcode "
                     + " FROM sl16location  "
-                    + " WHERE cdlocat = '" + location.getCdlocat() + "' "
-                    + "   AND cdloctype = '" + location.getCdloctype() + "' "
+                    + " WHERE cdlocat = ? " /*  '" + location.getCdlocat() + "' */
+                    + "   AND cdloctype = ?"/* ' + location.getCdloctype() + "' "*/
                     + "   AND cdstatus = 'A'";
 
-            //System.out.println ("DBCONNECT Location "+location.getCdlocat()+" QRY: "+qry1);
-            res1 = stmt.executeQuery(qry1);
+            pstmt = conn.prepareStatement(qry1);
+            pstmt.setString(1, location.getCdlocat());
+            pstmt.setString(1, location.getCdloctype());
+            res1 = pstmt.executeQuery();
             while (res1.next()) {
                 location.setAdstreet1(res1.getString(1));
                 location.setAdcity(res1.getString(2));
@@ -1453,10 +1499,9 @@ public class DbConnect extends DbManager {
         } finally {
             closeResultSet(res1);
             closeResultSet(res0);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
-        //System.out.println ("DBCONNECT Location "+location.getCdlocat()+" SET: "+location.getAdstreet1());
     }
 
     public Employee getEmployeeDaysTerminated(String nauser) throws SQLException, ClassNotFoundException {
@@ -1470,32 +1515,35 @@ public class DbConnect extends DbManager {
     public Employee getEmployeeDaysTerminated(String nauser, boolean upperCase, int daysTerminated) throws SQLException, ClassNotFoundException {
         Employee employee = new Employee();
 
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet res1 = null;
         Connection conn = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
             // Get location info for this transaction.
             String qry1 = null;
 
             if (upperCase) {
                 qry1 = "SELECT b.nuxrefem, b.nafirst, b.nalast, b.namidinit, b.nasuffix, b.naemail, SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) nauser\n"
                         + " FROM  pm21personn b  "
-                        + " WHERE SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) = '" + nauser.toUpperCase() + "' "
-                        + "   AND (b.cdempstatus = 'A' OR b.dtperempto > TRUNC(SYSDATE) - " + (daysTerminated - 1) + ") "
+                        + " WHERE SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) = ?  " //'" + nauser.toUpperCase() + "'
+                        + "   AND (b.cdempstatus = 'A' OR b.dtperempto > TRUNC(SYSDATE) - ?) " // " + (daysTerminated - 1) + "
                         + " ORDER BY DECODE( INSTR(b.naemail, '@'), -1, 1, 0)";
+                pstmt = conn.prepareStatement(qry1);
+
             } else {
                 qry1 = "SELECT b.nuxrefem, b.ffnafirst, b.ffnalast, b.ffnamidinit, b.ffnasuffix, b.naemail, SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) nauser\n"
                         + " FROM  pm21personn b  "
-                        + " WHERE SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) = '" + nauser.toUpperCase() + "' "
-                        + "   AND (b.cdempstatus = 'A' OR b.dtperempto > TRUNC(SYSDATE) - " + (daysTerminated - 1) + ") "
+                        + " WHERE SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) = ? " // '" + nauser.toUpperCase() + "'
+                        + "   AND (b.cdempstatus = 'A' OR b.dtperempto > TRUNC(SYSDATE) -  ? ) " // " + (daysTerminated - 1) + "
                         + " ORDER BY DECODE( INSTR(b.naemail, '@'), -1, 1, 0)";
+                pstmt = conn.prepareStatement(qry1);
             }
+            pstmt.setString(1, nauser);
+            pstmt.setInt(2, (daysTerminated - 1));
 
-            //System.out.println ("getEmployee qry1:"+qry1);
+            res1 = pstmt.executeQuery();
 
-            res1 = stmt.executeQuery(qry1);
             while (res1.next()) {
                 employee.setNuxrefem(res1.getInt(1));
                 employee.setNafirst(res1.getString(2));
@@ -1506,7 +1554,7 @@ public class DbConnect extends DbManager {
             }
         } finally {
             closeResultSet(res1);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
         return employee;
@@ -1539,7 +1587,7 @@ public class DbConnect extends DbManager {
             }
             ps.executeBatch();
         } finally {
-            closeStatement(ps);
+            closePreparedStatement(ps);
             closeConnection(conn);
         }
     }
@@ -1578,7 +1626,7 @@ public class DbConnect extends DbManager {
             }
         } finally {
             closeResultSet(rs);
-            closeStatement(ps);
+            closePreparedStatement(ps);
             closeConnection(conn);
         }
         return empInfo;
@@ -1587,16 +1635,15 @@ public class DbConnect extends DbManager {
     public ArrayList<Employee> getEmailSupervisors(String nauser) throws SQLException, ClassNotFoundException {
         ArrayList<Employee> emailSupervisors = new ArrayList<Employee>();
 
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet res1 = null;
         Connection conn = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
             // Get location info for this transaction.
             String qry1 = "Select C.Nuxrefem, C.Nafirst, C.Nalast, C.Namidinit, C.Nasuffix, C.Naemail, Substr(Upper(C.Naemail), 1, Decode(Instr(C.Naemail, '@'), -1, Length(C.Naemail), Instr(C.Naemail, '@')-1)) Nauser\n"
                     + " FROM  fm12emlsup a, pm21personn b, pm21personn c  "
-                    + " WHERE SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) = '" + nauser.toUpperCase() + "' "
+                    + " WHERE SUBSTR(UPPER(b.naemail), 1, DECODE(INSTR(b.naemail, '@'), -1, LENGTH(b.naemail), INSTR(b.naemail, '@')-1)) = ?  " //'" + nauser.toUpperCase() + "'
                     + "   AND b.cdempstatus = 'A'"
                     + "   AND b.nuxrefem = a.nuxrefem"
                     + "   AND c.cdempstatus = 'A'"
@@ -1604,9 +1651,11 @@ public class DbConnect extends DbManager {
                     + "   AND a.cdstatus = 'A' "
                     + " ORDER BY DECODE( INSTR(c.naemail, '@'), -1, 1, 0)";
 
-            //System.out.println ("getEmployee qry1:"+qry1);
+            pstmt = conn.prepareStatement(qry1);
+            pstmt.setString(1, nauser.toUpperCase());
 
-            res1 = stmt.executeQuery(qry1);
+            res1 = pstmt.executeQuery();
+
             while (res1.next()) {
                 Employee employee = new Employee();
                 employee.setNuxrefem(res1.getInt(1));
@@ -1619,7 +1668,7 @@ public class DbConnect extends DbManager {
             }
         } finally {
             closeResultSet(res1);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
         return emailSupervisors;
@@ -1628,24 +1677,24 @@ public class DbConnect extends DbManager {
     public ArrayList<Employee> getEmailSupervisors(int nuxrefem) throws SQLException, ClassNotFoundException {
         ArrayList<Employee> emailSupervisors = new ArrayList<Employee>();
 
-        Statement stmt = null;
         ResultSet res1 = null;
+        PreparedStatement pstmt = null;
         Connection conn = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
             // Get location info for this transaction.
             String qry1 = "SELECT c.nuxrefem, c.nafirst, c.nalast, c.namidinit, c.nasuffix, c.naemail, SUBSTR(UPPER(c.naemail), 1, DECODE(INSTR(c.naemail, '@'), -1, LENGTH(c.naemail), INSTR(c.naemail, '@')-1)) nauser\n"
                     + " FROM  fm12emlsup a, pm21personn c  "
-                    + " WHERE a.nuxrefem = " + nuxrefem + " "
+                    + " WHERE a.nuxrefem = ? " //+ nuxrefem + " "
                     + "   AND c.cdempstatus = 'A'"
                     + "   AND a.nuxrefemlsup = c.nuxrefem"
                     + "   AND a.cdstatus = 'A' "
                     + " ORDER BY DECODE( INSTR(c.naemail, '@'), -1, 1, 0)";
 
-            //System.out.println ("getEmployee qry1:"+qry1);
+            pstmt = conn.prepareStatement(qry1);
+            pstmt.setInt(1, nuxrefem);
 
-            res1 = stmt.executeQuery(qry1);
+            res1 = pstmt.executeQuery();
             while (res1.next()) {
                 Employee employee = new Employee();
                 employee.setNuxrefem(res1.getInt(1));
@@ -1658,7 +1707,7 @@ public class DbConnect extends DbManager {
             }
         } finally {
             closeResultSet(res1);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
         return emailSupervisors;
@@ -1751,8 +1800,6 @@ public class DbConnect extends DbManager {
             cs.setString(3, password);
             cs.executeUpdate();
             results = cs.getString(1);
-            //System.out.println("{?=call change_password("+user+","+password+")}");
-            //log.info("{?=call change_password("+user+","+password+")}");
 
             if (results != null && !results.isEmpty()) {
                 return results;
@@ -1782,7 +1829,6 @@ public class DbConnect extends DbManager {
             cs.executeUpdate();
 
             startMsg = "**WARNING:(updateSSOUserResource) ";
-            //System.out.println("call updateSSOUserResource ('"+user+"', '"+password+"', '"+this.dbaName+"||con', 'OracleDB', '389', '"+serverName+"', '"+ldapUserbase+"', , 'cn=Extended Properties,cn=OracleContext,"+ldapUserbase+"')}");
             cs = conn.prepareCall("{call updateSSOUserResource (?, ?, ?, ?, ?, ?, ?, ?)}");
 
             cs.setString(1, user.trim().toLowerCase());
@@ -1809,7 +1855,7 @@ public class DbConnect extends DbManager {
         } finally {
             closeResultSet(rs);
             closeStatement(cs);
-            closeStatement(ps);
+            closePreparedStatement(ps);
             closeConnection(conn);
         }
         return results;
@@ -1832,7 +1878,7 @@ public class DbConnect extends DbManager {
             orig = rs.getInt(1);
         } finally {
             closeResultSet(rs);
-            closeStatement(ps);
+            closePreparedStatement(ps);
             closeConnection(conn);
         }
 
@@ -1862,7 +1908,7 @@ public class DbConnect extends DbManager {
             }
         } finally {
             closeResultSet(res1);
-            closeStatement(ps);
+            closePreparedStatement(ps);
             closeConnection(conn);
         }
 
@@ -1876,12 +1922,12 @@ public class DbConnect extends DbManager {
                 + "WHERE cdstatus = 'A' ";
 
         Connection conn = null;
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet res1 = null;
         try {
             conn = getDbConnection();
-            stmt = conn.createStatement();
-            res1 = stmt.executeQuery(qry1);
+            pstmt = conn.prepareStatement(qry1);
+            res1 = pstmt.executeQuery();
             while (res1.next()) {
                 String emailParam;
                 emailParam = res1.getString("cdemailparam");
@@ -1889,7 +1935,7 @@ public class DbConnect extends DbManager {
             }
         } finally {
             closeResultSet(res1);
-            closeStatement(stmt);
+            closePreparedStatement(pstmt);
             closeConnection(conn);
         }
 
@@ -1917,7 +1963,7 @@ public class DbConnect extends DbManager {
             }
         } finally {
             closeResultSet(res1);
-            closeStatement(ps);
+            closePreparedStatement(ps);
             closeConnection(conn);
         }
 
