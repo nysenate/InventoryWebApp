@@ -4,7 +4,7 @@
 
     <groupId>gov.nysenate</groupId>
     <artifactId>InventoryWebApp</artifactId>
-    <version>1.7</version>
+    <version>1.8</version>
     <packaging>war</packaging>
 
     <name>InventoryWebApp</name>
@@ -113,7 +113,8 @@
                     <compilerArgs endorseddirs="${endorsed.dir}">
                     </compilerArgs>
                 </configuration>
-
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.5.1</version>
