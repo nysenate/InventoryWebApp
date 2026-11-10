@@ -40,6 +40,7 @@ public class TransactionMapper extends DbManager {
     public int insertPickup(DbConnect db, Transaction trans, int oldNuxrpd) throws SQLException, ClassNotFoundException {
         ResultSet result = null;
         PreparedStatement ps = null;
+        PreparedStatement psmt = null;
         Connection conn = null;
         try {
             conn = db.getDbConnection();
@@ -54,36 +55,36 @@ public class TransactionMapper extends DbManager {
                     "NUXRPDORIG, DTPICKUP, CDLOCTYPEFRM, CDLOCTYPETO, NUXRSHIPTYP, CDPPWRKTYP" + ") " +
                     "VALUES(?,?,?,?,?,?,?,?,SYSDATE,SYSDATE,USER,USER,?,?,?,?,?,?,?)";
 
-            ps = conn.prepareStatement(query);
+            psmt = conn.prepareStatement(query);
 
-            ps.setInt(1, trans.getNuxrpd());
-            ps.setString(2, trans.getDestinationCdLoc());
-            ps.setString(3, trans.getOriginCdLoc());
-            ps.setString(4, "Y");
-            ps.setString(5, trans.getNapickupby());
-            ps.setString(6, trans.getNareleaseby());
+            psmt.setInt(1, trans.getNuxrpd());
+            psmt.setString(2, trans.getDestinationCdLoc());
+            psmt.setString(3, trans.getOriginCdLoc());
+            psmt.setString(4, "Y");
+            psmt.setString(5, trans.getNapickupby());
+            psmt.setString(6, trans.getNareleaseby());
             if (trans.getNuxrrelsign().equals("")) {
-                ps.setNull(7, java.sql.Types.INTEGER);
+                psmt.setNull(7, java.sql.Types.INTEGER);
             } else {
-                ps.setInt(7, Integer.valueOf(trans.getNuxrrelsign()));
+                psmt.setInt(7, Integer.valueOf(trans.getNuxrrelsign()));
             }
-            ps.setString(8, "A");
-            ps.setString(9, trans.getPickupComments());
+            psmt.setString(8, "A");
+            psmt.setString(9, trans.getPickupComments());
             if (oldNuxrpd == 0) {
-                ps.setNull(10, java.sql.Types.INTEGER);
+                psmt.setNull(10, java.sql.Types.INTEGER);
             } else {
-                ps.setInt(10, oldNuxrpd);
+                psmt.setInt(10, oldNuxrpd);
             }
-            ps.setTimestamp(11, getSqlDate(trans.getPickupDate()));
-            ps.setString(12, trans.getOriginCdLocType());
-            ps.setString(13, trans.getDestinationCdLocType());
+            psmt.setTimestamp(11, getSqlDate(trans.getPickupDate()));
+            psmt.setString(12, trans.getOriginCdLocType());
+            psmt.setString(13, trans.getDestinationCdLocType());
             if (getTransShipId(conn, trans) == 0) {
-                ps.setNull(14, java.sql.Types.INTEGER);
+                psmt.setNull(14, java.sql.Types.INTEGER);
             } else {
-                ps.setInt(14, getTransShipId(conn, trans));
+                psmt.setInt(14, getTransShipId(conn, trans));
             }
-            ps.setString(15, trans.getRemoteType());
-            ps.executeUpdate();
+            psmt.setString(15, trans.getRemoteType());
+            psmt.executeUpdate();
 
             // Also insert each picked up item.
             for (String nusenate : trans.getPickupItemsNusenate()) {
@@ -95,7 +96,8 @@ public class TransactionMapper extends DbManager {
             }
         } finally {
             closeResultSet(result);
-            closeStatement(ps);
+            closePreparedStatement(ps);
+            closePreparedStatement(psmt);
             closeConnection(conn);
         }
         return trans.getNuxrpd();
