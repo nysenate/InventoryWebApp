@@ -472,6 +472,7 @@ public class DbConnect extends DbManager {
     public ArrayList getPickupSearchByList() {
         ArrayList<SimpleListItem> pickupList = new ArrayList<SimpleListItem>();
         PreparedStatement pstmt = null;
+
         ResultSet result = null;
         Connection conn = null;
         try {
@@ -704,6 +705,7 @@ public class DbConnect extends DbManager {
             String qry = "delete from SASS15018 where CDLOCAT=?";
             conn = getDbConnection();
             pstmt = conn.prepareStatement(qry);
+            pstmt.setString(1, cdlocat);
 
             // delete old data for given location code from SASS15018
 
@@ -1488,7 +1490,7 @@ public class DbConnect extends DbManager {
 
             pstmt = conn.prepareStatement(qry1);
             pstmt.setString(1, location.getCdlocat());
-            pstmt.setString(1, location.getCdloctype());
+            pstmt.setString(2, location.getCdloctype());
             res1 = pstmt.executeQuery();
             while (res1.next()) {
                 location.setAdstreet1(res1.getString(1));

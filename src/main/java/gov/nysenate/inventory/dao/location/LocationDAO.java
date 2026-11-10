@@ -64,7 +64,19 @@ public class LocationDAO
     protected Location getLocationOfItem(Connection conn, int itemId) throws SQLException {
         QueryRunner run = new QueryRunner();
         List<Location> locs =  run.query(conn, SELECT_LOCATION_OF_ITEM_SQL, new LocationHandler(), itemId);
-        return locs.get(0);
+
+        if (locs.isEmpty()) {
+            Location loc = new Location();
+            loc.setCdlocat("HOLD");
+            loc.setCdloctype("W");
+
+            System.out.println("itemId: " + itemId + " HAS NO LOCATION!!!!");
+
+            return  loc;
+        }
+        else{
+            return locs.get(0);
+        }
     }
 
     public List<Location> getLocationsOfItem(Connection conn, int itemId) throws SQLException {

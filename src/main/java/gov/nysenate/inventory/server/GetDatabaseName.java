@@ -21,8 +21,6 @@ import jakarta.servlet.http.HttpSession;
 public class GetDatabaseName extends HttpServlet
 {
 
-  private static final Logger log = Logger.getLogger(GetDatabaseName.class.getName());
-
   protected void processRequest(HttpServletRequest request, HttpServletResponse response)
           throws ServletException, IOException
   {

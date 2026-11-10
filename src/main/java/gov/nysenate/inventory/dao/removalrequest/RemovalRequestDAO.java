@@ -28,7 +28,9 @@ public class RemovalRequestDAO extends DbManager
 
     protected RemovalRequest getRemovalRequst(Connection conn, int id) throws SQLException {
         QueryRunner run = new QueryRunner();
+        System.out.println("getRemovalRequst: "+id);
         List<RemovalRequest> rrs = run.query(conn, SELECT_REMOVAL_REQUEST_SQL, new RemovalRequestHandler(), id);
+        System.out.println("getRemovalRequst: "+id+" Length: "+rrs.toString());
         return rrs.get(0);
     }
 

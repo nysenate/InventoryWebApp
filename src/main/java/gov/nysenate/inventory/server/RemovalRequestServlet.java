@@ -40,29 +40,15 @@ public class RemovalRequestServlet extends HttpServlet
         DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
 
         // Keeping the code below commented out for future testing purposes as needed
-        //System.out.println("RemovalRequest GET");
-
-/*        Map params = request.getParameterMap();
-        Iterator i = params.keySet().iterator();
-        while ( i.hasNext() ) {
-            String key = (String) i.next();
-            String value = ((String[]) params.get(key))[0];
-            Logger.getLogger(this.getClass()).info("         RemovalRequest Parameter: " +key + " : " + value );
-            System.out.println("         RemovalRequest Parameter: " +key + " : " + value );
-        }*/
-
-//        Logger.getLogger(this.getClass()).info("RemovalRequest status:"+request.getParameter("status") +" " + "id: "+request.getParameter("id"));
-//        System.out.println("RemovalRequest status:"+request.getParameter("status") +" " + "id: "+request.getParameter("id"));
 
         if (request.getParameter("status") != null) {
-           //Logger.getLogger("RemovalRequest "+"status:"+request.getParameter("status")+" ");
-            //System.out.println("RemovalRequest "+"status:"+request.getParameter("status")+" ");
-
             getRemovalRequestsByStatus(db, request, response, out);
         } else if (request.getParameter("id") != null) {
-            //System.out.println("RemovalRequest "+("id: "+request.getParameter("id")+" "));
-            //Logger.getLogger("RemovalRequest "+("id: "+request.getParameter("id")+" "));
             getRemovalRequestById(db, request, response, out);
+        }
+        else {
+            log.error("RemovalRequest both ID and status are NULL!!!!");
+            System.out.println("RemovalRequest both ID and status are NULL!!!!");
         }
     }
 
@@ -80,21 +66,21 @@ public class RemovalRequestServlet extends HttpServlet
             log.error(e.getMessage(), e);
             response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
-        out.write(Serializer.serialize(rrs));
+        String value = Serializer.serialize(rrs);
+        out.write(value);
     }
 
     private List<RemovalRequest> getRemovalRequests(String status, String user, DbConnect db) throws SQLException, ClassNotFoundException {
         RemovalRequestService service = new RemovalRequestService();
         List<RemovalRequest> rrs = null;
         switch (status) {
-            case "PE": rrs = service.getShallowPending(db); break;
-            case "SI": rrs =  service.getSubmittedToInventoryControl(db); break;
-            case "SM": rrs =  service.getSubmittedToManagement(db); break;
-            case "AP": rrs =  service.getApproved(db); break;
-            case "RJ": rrs =  service.getRejected(db); break;
-            case "CA": rrs =  null; // TODO: implement cancelled Removal Requests
-        }
-
+            case "PE":  rrs = service.getShallowPending(db); break;
+            case "SI":  rrs = service.getSubmittedToInventoryControl(db);break;
+            case "SM":  rrs =  service.getSubmittedToManagement(db); break;
+            case "AP":  rrs =  service.getApproved(db); break;
+            case "RJ":  rrs =  service.getRejected(db); break;
+            case "CA":  rrs =   null;// TODO: implement cancelled Removal Requests
+                 }
         if (rrs != null && user != null) {
             rrs = onlyCurrentUsersRequests(user, rrs);
         }
@@ -187,7 +173,7 @@ public class RemovalRequestServlet extends HttpServlet
             String[] paramValues = req.getParameterValues(paramName);
             for (int i = 0; i < paramValues.length; i++) {
                 String paramValue = paramValues[i];
-                System.out.println("      " + paramValue);
+                System.out.println("      " +i+") " + paramValue);
             }
 
         }

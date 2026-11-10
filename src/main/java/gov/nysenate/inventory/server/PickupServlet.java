@@ -31,21 +31,29 @@ public class PickupServlet extends HttpServlet
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
+        System.out.println("/PickupServlet processRequest");
+
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         HttpSession session = request.getSession(false);
         DbConnect db = new DbConnect(HttpUtils.getUserName(session), HttpUtils.getPassword(session));
         String pickupJson = request.getParameter("pickup");
         log.info("Attempting to complete pickup: " + pickupJson);
+        System.out.println("Attempting to complete pickup: " + pickupJson);
 
         TransactionMapper mapper = new TransactionMapper();
         try {
             Transaction pickup = Serializer.deserialize(pickupJson, Transaction.class).get(0);
+            System.out.println("set origin location: " + pickup.getOrigin());
             db.setLocationInfo(pickup.getOrigin());
+            System.out.println("set destination location: " + pickup.getDestination());
             db.setLocationInfo(pickup.getDestination());
+            System.out.println("insert pickup");
             int pickupId = mapper.insertPickup(db, pickup);
+            System.out.println("send emails");
             sendEmails(request, response, pickup, out, db, pickupId);
         } catch (SQLException | ClassNotFoundException | JsonSyntaxException ex) {
+            ex.printStackTrace();
             log.error(ex.getMessage(), ex);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
