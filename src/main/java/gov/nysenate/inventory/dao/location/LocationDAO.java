@@ -13,7 +13,6 @@ import java.util.List;
 
 public class LocationDAO
 {
-
     private final int NO_EXTRA_COLUMNS = 100;
     private final int ADD_ENTRYDATE = 101;
 
@@ -54,7 +53,7 @@ public class LocationDAO
     private String SELECT_LOCATIONS_BY_ITEM_SQL =
             "SELECT MIN(a.dttxnorigin) dttxnorigin, a.cdlocatto cdlocat, a.cdloctypeto cdloctype, b.adstreet1, b.adstreet2, b.adcity, b.adstate, b.adzipcode, b.delocat, b.cdrespctrhd\n" +
             "FROM fd12issaudit a \n" +
-            "LEFT OUTER JOIN sl16location b ON (a.cdlocatto = b.cdlocat   AND a.cdloctypeto = b.cdloctype AND b.cdstatus = 'A')\n" +
+            "LEFT OUTER JOIN sl16location b ON (a.cdlocatto = b.cdlocat AND a.cdloctypeto = b.cdloctype AND b.cdstatus = 'A')\n" +
             "WHERE a.nuxrefsn = ? \n" +
             "  AND a.cdstatus = 'A'\n" +
             "  AND a.cdlocatto IS NOT NULL\n" +
@@ -69,8 +68,6 @@ public class LocationDAO
             Location loc = new Location();
             loc.setCdlocat("HOLD");
             loc.setCdloctype("W");
-
-            System.out.println("itemId: " + itemId + " HAS NO LOCATION!!!!");
 
             return  loc;
         }

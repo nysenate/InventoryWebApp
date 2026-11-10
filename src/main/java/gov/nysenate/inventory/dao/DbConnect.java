@@ -754,7 +754,6 @@ public class DbConnect extends DbManager {
                 } else {
                     result = 1;
                 }
-                System.out.println(r);
             }
         } catch (SQLException ex) {
             result = 2;

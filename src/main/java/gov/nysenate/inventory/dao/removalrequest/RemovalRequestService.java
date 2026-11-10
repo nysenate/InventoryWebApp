@@ -135,27 +135,18 @@ public class RemovalRequestService {
     }
 
     public List<RemovalRequest> getRejected(DbConnect db) throws SQLException, ClassNotFoundException {
-        System.out.println("           rejected SPOT 1");
         List<RemovalRequest> rrs;
-        System.out.println("           rejected SPOT 2");
 
         RemovalRequestDAO rrDao = new RemovalRequestDAO();
-        System.out.println("           rejected SPOT 3");
 
         Connection conn = null;
         try {
-            System.out.println("           rejected SPOT 4");
             conn = db.getDbConnection();
-            System.out.println("           rejected SPOT 5");
             rrs = rrDao.getRejected(conn);
-            System.out.println("           rejected SPOT 6");
             rrs = populateRequestList(rrs, conn);
-            System.out.println("           rejected SPOT 7");
         } finally {
-            System.out.println("           rejected SPOT 8");
             DbUtils.close(conn);
         }
-        System.out.println("           rejected SPOT 9");
 
         return rrs;
     }
